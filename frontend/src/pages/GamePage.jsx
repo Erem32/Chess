@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getGame, getGameMoves, resignGame } from "../api/games.js";
+import { acceptDraw, declineDraw, getGame, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { createGameSocket } from "../api/websocket.js";
 import ChatBox from "../components/ChatBox.jsx";
@@ -35,6 +35,11 @@ export default function GamePage() {
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && Boolean(game?.id);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
+  const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
+  const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
+  const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
+  const canOfferDraw = Boolean(playerColor) && !isGameOver && !hasPendingDrawOffer;
+  const canRespondToDraw = hasPendingDrawOffer && !isOwnDrawOffer;
   const feedback = resolveBoardFeedback({
     currentUserId,
     error,
@@ -72,6 +77,28 @@ export default function GamePage() {
       active = false;
     };
   }, [gameId]);
+
+  useEffect(() => {
+    if (!game?.id || isGameOver) return undefined;
+
+    let active = true;
+
+    async function refreshGameOnly() {
+      try {
+        const gameData = await getGame(gameId);
+        if (active) setGame(gameData);
+      } catch {
+        // Keep current state on background refresh failures.
+      }
+    }
+
+    const intervalId = window.setInterval(refreshGameOnly, 2000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [game?.id, gameId, isGameOver]);
 
   useEffect(() => {
     if (!canOpenSocket) return undefined;
@@ -223,21 +250,6 @@ export default function GamePage() {
     activeSocket.send(JSON.stringify({ type: "chat", payload: { message } }));
   }
 
-  async function handleReload() {
-    setError("");
-    try {
-      const [gameData, movesData] = await Promise.all([
-        getGame(gameId),
-        getGameMoves(gameId)
-      ]);
-      setGame(gameData);
-      setFen(resolveFen(gameData));
-      setMoves(resolveMoves(movesData));
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   async function handleResign() {
     setError("");
     try {
@@ -245,6 +257,39 @@ export default function GamePage() {
       setGame(data);
       setFen(resolveFen(data, fen));
       setInfo(data?.result ?? data?.message ?? "Game resigned");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleOfferDraw() {
+    setError("");
+    try {
+      const data = await offerDraw(gameId);
+      setGame(data);
+      setInfo("Draw offer sent");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleAcceptDraw() {
+    setError("");
+    try {
+      const data = await acceptDraw(gameId);
+      setGame(data);
+      setInfo("Draw agreed");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleDeclineDraw() {
+    setError("");
+    try {
+      const data = await declineDraw(gameId);
+      setGame(data);
+      setInfo("Draw offer declined");
     } catch (err) {
       setError(err.message);
     }
@@ -297,10 +342,31 @@ export default function GamePage() {
         <MoveHistory moves={moves} />
         <div className="panel button-panel">
           <div className="actions">
-            <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
-            <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
+            <button type="button" className="danger-button" onClick={handleResign}>
+              <span aria-hidden="true">🏁</span> Resign
+            </button>
+          </div>
+          <div className="actions">
+            {canOfferDraw && (
+              <button type="button" className="secondary-button" onClick={handleOfferDraw}>½ Offer draw</button>
+            )}
+            {canRespondToDraw && (
+              <>
+                <button type="button" className="secondary-button" onClick={handleAcceptDraw}>½ Accept draw</button>
+                <button type="button" className="danger-button" onClick={handleDeclineDraw}>Decline</button>
+              </>
+            )}
           </div>
         </div>
+        {hasPendingDrawOffer && (
+          <section className="panel draw-offer-panel">
+            <p className="muted draw-offer-copy">
+              {isOwnDrawOffer
+                ? "½ Draw offered. Waiting for opponent response."
+                : `½ ${playerNamesById[drawOfferByUserId] ?? "Opponent"} offered a draw.`}
+            </p>
+          </section>
+        )}
       </aside>
     </section>
   );

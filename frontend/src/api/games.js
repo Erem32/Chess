@@ -32,6 +32,18 @@ export function resignGame(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/resign`, { method: "POST" });
 }
 
+export function offerDraw(gameId) {
+  return apiRequest(`/api/v1/games/${gameId}/draw-offer`, { method: "POST" });
+}
+
+export function acceptDraw(gameId) {
+  return apiRequest(`/api/v1/games/${gameId}/draw-offer/accept`, { method: "POST" });
+}
+
+export function declineDraw(gameId) {
+  return apiRequest(`/api/v1/games/${gameId}/draw-offer/decline`, { method: "POST" });
+}
+
 export function getMyHistory() {
   return apiRequest("/api/v1/games/my-history");
 }

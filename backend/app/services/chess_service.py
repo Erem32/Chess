@@ -31,6 +31,10 @@ class ChatMessageError(ValueError):
     pass
 
 
+class DrawOfferError(ValueError):
+    pass
+
+
 def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
     board = chess.Board(fen)
 
@@ -85,6 +89,7 @@ def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) ->
 
     game.current_fen = str(move_result["fen"])
     game.turn_color = str(move_result["turn_color"])
+    _clear_draw_offer(game)
     if move_result["is_finished"]:
         game.status = _finished_status(game.turn_color, bool(move_result["is_checkmate"]))
         game.finished_at = datetime.utcnow()
@@ -124,6 +129,46 @@ def get_game_state_for_user(db: Session, game_id: int, user_id: int) -> dict:
     return game_state_payload(_get_game_for_user(db, game_id, user_id))
 
 
+def offer_draw(db: Session, game_id: int, user_id: int) -> dict:
+    game = _get_game_for_user(db, game_id, user_id, lock=True)
+    if game.status != "active":
+        raise GameNotActiveError("Game is not active")
+    if game.draw_offer_by_user_id == user_id:
+        raise DrawOfferError("You have already offered a draw")
+    if game.draw_offer_by_user_id is not None and game.draw_offer_by_user_id != user_id:
+        raise DrawOfferError("A draw offer is already pending")
+
+    game.draw_offer_by_user_id = user_id
+    game.draw_offer_created_at = datetime.utcnow()
+    db.commit()
+    db.refresh(game)
+    return game_state_payload(game)
+
+
+def respond_to_draw_offer(db: Session, game_id: int, user_id: int, accept: bool) -> dict:
+    game = _get_game_for_user(db, game_id, user_id, lock=True)
+    if game.status != "active":
+        raise GameNotActiveError("Game is not active")
+    if game.draw_offer_by_user_id is None:
+        raise DrawOfferError("There is no pending draw offer")
+    if game.draw_offer_by_user_id == user_id:
+        raise DrawOfferError("You cannot respond to your own draw offer")
+
+    if accept:
+        game.status = "draw"
+        game.finished_at = datetime.utcnow()
+        game.result = "draw_agreed"
+        for player in game.players:
+            player.result = "draw"
+        _clear_draw_offer(game)
+    else:
+        _clear_draw_offer(game)
+
+    db.commit()
+    db.refresh(game)
+    return game_state_payload(game)
+
+
 def game_state_payload(game: Game) -> dict:
     return {
         "id": game.id,
@@ -133,6 +178,8 @@ def game_state_payload(game: Game) -> dict:
         "started_at": _datetime_payload(game.started_at),
         "finished_at": _datetime_payload(game.finished_at),
         "result": game.result,
+        "draw_offer_by_user_id": game.draw_offer_by_user_id,
+        "draw_offer_created_at": _datetime_payload(game.draw_offer_created_at),
     }
 
 
@@ -191,6 +238,11 @@ def _set_player_results(game: Game, is_checkmate: bool) -> None:
     winning_color = "black" if game.turn_color == "white" else "white"
     for player in game.players:
         player.result = "win" if player.color == winning_color else "loss"
+
+
+def _clear_draw_offer(game: Game) -> None:
+    game.draw_offer_by_user_id = None
+    game.draw_offer_created_at = None
 
 
 def _datetime_payload(value: datetime | None) -> str | None:

@@ -154,3 +154,40 @@ def test_user_can_abort_active_games_for_clean_dashboard(client: TestClient) -> 
     assert abort_response.json()["games"][0]["status"] == "aborted"
     assert next_active_response.status_code == 200
     assert next_active_response.json() is None
+
+
+def test_player_can_offer_draw_and_opponent_can_accept(client: TestClient) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    matched_response = client.post("/api/v1/matchmaking/join", headers=bob_headers)
+    game_id = matched_response.json()["game"]["id"]
+
+    offer_response = client.post(f"/api/v1/games/{game_id}/draw-offer", headers=alice_headers)
+    accept_response = client.post(f"/api/v1/games/{game_id}/draw-offer/accept", headers=bob_headers)
+
+    assert offer_response.status_code == 200
+    assert offer_response.json()["draw_offer_by_user_id"] is not None
+    assert accept_response.status_code == 200
+    assert accept_response.json()["status"] == "draw"
+    assert accept_response.json()["result"] == "draw_agreed"
+    assert accept_response.json()["draw_offer_by_user_id"] is None
+
+
+def test_player_can_decline_draw_offer(client: TestClient) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    matched_response = client.post("/api/v1/matchmaking/join", headers=bob_headers)
+    game_id = matched_response.json()["game"]["id"]
+
+    client.post(f"/api/v1/games/{game_id}/draw-offer", headers=alice_headers)
+    decline_response = client.post(f"/api/v1/games/{game_id}/draw-offer/decline", headers=bob_headers)
+    game_response = client.get(f"/api/v1/games/{game_id}", headers=alice_headers)
+
+    assert decline_response.status_code == 200
+    assert decline_response.json()["status"] == "active"
+    assert decline_response.json()["draw_offer_by_user_id"] is None
+    assert game_response.status_code == 200
+    assert game_response.json()["status"] == "active"
+    assert game_response.json()["draw_offer_by_user_id"] is None

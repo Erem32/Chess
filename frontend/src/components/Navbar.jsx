@@ -6,6 +6,10 @@ export default function Navbar({ theme, onToggleTheme }) {
   const navigate = useNavigate();
   const { token, user, logout } = useAuth();
 
+  function handleReload() {
+    window.location.reload();
+  }
+
   function handleLogout() {
     logout();
     navigate("/login");
@@ -30,6 +34,9 @@ export default function Navbar({ theme, onToggleTheme }) {
         </button>
         {token ? (
           <>
+            <button type="button" className="secondary-button nav-action-button" onClick={handleReload}>
+              Reload
+            </button>
             {user?.username && <span className="nav-user">{user.username}</span>}
             <Link to="/history">History</Link>
             <button type="button" onClick={handleLogout}>Logout</button>

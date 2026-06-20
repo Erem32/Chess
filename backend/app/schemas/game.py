@@ -11,6 +11,8 @@ class GameRead(BaseModel):
     started_at: datetime | None
     finished_at: datetime | None
     result: str | None
+    draw_offer_by_user_id: int | None = None
+    draw_offer_created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

@@ -107,6 +107,10 @@ input {
   gap: 1rem;
 }
 
+.nav-action-button {
+  padding: 0.55rem 0.9rem;
+}
+
 .theme-toggle {
   align-items: center;
   background: transparent;
@@ -255,8 +259,20 @@ input {
   margin: 0;
 }
 
+.button-panel .actions + .actions {
+  margin-top: 0.65rem;
+}
+
 .button-panel .actions button {
   flex: 1 1 0;
+}
+
+.draw-offer-copy {
+  margin: 0;
+}
+
+.draw-offer-panel {
+  min-height: 3.25rem;
 }
 
 .move-panel h2,
