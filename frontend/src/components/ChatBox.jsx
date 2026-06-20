@@ -29,7 +29,7 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
         ) : (
           messages.map((item, index) => (
             <p key={item.id ?? index}>
-              {item.user_id && <span className="muted">{getAuthorLabel?.(item) ?? `#${item.user_id}`}: </span>}
+              {item.user_id && <span className="chat-author">{getAuthorLabel?.(item) ?? `#${item.user_id}`}: </span>}
               {item.message}
             </p>
           ))

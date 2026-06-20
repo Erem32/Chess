@@ -179,6 +179,11 @@ input {
   padding-left: 1.5rem;
 }
 
+.chat-author {
+  color: #111827;
+  font-weight: 700;
+}
+
 .stats-panel dl {
   display: grid;
   grid-template-columns: 1fr auto;

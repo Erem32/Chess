@@ -76,6 +76,7 @@ def test_matchmaking_creates_game_for_second_player(
     assert data["game"]["status"] == "active"
     assert data["game"]["turn_color"] == "white"
     assert {player["color"] for player in data["game"]["players"]} == {"white", "black"}
+    assert {player["username"] for player in data["game"]["players"]} == {"alice", "bob"}
     with db_session_factory() as db:
         assert db.query(Game).filter(Game.status == "active").count() == 1
         assert db.query(MatchmakingQueue).count() == 0
