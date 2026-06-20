@@ -17,6 +17,7 @@ class GameRead(BaseModel):
 
 class GamePlayerRead(BaseModel):
     user_id: int
+    username: str | None = None
     color: str
     result: str | None
 

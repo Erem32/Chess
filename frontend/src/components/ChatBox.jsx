@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
-export default function ChatBox({ messages = [], onSend }) {
+export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
   const [message, setMessage] = useState("");
   const scrollRef = useRef(null);
 
@@ -29,7 +29,7 @@ export default function ChatBox({ messages = [], onSend }) {
         ) : (
           messages.map((item, index) => (
             <p key={item.id ?? index}>
-              {item.user_id && <span className="muted">#{item.user_id}: </span>}
+              {item.user_id && <span className="muted">{getAuthorLabel?.(item) ?? `#${item.user_id}`}: </span>}
               {item.message}
             </p>
           ))

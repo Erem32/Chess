@@ -30,6 +30,7 @@ export default function GamePage() {
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
   const playerColor = resolvePlayerColor(game, currentUserId);
+  const playerNamesById = buildPlayerNamesById(game);
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && Boolean(game?.id);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
@@ -267,7 +268,11 @@ export default function GamePage() {
       </div>
       <aside className="side-stack">
         <MoveHistory moves={moves} />
-        <ChatBox messages={messages} onSend={sendChat} />
+        <ChatBox
+          messages={messages}
+          onSend={sendChat}
+          getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
+        />
       </aside>
     </section>
   );
@@ -308,6 +313,22 @@ function resolvePlayerColor(game, userId) {
   if (!game?.players || !userId) return null;
   const player = game.players.find((item) => Number(item.user_id) === Number(userId));
   return player?.color ?? null;
+}
+
+function buildPlayerNamesById(game) {
+  if (!game?.players) return {};
+  return Object.fromEntries(
+    game.players
+      .filter((player) => player?.user_id)
+      .map((player) => [player.user_id, player.username ?? player.color ?? `Player ${player.user_id}`])
+  );
+}
+
+function resolvePlayerChatLabel(game, userId) {
+  if (!game?.players || !userId) return `#${userId}`;
+  const player = game.players.find((item) => Number(item.user_id) === Number(userId));
+  if (!player) return `#${userId}`;
+  return player.username ?? player.color ?? `#${userId}`;
 }
 
 function getUserIdFromToken(token) {
