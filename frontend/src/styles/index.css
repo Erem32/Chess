@@ -18,6 +18,7 @@ body,
   --color-border-warning: #6b4f2c;
   --color-input-border: #52525b;
   --color-danger: #b91c1c;
+  --color-brand-accent: #c62828;
   --color-toggle-track: #171717;
   --color-toggle-thumb: #f4f4f5;
   --color-toggle-icon: #d4d4d8;
@@ -41,6 +42,7 @@ body,
   --color-border-warning: #fed7aa;
   --color-input-border: #cbd5e1;
   --color-danger: #b91c1c;
+  --color-brand-accent: #c62828;
   --color-toggle-track: #cbd5e1;
   --color-toggle-thumb: #ffffff;
   --color-toggle-icon: #475569;
@@ -158,7 +160,26 @@ input {
 
 .brand {
   color: var(--color-text-strong);
+  display: inline-flex;
+  gap: 0.08rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.brand-mark {
+  color: var(--color-text-strong);
+  font-size: 1.2rem;
+}
+
+.brand-domain {
+  color: var(--color-text-strong);
+  font-size: 1.2rem;
+}
+
+.brand-accent {
+  color: var(--color-brand-accent);
+  font-size: 1.2rem;
 }
 
 .page {
@@ -224,6 +245,86 @@ input {
 .board-feedback-panel {
   align-self: stretch;
   min-height: 3.5rem;
+}
+
+.captured-panel {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  justify-self: stretch;
+  min-height: 1.75rem;
+  padding: 0 0.1rem;
+  width: 100%;
+}
+
+.captured-side {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.captured-side--left {
+  justify-content: flex-start;
+}
+
+.captured-side--right {
+  justify-content: flex-end;
+}
+
+.captured-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+}
+
+.captured-side--right .captured-row {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.captured-icons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.2rem;
+}
+
+.captured-piece {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.captured-piece--w {
+  color: #f8fafc;
+  text-shadow:
+    -1px 0 #111827,
+    0 1px #111827,
+    1px 0 #111827,
+    0 -1px #111827,
+    -1px -1px #111827,
+    1px -1px #111827,
+    -1px 1px #111827,
+    1px 1px #111827;
+}
+
+.captured-piece--b {
+  color: #111827;
+  text-shadow:
+    -1px 0 #f8fafc,
+    0 1px #f8fafc,
+    1px 0 #f8fafc,
+    0 -1px #f8fafc,
+    -1px -1px #f8fafc,
+    1px -1px #f8fafc,
+    -1px 1px #f8fafc,
+    1px 1px #f8fafc;
+}
+
+.captured-score {
+  color: var(--color-text-strong);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .board-feedback-panel p {
@@ -391,6 +492,15 @@ input {
   .dashboard-grid,
   .game-layout {
     grid-template-columns: 1fr;
+  }
+
+  .captured-panel {
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+
+  .captured-side--right .captured-row {
+    justify-content: flex-end;
   }
 
   .history-row {

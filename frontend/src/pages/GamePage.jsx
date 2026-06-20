@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { acceptDraw, declineDraw, getGame, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { createGameSocket } from "../api/websocket.js";
+import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
 import ChessBoard from "../components/ChessBoard.jsx";
 import MoveHistory from "../components/MoveHistory.jsx";
@@ -330,6 +331,7 @@ export default function GamePage() {
           </section>
         )}
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
+        <CapturedPiecesPanel fen={fen} playerColor={playerColor} />
         <section className={`panel board-feedback-panel ${feedback ? "" : "is-empty"}`}>
           {feedback ? (
             <p className={feedback.tone === "error" ? "error" : "muted"}>{feedback.message}</p>

@@ -17,7 +17,11 @@ export default function Navbar({ theme, onToggleTheme }) {
 
   return (
     <header className="navbar">
-      <Link to="/dashboard" className="brand">Online Chess</Link>
+      <Link to="/dashboard" className="brand" aria-label="szachy2.pl home">
+        <span className="brand-mark">szachy</span>
+        <span className="brand-accent">2</span>
+        <span className="brand-domain">.pl</span>
+      </Link>
       <nav>
         <button
           type="button"
