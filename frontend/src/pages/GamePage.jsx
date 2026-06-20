@@ -31,6 +31,7 @@ export default function GamePage() {
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
   const playerColor = resolvePlayerColor(game, currentUserId);
   const playerNamesById = buildPlayerNamesById(game);
+  const playerSummary = buildPlayerSummary(game, currentUserId);
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && Boolean(game?.id);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
@@ -243,7 +244,29 @@ export default function GamePage() {
 
   return (
     <section className="game-layout">
-      <div>
+      <aside className="game-side-column">
+        <section className="panel player-summary-panel">
+          <h2>Players</h2>
+          {playerSummary.length === 0 ? (
+            <p className="muted">Player names unavailable.</p>
+          ) : (
+            <div className="player-summary-list">
+              {playerSummary.map((player) => (
+                <p key={player.user_id} className="player-summary-row">
+                  <span className="player-summary-name">{player.name}</span>
+                  <span className="player-summary-rating">({player.ratingLabel})</span>
+                </p>
+              ))}
+            </div>
+          )}
+        </section>
+        <ChatBox
+          messages={messages}
+          onSend={sendChat}
+          getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
+        />
+      </aside>
+      <div className="game-board-column">
         {error && <p className="error">{error}</p>}
         {isGameOver && (
           <section className="game-over-panel">
@@ -260,19 +283,16 @@ export default function GamePage() {
         {playerColor && socketStatus !== "connected" && !isGameOver && (
           <p className="muted">Waiting for live game connection...</p>
         )}
-        <div className="actions">
-          <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
-          <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
-        </div>
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
       </div>
-      <aside className="side-stack">
+      <aside className="game-side-column">
         <MoveHistory moves={moves} />
-        <ChatBox
-          messages={messages}
-          onSend={sendChat}
-          getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
-        />
+        <div className="panel button-panel">
+          <div className="actions">
+            <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
+            <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
+          </div>
+        </div>
       </aside>
     </section>
   );
@@ -329,6 +349,20 @@ function resolvePlayerChatLabel(game, userId) {
   const player = game.players.find((item) => Number(item.user_id) === Number(userId));
   if (!player) return `#${userId}`;
   return player.username ?? player.color ?? `#${userId}`;
+}
+
+function buildPlayerSummary(game, currentUserId) {
+  if (!game?.players) return [];
+
+  const players = game.players.map((player) => ({
+    user_id: player.user_id,
+    isCurrentUser: Number(player.user_id) === Number(currentUserId),
+    name: player.username ?? player.color ?? `Player ${player.user_id}`,
+    ratingLabel: "Unrated"
+  }));
+
+  players.sort((left, right) => Number(right.isCurrentUser) - Number(left.isCurrentUser));
+  return players;
 }
 
 function getUserIdFromToken(token) {
