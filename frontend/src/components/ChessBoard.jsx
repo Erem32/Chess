@@ -1,5 +1,24 @@
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
+import { Chessboard, defaultPieces } from "react-chessboard";
+
+const FIREFOX_SAFE_PIECES = Object.fromEntries(
+  Object.entries(defaultPieces).map(([pieceType, renderPiece]) => [
+    pieceType,
+    (props = {}) =>
+      renderPiece({
+        ...props,
+        fill: pieceType.startsWith("w") ? "#f8fafc" : "#111827",
+        svgStyle: {
+          display: "block",
+          filter: pieceType.startsWith("w")
+            ? "drop-shadow(0 0 1px rgba(15, 23, 42, 0.9))"
+            : "drop-shadow(0 1px 1px rgba(248, 250, 252, 0.15))",
+          overflow: "visible",
+          ...(props.svgStyle ?? {})
+        }
+      })
+  ])
+);
 
 export default function ChessBoard({ fen, onMove, playerColor, isInteractive = true }) {
   function buildMove(sourceSquare, targetSquare) {
@@ -21,6 +40,7 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
         options={{
           id: "game-board",
           position: fen,
+          pieces: FIREFOX_SAFE_PIECES,
           boardOrientation: playerColor === "black" ? "black" : "white",
           allowDragging: isInteractive,
           canDragPiece: ({ piece }) => {

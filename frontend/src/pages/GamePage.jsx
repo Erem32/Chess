@@ -243,17 +243,6 @@ export default function GamePage() {
   return (
     <section className="game-layout">
       <div>
-        <h1>Game #{gameId}</h1>
-        <div className="game-toolbar">
-          <span className="muted">
-            {isLoading ? "Loading..." : game?.status ?? info}
-            {game?.turn_color ? `, ${game.turn_color} to move` : ""}
-            {playerColor ? `, you are ${playerColor}` : ""}
-            {playerColor ? `, connection ${socketStatus}` : ""}
-          </span>
-          <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
-          <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
-        </div>
         {error && <p className="error">{error}</p>}
         {isGameOver && (
           <section className="game-over-panel">
@@ -270,6 +259,10 @@ export default function GamePage() {
         {playerColor && socketStatus !== "connected" && !isGameOver && (
           <p className="muted">Waiting for live game connection...</p>
         )}
+        <div className="actions">
+          <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
+          <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
+        </div>
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
       </div>
       <aside className="side-stack">

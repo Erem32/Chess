@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 export default function ChatBox({ messages = [], onSend }) {
   const [message, setMessage] = useState("");
+  const scrollRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const frameId = window.requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [messages.length]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -13,7 +23,7 @@ export default function ChatBox({ messages = [], onSend }) {
   return (
     <section className="panel chat-panel">
       <h2>Chat</h2>
-      <div className="chat-messages">
+      <div className="panel-scroll chat-messages" ref={scrollRef}>
         {messages.length === 0 ? (
           <p className="muted">No messages yet.</p>
         ) : (
