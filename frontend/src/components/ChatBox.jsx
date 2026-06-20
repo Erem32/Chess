@@ -35,7 +35,7 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
           ))
         )}
       </div>
-      <form onSubmit={handleSubmit} className="inline-form">
+      <form onSubmit={handleSubmit} className="inline-form chat-form">
         <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" />
         <button type="submit">Send</button>
       </form>

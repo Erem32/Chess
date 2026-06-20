@@ -27,6 +27,7 @@ export default function GamePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
+  const [mobilePanel, setMobilePanel] = useState("players");
   const isGameOver = game && game.status !== "active" && game.status !== "waiting";
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
@@ -298,22 +299,8 @@ export default function GamePage() {
 
   return (
     <section className="game-layout">
-      <aside className="game-side-column">
-        <section className="panel player-summary-panel">
-          <h2>Players</h2>
-          {playerSummary.length === 0 ? (
-            <p className="muted">Player names unavailable.</p>
-          ) : (
-            <div className="player-summary-list">
-              {playerSummary.map((player) => (
-                <p key={player.user_id} className="player-summary-row">
-                  <span className="player-summary-name">{player.name}</span>
-                  <span className="player-summary-rating">({player.ratingLabel})</span>
-                </p>
-              ))}
-            </div>
-          )}
-        </section>
+      <aside className="game-side-column desktop-game-sidebar">
+        <PlayerSummaryPanel playerSummary={playerSummary} />
         <ChatBox
           messages={messages}
           onSend={sendChat}
@@ -332,44 +319,147 @@ export default function GamePage() {
         )}
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
         <CapturedPiecesPanel fen={fen} playerColor={playerColor} />
-        <section className={`panel board-feedback-panel ${feedback ? "" : "is-empty"}`}>
+        <section className={`panel board-feedback-panel ${feedback ? `is-${feedback.tone}` : "is-empty"}`}>
           {feedback ? (
             <p className={feedback.tone === "error" ? "error" : "muted"}>{feedback.message}</p>
           ) : (
             <p className="muted">Status ready.</p>
           )}
         </section>
+        <section className="mobile-game-nav" aria-label="Game panels">
+          <button
+            type="button"
+            className={`secondary-button mobile-game-nav-button ${mobilePanel === "players" ? "is-active" : ""}`}
+            onClick={() => setMobilePanel("players")}
+          >
+            Players
+          </button>
+          <button
+            type="button"
+            className={`secondary-button mobile-game-nav-button ${mobilePanel === "moves" ? "is-active" : ""}`}
+            onClick={() => setMobilePanel("moves")}
+          >
+            Moves
+          </button>
+          <button
+            type="button"
+            className={`secondary-button mobile-game-nav-button ${mobilePanel === "chat" ? "is-active" : ""}`}
+            onClick={() => setMobilePanel("chat")}
+          >
+            Chat
+          </button>
+        </section>
+        <section className="mobile-game-panel">
+          {mobilePanel === "players" && (
+            <>
+              <PlayerSummaryPanel playerSummary={playerSummary} />
+              <GameActionPanel
+                canOfferDraw={canOfferDraw}
+                canRespondToDraw={canRespondToDraw}
+                onAcceptDraw={handleAcceptDraw}
+                onDeclineDraw={handleDeclineDraw}
+                onOfferDraw={handleOfferDraw}
+                onResign={handleResign}
+              />
+              <DrawOfferPanel
+                drawOfferByUserId={drawOfferByUserId}
+                hasPendingDrawOffer={hasPendingDrawOffer}
+                isOwnDrawOffer={isOwnDrawOffer}
+                playerNamesById={playerNamesById}
+              />
+            </>
+          )}
+          {mobilePanel === "moves" && <MoveHistory moves={moves} />}
+          {mobilePanel === "chat" && (
+            <ChatBox
+              messages={messages}
+              onSend={sendChat}
+              getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
+            />
+          )}
+        </section>
       </div>
-      <aside className="game-side-column">
+      <aside className="game-side-column desktop-game-sidebar">
         <MoveHistory moves={moves} />
-        <div className="panel button-panel">
-          <div className="actions">
-            <button type="button" className="danger-button" onClick={handleResign}>
-              <span aria-hidden="true">🏁</span> Resign
-            </button>
-          </div>
-          <div className="actions">
-            {canOfferDraw && (
-              <button type="button" className="secondary-button" onClick={handleOfferDraw}>½ Offer draw</button>
-            )}
-            {canRespondToDraw && (
-              <>
-                <button type="button" className="secondary-button" onClick={handleAcceptDraw}>½ Accept draw</button>
-                <button type="button" className="danger-button" onClick={handleDeclineDraw}>Decline</button>
-              </>
-            )}
-          </div>
-        </div>
-        {hasPendingDrawOffer && (
-          <section className="panel draw-offer-panel">
-            <p className="muted draw-offer-copy">
-              {isOwnDrawOffer
-                ? "½ Draw offered. Waiting for opponent response."
-                : `½ ${playerNamesById[drawOfferByUserId] ?? "Opponent"} offered a draw.`}
-            </p>
-          </section>
-        )}
+        <GameActionPanel
+          canOfferDraw={canOfferDraw}
+          canRespondToDraw={canRespondToDraw}
+          onAcceptDraw={handleAcceptDraw}
+          onDeclineDraw={handleDeclineDraw}
+          onOfferDraw={handleOfferDraw}
+          onResign={handleResign}
+        />
+        <DrawOfferPanel
+          drawOfferByUserId={drawOfferByUserId}
+          hasPendingDrawOffer={hasPendingDrawOffer}
+          isOwnDrawOffer={isOwnDrawOffer}
+          playerNamesById={playerNamesById}
+        />
       </aside>
+    </section>
+  );
+}
+
+function PlayerSummaryPanel({ playerSummary }) {
+  return (
+    <section className="panel player-summary-panel">
+      <h2>Players</h2>
+      {playerSummary.length === 0 ? (
+        <p className="muted">Player names unavailable.</p>
+      ) : (
+        <div className="player-summary-list">
+          {playerSummary.map((player) => (
+            <p key={player.user_id} className="player-summary-row">
+              <span className="player-summary-name">{player.name}</span>
+              <span className="player-summary-rating">({player.ratingLabel})</span>
+            </p>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function GameActionPanel({
+  canOfferDraw,
+  canRespondToDraw,
+  onAcceptDraw,
+  onDeclineDraw,
+  onOfferDraw,
+  onResign
+}) {
+  return (
+    <div className="panel button-panel">
+      <div className="actions">
+        <button type="button" className="danger-button" onClick={onResign}>
+          <span aria-hidden="true">🏁</span> Resign
+        </button>
+      </div>
+      <div className="actions">
+        {canOfferDraw && (
+          <button type="button" className="secondary-button" onClick={onOfferDraw}>½ Offer draw</button>
+        )}
+        {canRespondToDraw && (
+          <>
+            <button type="button" className="secondary-button" onClick={onAcceptDraw}>½ Accept draw</button>
+            <button type="button" className="danger-button" onClick={onDeclineDraw}>Decline</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DrawOfferPanel({ drawOfferByUserId, hasPendingDrawOffer, isOwnDrawOffer, playerNamesById }) {
+  if (!hasPendingDrawOffer) return null;
+
+  return (
+    <section className="panel draw-offer-panel">
+      <p className="muted draw-offer-copy">
+        {isOwnDrawOffer
+          ? "½ Draw offered. Waiting for opponent response."
+          : `½ ${playerNamesById[drawOfferByUserId] ?? "Opponent"} offered a draw.`}
+      </p>
     </section>
   );
 }
