@@ -35,6 +35,14 @@ export default function GamePage() {
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && Boolean(game?.id);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
+  const feedback = resolveBoardFeedback({
+    currentUserId,
+    error,
+    isGameOver,
+    isLoading,
+    playerColor,
+    socketStatus
+  });
 
   useEffect(() => {
     let active = true;
@@ -267,7 +275,6 @@ export default function GamePage() {
         />
       </aside>
       <div className="game-board-column">
-        {error && <p className="error">{error}</p>}
         {isGameOver && (
           <section className="game-over-panel">
             <h2>Game over</h2>
@@ -277,13 +284,14 @@ export default function GamePage() {
             </button>
           </section>
         )}
-        {!playerColor && currentUserId && !isLoading && (
-          <p className="error">This account is not one of the players in this game.</p>
-        )}
-        {playerColor && socketStatus !== "connected" && !isGameOver && (
-          <p className="muted">Waiting for live game connection...</p>
-        )}
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
+        <section className={`panel board-feedback-panel ${feedback ? "" : "is-empty"}`}>
+          {feedback ? (
+            <p className={feedback.tone === "error" ? "error" : "muted"}>{feedback.message}</p>
+          ) : (
+            <p className="muted">Status ready.</p>
+          )}
+        </section>
       </div>
       <aside className="game-side-column">
         <MoveHistory moves={moves} />
@@ -363,6 +371,19 @@ function buildPlayerSummary(game, currentUserId) {
 
   players.sort((left, right) => Number(right.isCurrentUser) - Number(left.isCurrentUser));
   return players;
+}
+
+function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, playerColor, socketStatus }) {
+  if (error) {
+    return { message: error, tone: "error" };
+  }
+  if (!playerColor && currentUserId && !isLoading) {
+    return { message: "This account is not one of the players in this game.", tone: "error" };
+  }
+  if (playerColor && socketStatus !== "connected" && !isGameOver) {
+    return { message: "Waiting for live game connection...", tone: "muted" };
+  }
+  return null;
 }
 
 function getUserIdFromToken(token) {
