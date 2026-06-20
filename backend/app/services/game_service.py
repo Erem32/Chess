@@ -18,6 +18,10 @@ class GameAlreadyFinishedError(Exception):
     pass
 
 
+class DrawOfferStateError(Exception):
+    pass
+
+
 class GameService:
     """Game lifecycle, resignations, and history workflows."""
 
@@ -48,6 +52,8 @@ class GameService:
             game.status = "aborted"
             game.finished_at = finished_at
             game.result = "aborted"
+            game.draw_offer_by_user_id = None
+            game.draw_offer_created_at = None
             for player in game.players:
                 player.result = "draw"
 
@@ -69,6 +75,8 @@ class GameService:
         game.status = "resigned"
         game.finished_at = datetime.utcnow()
         game.result = f"{winning_color}_wins_by_resignation"
+        game.draw_offer_by_user_id = None
+        game.draw_offer_created_at = None
         for player in game.players:
             player.result = "loss" if player.user_id == user.id else "win"
 

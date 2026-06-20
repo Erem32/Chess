@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
-export default function ChatBox({ messages = [], onSend }) {
+export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
   const [message, setMessage] = useState("");
+  const scrollRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const frameId = window.requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [messages.length]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -13,19 +23,19 @@ export default function ChatBox({ messages = [], onSend }) {
   return (
     <section className="panel chat-panel">
       <h2>Chat</h2>
-      <div className="chat-messages">
+      <div className="panel-scroll chat-messages" ref={scrollRef}>
         {messages.length === 0 ? (
           <p className="muted">No messages yet.</p>
         ) : (
           messages.map((item, index) => (
             <p key={item.id ?? index}>
-              {item.user_id && <span className="muted">#{item.user_id}: </span>}
+              {item.user_id && <span className="chat-author">{getAuthorLabel?.(item) ?? `#${item.user_id}`}: </span>}
               {item.message}
             </p>
           ))
         )}
       </div>
-      <form onSubmit={handleSubmit} className="inline-form">
+      <form onSubmit={handleSubmit} className="inline-form chat-form">
         <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" />
         <button type="submit">Send</button>
       </form>

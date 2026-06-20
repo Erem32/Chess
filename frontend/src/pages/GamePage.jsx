@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getGame, getGameMoves, resignGame } from "../api/games.js";
+import { acceptDraw, declineDraw, getGame, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { createGameSocket } from "../api/websocket.js";
+import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
 import ChessBoard from "../components/ChessBoard.jsx";
 import MoveHistory from "../components/MoveHistory.jsx";
@@ -26,13 +27,29 @@ export default function GamePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
+  const [mobilePanel, setMobilePanel] = useState("players");
   const isGameOver = game && game.status !== "active" && game.status !== "waiting";
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
   const playerColor = resolvePlayerColor(game, currentUserId);
+  const playerNamesById = buildPlayerNamesById(game);
+  const playerSummary = buildPlayerSummary(game, currentUserId);
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && Boolean(game?.id);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
+  const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
+  const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
+  const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
+  const canOfferDraw = Boolean(playerColor) && !isGameOver && !hasPendingDrawOffer;
+  const canRespondToDraw = hasPendingDrawOffer && !isOwnDrawOffer;
+  const feedback = resolveBoardFeedback({
+    currentUserId,
+    error,
+    isGameOver,
+    isLoading,
+    playerColor,
+    socketStatus
+  });
 
   useEffect(() => {
     let active = true;
@@ -62,6 +79,28 @@ export default function GamePage() {
       active = false;
     };
   }, [gameId]);
+
+  useEffect(() => {
+    if (!game?.id || isGameOver) return undefined;
+
+    let active = true;
+
+    async function refreshGameOnly() {
+      try {
+        const gameData = await getGame(gameId);
+        if (active) setGame(gameData);
+      } catch {
+        // Keep current state on background refresh failures.
+      }
+    }
+
+    const intervalId = window.setInterval(refreshGameOnly, 2000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [game?.id, gameId, isGameOver]);
 
   useEffect(() => {
     if (!canOpenSocket) return undefined;
@@ -213,21 +252,6 @@ export default function GamePage() {
     activeSocket.send(JSON.stringify({ type: "chat", payload: { message } }));
   }
 
-  async function handleReload() {
-    setError("");
-    try {
-      const [gameData, movesData] = await Promise.all([
-        getGame(gameId),
-        getGameMoves(gameId)
-      ]);
-      setGame(gameData);
-      setFen(resolveFen(gameData));
-      setMoves(resolveMoves(movesData));
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   async function handleResign() {
     setError("");
     try {
@@ -240,21 +264,50 @@ export default function GamePage() {
     }
   }
 
+  async function handleOfferDraw() {
+    setError("");
+    try {
+      const data = await offerDraw(gameId);
+      setGame(data);
+      setInfo("Draw offer sent");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleAcceptDraw() {
+    setError("");
+    try {
+      const data = await acceptDraw(gameId);
+      setGame(data);
+      setInfo("Draw agreed");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleDeclineDraw() {
+    setError("");
+    try {
+      const data = await declineDraw(gameId);
+      setGame(data);
+      setInfo("Draw offer declined");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <section className="game-layout">
-      <div>
-        <h1>Game #{gameId}</h1>
-        <div className="game-toolbar">
-          <span className="muted">
-            {isLoading ? "Loading..." : game?.status ?? info}
-            {game?.turn_color ? `, ${game.turn_color} to move` : ""}
-            {playerColor ? `, you are ${playerColor}` : ""}
-            {playerColor ? `, connection ${socketStatus}` : ""}
-          </span>
-          <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
-          <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
-        </div>
-        {error && <p className="error">{error}</p>}
+      <aside className="game-side-column desktop-game-sidebar">
+        <PlayerSummaryPanel playerSummary={playerSummary} />
+        <ChatBox
+          messages={messages}
+          onSend={sendChat}
+          getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
+        />
+      </aside>
+      <div className="game-board-column">
         {isGameOver && (
           <section className="game-over-panel">
             <h2>Game over</h2>
@@ -264,18 +317,149 @@ export default function GamePage() {
             </button>
           </section>
         )}
-        {!playerColor && currentUserId && !isLoading && (
-          <p className="error">This account is not one of the players in this game.</p>
-        )}
-        {playerColor && socketStatus !== "connected" && !isGameOver && (
-          <p className="muted">Waiting for live game connection...</p>
-        )}
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
+        <CapturedPiecesPanel fen={fen} playerColor={playerColor} />
+        <section className={`panel board-feedback-panel ${feedback ? `is-${feedback.tone}` : "is-empty"}`}>
+          {feedback ? (
+            <p className={feedback.tone === "error" ? "error" : "muted"}>{feedback.message}</p>
+          ) : (
+            <p className="muted">Status ready.</p>
+          )}
+        </section>
+        <section className="mobile-game-nav" aria-label="Game panels">
+          <button
+            type="button"
+            className={`secondary-button mobile-game-nav-button ${mobilePanel === "players" ? "is-active" : ""}`}
+            onClick={() => setMobilePanel("players")}
+          >
+            Players
+          </button>
+          <button
+            type="button"
+            className={`secondary-button mobile-game-nav-button ${mobilePanel === "moves" ? "is-active" : ""}`}
+            onClick={() => setMobilePanel("moves")}
+          >
+            Moves
+          </button>
+          <button
+            type="button"
+            className={`secondary-button mobile-game-nav-button ${mobilePanel === "chat" ? "is-active" : ""}`}
+            onClick={() => setMobilePanel("chat")}
+          >
+            Chat
+          </button>
+        </section>
+        <section className="mobile-game-panel">
+          {mobilePanel === "players" && (
+            <>
+              <PlayerSummaryPanel playerSummary={playerSummary} />
+              <GameActionPanel
+                canOfferDraw={canOfferDraw}
+                canRespondToDraw={canRespondToDraw}
+                onAcceptDraw={handleAcceptDraw}
+                onDeclineDraw={handleDeclineDraw}
+                onOfferDraw={handleOfferDraw}
+                onResign={handleResign}
+              />
+              <DrawOfferPanel
+                drawOfferByUserId={drawOfferByUserId}
+                hasPendingDrawOffer={hasPendingDrawOffer}
+                isOwnDrawOffer={isOwnDrawOffer}
+                playerNamesById={playerNamesById}
+              />
+            </>
+          )}
+          {mobilePanel === "moves" && <MoveHistory moves={moves} />}
+          {mobilePanel === "chat" && (
+            <ChatBox
+              messages={messages}
+              onSend={sendChat}
+              getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
+            />
+          )}
+        </section>
       </div>
-      <aside className="side-stack">
+      <aside className="game-side-column desktop-game-sidebar">
         <MoveHistory moves={moves} />
-        <ChatBox messages={messages} onSend={sendChat} />
+        <GameActionPanel
+          canOfferDraw={canOfferDraw}
+          canRespondToDraw={canRespondToDraw}
+          onAcceptDraw={handleAcceptDraw}
+          onDeclineDraw={handleDeclineDraw}
+          onOfferDraw={handleOfferDraw}
+          onResign={handleResign}
+        />
+        <DrawOfferPanel
+          drawOfferByUserId={drawOfferByUserId}
+          hasPendingDrawOffer={hasPendingDrawOffer}
+          isOwnDrawOffer={isOwnDrawOffer}
+          playerNamesById={playerNamesById}
+        />
       </aside>
+    </section>
+  );
+}
+
+function PlayerSummaryPanel({ playerSummary }) {
+  return (
+    <section className="panel player-summary-panel">
+      <h2>Players</h2>
+      {playerSummary.length === 0 ? (
+        <p className="muted">Player names unavailable.</p>
+      ) : (
+        <div className="player-summary-list">
+          {playerSummary.map((player) => (
+            <p key={player.user_id} className="player-summary-row">
+              <span className="player-summary-name">{player.name}</span>
+              <span className="player-summary-rating">({player.ratingLabel})</span>
+            </p>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function GameActionPanel({
+  canOfferDraw,
+  canRespondToDraw,
+  onAcceptDraw,
+  onDeclineDraw,
+  onOfferDraw,
+  onResign
+}) {
+  return (
+    <div className="panel button-panel">
+      <div className="actions">
+        <button type="button" className="danger-button" onClick={onResign}>
+          <span aria-hidden="true">🏁</span> Resign
+        </button>
+      </div>
+      <div className="actions">
+        {canOfferDraw && (
+          <button type="button" className="secondary-button" onClick={onOfferDraw}>½ Offer draw</button>
+        )}
+        {canRespondToDraw && (
+          <>
+            <button type="button" className="secondary-button" onClick={onAcceptDraw}>½ Accept draw</button>
+            <button type="button" className="danger-button" onClick={onDeclineDraw}>Decline</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DrawOfferPanel({ drawOfferByUserId, hasPendingDrawOffer, isOwnDrawOffer, playerNamesById }) {
+  if (!hasPendingDrawOffer) return null;
+
+  return (
+    <section className="panel draw-offer-panel">
+      <p className="muted draw-offer-copy">
+        {isOwnDrawOffer
+          ? "½ Draw offered. Waiting for opponent response."
+          : `½ ${playerNamesById[drawOfferByUserId] ?? "Opponent"} offered a draw.`}
+      </p>
     </section>
   );
 }
@@ -315,6 +499,49 @@ function resolvePlayerColor(game, userId) {
   if (!game?.players || !userId) return null;
   const player = game.players.find((item) => Number(item.user_id) === Number(userId));
   return player?.color ?? null;
+}
+
+function buildPlayerNamesById(game) {
+  if (!game?.players) return {};
+  return Object.fromEntries(
+    game.players
+      .filter((player) => player?.user_id)
+      .map((player) => [player.user_id, player.username ?? player.color ?? `Player ${player.user_id}`])
+  );
+}
+
+function resolvePlayerChatLabel(game, userId) {
+  if (!game?.players || !userId) return `#${userId}`;
+  const player = game.players.find((item) => Number(item.user_id) === Number(userId));
+  if (!player) return `#${userId}`;
+  return player.username ?? player.color ?? `#${userId}`;
+}
+
+function buildPlayerSummary(game, currentUserId) {
+  if (!game?.players) return [];
+
+  const players = game.players.map((player) => ({
+    user_id: player.user_id,
+    isCurrentUser: Number(player.user_id) === Number(currentUserId),
+    name: player.username ?? player.color ?? `Player ${player.user_id}`,
+    ratingLabel: "Unrated"
+  }));
+
+  players.sort((left, right) => Number(right.isCurrentUser) - Number(left.isCurrentUser));
+  return players;
+}
+
+function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, playerColor, socketStatus }) {
+  if (error) {
+    return { message: error, tone: "error" };
+  }
+  if (!playerColor && currentUserId && !isLoading) {
+    return { message: "This account is not one of the players in this game.", tone: "error" };
+  }
+  if (playerColor && socketStatus !== "connected" && !isGameOver) {
+    return { message: "Waiting for live game connection...", tone: "muted" };
+  }
+  return null;
 }
 
 function getUserIdFromToken(token) {

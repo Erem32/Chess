@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Navbar from "./components/Navbar.jsx";
@@ -8,10 +9,25 @@ import HistoryPage from "./pages/HistoryPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 
+const THEME_STORAGE_KEY = "theme_mode";
+
 export default function App() {
+  const [theme, setTheme] = useState(() => {
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return storedTheme === "light" ? "light" : "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
   return (
     <div className="app-shell">
-      <Navbar />
+      <Navbar
+        theme={theme}
+        onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"))}
+      />
       <main className="page">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

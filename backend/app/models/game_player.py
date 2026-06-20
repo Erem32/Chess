@@ -15,3 +15,7 @@ class GamePlayer(Base):
 
     game = relationship("Game", back_populates="players")
     user = relationship("User", back_populates="games")
+
+    @property
+    def username(self) -> str | None:
+        return self.user.username if self.user else None
