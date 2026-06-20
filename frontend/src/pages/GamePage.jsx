@@ -31,6 +31,7 @@ export default function GamePage() {
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
   const playerColor = resolvePlayerColor(game, currentUserId);
   const canConnect = Boolean(socketToken);
+  const canOpenSocket = canConnect && Boolean(game?.id);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
 
   useEffect(() => {
@@ -63,12 +64,40 @@ export default function GamePage() {
   }, [gameId]);
 
   useEffect(() => {
-    if (!canConnect) return undefined;
+    if (!canOpenSocket) return undefined;
 
     let active = true;
+    let opened = false;
+    console.debug("GamePage websocket effect", {
+      gameId,
+      socketAttempt,
+        socketTokenPresent: Boolean(socketToken),
+        currentUserId,
+        playerColor,
+        canConnect,
+        canOpenSocket,
+      gameIdFromState: game?.id,
+    });
+
     if (!socketToken) {
+      console.warn("GamePage websocket skipped because no socket token was available", {
+        gameId,
+        socketAttempt,
+        currentUserId,
+        playerColor,
+        canConnect,
+      });
       setSocketStatus("disconnected");
       setError("No active login session. Log in again before opening the game.");
+      return undefined;
+    }
+
+    if (socketRef.current && socketRef.current.readyState !== WebSocket.CLOSED && socketRef.current.readyState !== WebSocket.CLOSING) {
+      console.debug("GamePage websocket already active, skipping duplicate connect", {
+        gameId,
+        socketAttempt,
+        readyState: socketRef.current.readyState,
+      });
       return undefined;
     }
 
@@ -76,6 +105,8 @@ export default function GamePage() {
     const ws = createGameSocket(gameId, socketToken);
     socketRef.current = ws;
     ws.onopen = () => {
+      opened = true;
+      console.info("GamePage websocket open", { gameId, socketAttempt, currentUserId, playerColor });
       if (active && socketRef.current === ws) {
         setSocketStatus("connected");
         setInfo("Connected");
@@ -120,13 +151,15 @@ export default function GamePage() {
         setError(payload.message ?? "WebSocket error");
       }
     };
-    ws.onerror = () => {
+    ws.onerror = (event) => {
+      console.warn("GamePage websocket error", { gameId, socketAttempt, event });
       if (active && socketRef.current === ws) {
         setSocketStatus("disconnected");
         setError("Game connection failed. Retrying...");
       }
     };
     ws.onclose = (event) => {
+      console.info("GamePage websocket close", { gameId, socketAttempt, event, opened });
       if (!active || socketRef.current !== ws) return;
       setSocketStatus("disconnected");
       setInfo("Disconnected");
@@ -134,11 +167,20 @@ export default function GamePage() {
         setError("This browser is not authorized for this game. Log out and sign in with the account that joined it.");
         return;
       }
-      reconnectTimerRef.current = window.setTimeout(() => {
-        setSocketAttempt((current) => current + 1);
-      }, 1200);
+      if (opened) {
+        reconnectTimerRef.current = window.setTimeout(() => {
+          setSocketAttempt((current) => current + 1);
+        }, 1200);
+      } else {
+        console.warn("GamePage websocket closed before open, not attempting reconnect", {
+          gameId,
+          socketAttempt,
+          event,
+        });
+      }
     };
     return () => {
+      console.info("GamePage websocket cleanup", { gameId, socketAttempt, currentUserId });
       active = false;
       if (reconnectTimerRef.current) {
         window.clearTimeout(reconnectTimerRef.current);
@@ -149,7 +191,7 @@ export default function GamePage() {
       }
       ws.close();
     };
-  }, [canConnect, gameId, socketAttempt, socketToken]);
+  }, [canOpenSocket, gameId, socketAttempt, socketToken]);
 
   function sendMove(move) {
     if (isGameOver) {

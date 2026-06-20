@@ -1,20 +1,15 @@
 const TOKEN_KEY = "access_token";
 
-export function clearLegacyAuthToken() {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
 export function getAuthToken() {
-  clearLegacyAuthToken();
-  return sessionStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
 }
 
 export function setAuthToken(token) {
-  clearLegacyAuthToken();
-  sessionStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(TOKEN_KEY, token);
+  sessionStorage.removeItem(TOKEN_KEY);
 }
 
 export function clearAuthToken() {
-  clearLegacyAuthToken();
+  localStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
 }

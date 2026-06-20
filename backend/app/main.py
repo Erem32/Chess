@@ -52,20 +52,25 @@ app.include_router(api_router, prefix="/api/v1")
 @app.websocket("/ws/games/{game_id}")
 async def game_websocket(websocket: WebSocket, game_id: int) -> None:
     db = SessionLocal()
-    user = _authenticate_websocket_user(websocket.query_params.get("token"), db)
+    token = websocket.query_params.get("token")
+    user = _authenticate_websocket_user(token, db)
     if user is None:
+        print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)} token={token}")
         await _close_unauthorized(websocket, "Could not validate credentials")
         db.close()
         return
 
+    print(f"WebSocket auth success game_id={game_id} user_id={user.id}")
     try:
         initial_state = get_game_state_for_user(db, game_id, user.id)
     except (GameAccessError, GameNotFoundError) as exc:
+        print(f"WebSocket game access denied game_id={game_id} user_id={user.id} error={exc}")
         await _close_unauthorized(websocket, str(exc))
         db.close()
         return
 
     await websocket_manager.connect(game_id, websocket)
+    print(f"WebSocket connected game_id={game_id} user_id={user.id}")
     initial_state_sent = await websocket_manager.send(
         websocket,
         {"type": "game_state", "payload": {"game": initial_state}},

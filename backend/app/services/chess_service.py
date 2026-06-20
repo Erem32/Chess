@@ -63,7 +63,7 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
 
 def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) -> dict:
     db.expire_all()
-    game = _get_game_for_user(db, game_id, user_id)
+    game = _get_game_for_user(db, game_id, user_id, lock=True)
     player = _get_player(db, game_id, user_id)
     if player is None:
         raise GameAccessError("User does not belong to this game")
@@ -159,8 +159,8 @@ def chat_message_payload(chat_message: ChatMessage) -> dict:
     }
 
 
-def _get_game_for_user(db: Session, game_id: int, user_id: int) -> Game:
-    game = game_repository.get_game_for_update(db, game_id)
+def _get_game_for_user(db: Session, game_id: int, user_id: int, lock: bool = False) -> Game:
+    game = game_repository.get_game_for_update(db, game_id) if lock else game_repository.get_game(db, game_id)
     if game is None:
         raise GameNotFoundError("Game not found")
     if _get_player(db, game_id, user_id) is None:
