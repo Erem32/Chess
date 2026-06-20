@@ -411,7 +411,6 @@ function PlayerSummaryPanel({ playerSummary }) {
           {playerSummary.map((player) => (
             <p key={player.user_id} className="player-summary-row">
               <span className="player-summary-name">{player.name}</span>
-              <span className="player-summary-rating">({player.ratingLabel})</span>
             </p>
           ))}
         </div>
@@ -488,7 +487,11 @@ function resolveMoves(source) {
 
 function formatGameResult(game) {
   if (game?.status === "aborted") return "Game aborted.";
-  if (game?.status === "resigned") return game.result ?? "A player resigned.";
+  if (game?.status === "resigned") {
+    if (game.result === "white_wins_by_resignation") return "White wins by resignation.";
+    if (game.result === "black_wins_by_resignation") return "Black wins by resignation.";
+    return "A player resigned.";
+  }
   if (game?.status === "white_win") return "White wins.";
   if (game?.status === "black_win") return "Black wins.";
   if (game?.status === "draw") return "Draw.";
@@ -523,8 +526,7 @@ function buildPlayerSummary(game, currentUserId) {
   const players = game.players.map((player) => ({
     user_id: player.user_id,
     isCurrentUser: Number(player.user_id) === Number(currentUserId),
-    name: player.username ?? player.color ?? `Player ${player.user_id}`,
-    ratingLabel: "Unrated"
+    name: player.username ?? player.color ?? `Player ${player.user_id}`
   }));
 
   players.sort((left, right) => Number(right.isCurrentUser) - Number(left.isCurrentUser));
