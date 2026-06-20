@@ -38,6 +38,15 @@ docker compose up --build
 
 The backend container automatically runs `alembic upgrade head` before starting the API, so first-time setup creates the database tables for the committed schema.
 
+For local development, the backend also seeds two test users by default:
+
+| Email | Password |
+| --- | --- |
+| `123@123.pl` | `123` |
+| `321@321.pl` | `321` |
+
+Set `ENABLE_DEV_SEED_USERS=false` in `.env` to disable this.
+
 If you previously started the project with different database credentials, reset the local Docker database volume before starting again:
 
 ```bash

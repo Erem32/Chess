@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from fastapi import WebSocket
+from starlette.websockets import WebSocketDisconnect, WebSocketState
 
 
 class WebSocketManager:
@@ -15,9 +16,23 @@ class WebSocketManager:
         if websocket in self.active_connections[game_id]:
             self.active_connections[game_id].remove(websocket)
 
+        if not self.active_connections[game_id]:
+            del self.active_connections[game_id]
+
+    async def send(self, websocket: WebSocket, message: dict) -> bool:
+        if websocket.application_state != WebSocketState.CONNECTED:
+            return False
+        try:
+            await websocket.send_json(message)
+        except (RuntimeError, WebSocketDisconnect):
+            return False
+        return True
+
     async def broadcast(self, game_id: int, message: dict) -> None:
-        for connection in self.active_connections[game_id]:
-            await connection.send_json(message)
+        for connection in list(self.active_connections[game_id]):
+            sent = await self.send(connection, message)
+            if not sent:
+                self.disconnect(game_id, connection)
 
 
 websocket_manager = WebSocketManager()

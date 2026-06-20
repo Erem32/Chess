@@ -13,3 +13,25 @@ class GameRead(BaseModel):
     result: str | None
 
     model_config = {"from_attributes": True}
+
+
+class GamePlayerRead(BaseModel):
+    user_id: int
+    color: str
+    result: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class GameDetailRead(GameRead):
+    players: list[GamePlayerRead]
+
+
+class GameHistoryResponse(BaseModel):
+    games: list[GameDetailRead]
+
+
+class MatchmakingResponse(BaseModel):
+    status: str
+    game_id: int | None = None
+    game: GameDetailRead | None = None

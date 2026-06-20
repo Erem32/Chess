@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models.user import User
+from app.models import User
 from app.repositories import user_repository
 from app.schemas.auth import LoginRequest, RegisterRequest
 

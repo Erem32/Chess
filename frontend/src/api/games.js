@@ -4,12 +4,32 @@ export function joinMatchmaking() {
   return apiRequest("/api/v1/matchmaking/join", { method: "POST" });
 }
 
+export function getMatchmakingStatus() {
+  return apiRequest("/api/v1/matchmaking/status");
+}
+
+export function leaveMatchmaking() {
+  return apiRequest("/api/v1/matchmaking/leave", { method: "POST" });
+}
+
 export function getGame(gameId) {
   return apiRequest(`/api/v1/games/${gameId}`);
 }
 
+export function getMyActiveGame() {
+  return apiRequest("/api/v1/games/my-active");
+}
+
+export function abortMyActiveGames() {
+  return apiRequest("/api/v1/games/my-active/abort", { method: "POST" });
+}
+
 export function getGameMoves(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/moves`);
+}
+
+export function resignGame(gameId) {
+  return apiRequest(`/api/v1/games/${gameId}/resign`, { method: "POST" });
 }
 
 export function getMyHistory() {

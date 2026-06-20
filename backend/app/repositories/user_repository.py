@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.models.user import User
+from app.models import GamePlayer, User
 
 
 def get_user(db: Session, user_id: int) -> User | None:
@@ -29,3 +29,12 @@ def create_user(db: Session, *, username: str, email: str, hashed_password: str)
     db.commit()
     db.refresh(user)
     return user
+
+
+def get_user_game_results(db: Session, user_id: int) -> list[str]:
+    rows = (
+        db.query(GamePlayer.result)
+        .filter(GamePlayer.user_id == user_id, GamePlayer.result.is_not(None))
+        .all()
+    )
+    return [result for (result,) in rows]

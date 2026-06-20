@@ -10,6 +10,7 @@ from app.api.deps import get_current_user
 from app.core.security import create_access_token, decode_access_token, hash_password, verify_password
 from app.db.session import Base, get_db
 from app.main import app
+from app.models import Game, GamePlayer
 from app.models import chat_message, game, game_player, matchmaking, move, user  # noqa: F401
 
 
@@ -163,3 +164,80 @@ def test_get_current_user_returns_user_from_token(
         current_user = get_current_user(token=login_response.json()["access_token"], db=db)
 
     assert current_user.username == "alice"
+
+
+def test_me_requires_bearer_token(client: TestClient) -> None:
+    response = client.get("/api/v1/users/me")
+
+    assert response.status_code == 401
+
+
+def test_my_stats_requires_bearer_token(client: TestClient) -> None:
+    response = client.get("/api/v1/users/me/stats")
+
+    assert response.status_code == 401
+
+
+def test_me_returns_current_user(client: TestClient) -> None:
+    register_response = client.post(
+        "/api/v1/auth/register",
+        json={"username": "alice", "email": "alice@example.com", "password": "secret"},
+    )
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"username_or_email": "alice@example.com", "password": "secret"},
+    )
+
+    response = client.get(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {login_response.json()['access_token']}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == register_response.json()["id"]
+    assert data["username"] == "alice"
+    assert data["email"] == "alice@example.com"
+    assert "hashed_password" not in data
+
+
+def test_my_stats_counts_completed_game_results(
+    client: TestClient,
+    db_session_factory: sessionmaker[Session],
+) -> None:
+    register_response = client.post(
+        "/api/v1/auth/register",
+        json={"username": "alice", "email": "alice@example.com", "password": "secret"},
+    )
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"username_or_email": "alice@example.com", "password": "secret"},
+    )
+    user_id = register_response.json()["id"]
+
+    with db_session_factory() as db:
+        games = [
+            Game(current_fen="start", result="white_wins"),
+            Game(current_fen="start", result="black_wins"),
+            Game(current_fen="start", result="draw"),
+            Game(current_fen="start"),
+        ]
+        db.add_all(games)
+        db.flush()
+        db.add_all(
+            [
+                GamePlayer(game_id=games[0].id, user_id=user_id, color="white", result="win"),
+                GamePlayer(game_id=games[1].id, user_id=user_id, color="black", result="loss"),
+                GamePlayer(game_id=games[2].id, user_id=user_id, color="white", result="draw"),
+                GamePlayer(game_id=games[3].id, user_id=user_id, color="black", result=None),
+            ]
+        )
+        db.commit()
+
+    response = client.get(
+        "/api/v1/users/me/stats",
+        headers={"Authorization": f"Bearer {login_response.json()['access_token']}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"wins": 1, "losses": 1, "draws": 1, "games_played": 3}

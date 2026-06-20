@@ -14,9 +14,16 @@ export default function ChatBox({ messages = [], onSend }) {
     <section className="panel chat-panel">
       <h2>Chat</h2>
       <div className="chat-messages">
-        {messages.map((item, index) => (
-          <p key={item.id ?? index}>{item.message}</p>
-        ))}
+        {messages.length === 0 ? (
+          <p className="muted">No messages yet.</p>
+        ) : (
+          messages.map((item, index) => (
+            <p key={item.id ?? index}>
+              {item.user_id && <span className="muted">#{item.user_id}: </span>}
+              {item.message}
+            </p>
+          ))
+        )}
       </div>
       <form onSubmit={handleSubmit} className="inline-form">
         <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" />

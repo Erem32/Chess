@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { loginUser } from "../api/auth.js";
+import { getCurrentUser, loginUser } from "../api/auth.js";
+import { clearAuthToken, setAuthToken } from "../api/session.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function LoginPage() {
@@ -13,9 +14,21 @@ export default function LoginPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
+    clearAuthToken();
     try {
       const data = await loginUser(form);
-      login(data.access_token ?? "scaffold-token");
+      if (!data?.access_token) {
+        throw new Error("Login response did not include an access token");
+      }
+      setAuthToken(data.access_token);
+      let profile = null;
+      try {
+        const user = await getCurrentUser();
+        profile = user?.message ? null : user;
+      } catch {
+        profile = null;
+      }
+      login(data.access_token, profile);
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);

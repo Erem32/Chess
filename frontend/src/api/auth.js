@@ -13,3 +13,11 @@ export function loginUser(payload) {
     body: JSON.stringify(payload)
   });
 }
+
+export function getCurrentUser() {
+  return apiRequest("/api/v1/users/me");
+}
+
+export function getMyStats() {
+  return apiRequest("/api/v1/users/me/stats");
+}

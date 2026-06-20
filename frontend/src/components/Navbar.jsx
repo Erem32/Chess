@@ -1,9 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Navbar() {
-  const { token, logout } = useAuth();
+  const navigate = useNavigate();
+  const { token, user, logout } = useAuth();
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
 
   return (
     <header className="navbar">
@@ -11,8 +17,9 @@ export default function Navbar() {
       <nav>
         {token ? (
           <>
+            {user?.username && <span className="nav-user">{user.username}</span>}
             <Link to="/history">History</Link>
-            <button type="button" onClick={logout}>Logout</button>
+            <button type="button" onClick={handleLogout}>Logout</button>
           </>
         ) : (
           <>

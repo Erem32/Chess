@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     secret_key: str = "replace-with-a-long-random-development-secret"
     access_token_expire_minutes: int = 60
     backend_cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    enable_dev_seed_users: bool = True
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

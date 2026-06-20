@@ -14,3 +14,8 @@ class MoveRead(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class MoveListResponse(BaseModel):
+    game_id: int
+    moves: list[MoveRead]
