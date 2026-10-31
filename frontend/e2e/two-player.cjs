@@ -17,6 +17,17 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     async function register(name) {
       const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       contexts.push(context);
+      await context.addInitScript(() => {
+        const NativeWebSocket = window.WebSocket;
+        window.__socketCount = 0;
+        window.WebSocket = class extends NativeWebSocket {
+          constructor(...args) {
+            super(...args);
+            window.__gameSocket = this;
+            window.__socketCount += 1;
+          }
+        };
+      });
       const page = await context.newPage();
       await page.goto(`${baseURL}/register`);
       await page.getByLabel('Username', { exact: true }).fill(name);
@@ -55,6 +66,10 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await whiteChat.getByLabel('Chat message').fill('Good game');
     await whiteChat.getByRole('button', { name: 'Send', exact: true }).click();
     await blackChat.getByText('Good game', { exact: false }).waitFor();
+    const socketCount = await black.evaluate(() => window.__socketCount);
+    await black.evaluate(() => window.__gameSocket.close());
+    await black.waitForFunction((oldCount) => window.__socketCount > oldCount, socketCount, { timeout: 10000 });
+    await black.getByText("Waiting for your opponent's move.").first().waitFor();
     await black.reload();
     await blackChat.getByText('Good game', { exact: false }).waitFor();
     async function move(page, from, to, number) {
@@ -96,7 +111,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       black.getByRole('heading', { name: 'Game over' }).waitFor()
     ]);
     assert.equal(await black.getByRole('button', { name: 'Resign' }).count(), 0);
-    console.log('Two-player smoke passed: registration, matchmaking, moves, chat, reload, a declared-move draw claim and resignation.');
+    console.log('Two-player smoke passed: registration, matchmaking, moves, chat, socket reconnect, reload, a declared-move draw claim and resignation.');
   } finally {
     for (const context of contexts) await context.close();
     await browser.close();
