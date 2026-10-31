@@ -1,5 +1,8 @@
 """End-to-end socket protocol checks using an isolated in-memory database."""
 
+from contextlib import contextmanager
+from threading import Event
+
 import chess
 import pytest
 from fastapi.testclient import TestClient
@@ -100,3 +103,27 @@ def test_bad_messages_and_illegal_moves_do_not_end_connection(game_client):
         assert ws.receive_json()["payload"]["move"]["move_uci"] == "e2e4"
         with sessions() as db:
             assert db.query(Move).filter_by(game_id=game_id).count() == 1
+
+
+def test_idle_socket_does_not_keep_database_session_open(game_client, monkeypatch):
+    client, sessions, game_id, tokens = game_client
+    closed = Event()
+    opened = []
+
+    @contextmanager
+    def tracked_session():
+        opened.append(True)
+        with sessions() as db:
+            yield db
+        closed.set()
+
+    monkeypatch.setattr(websocket_api, "SessionLocal", tracked_session)
+    with client.websocket_connect(socket_url(game_id, tokens["white"])) as ws:
+        assert ws.receive_json()["type"] == "game_state"
+        assert closed.wait(2)
+        assert len(opened) == 1
+        closed.clear()
+        ws.send_json({"type": "move", "payload": {"move_uci": "e2e4"}})
+        assert ws.receive_json()["type"] == "game_state"
+        assert closed.wait(2)
+        assert len(opened) == 2

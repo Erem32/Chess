@@ -30,7 +30,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, moves from both players, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
 - **Completed:** CI includes Ruff backend lint checks for `E4`, `E7`, `E9`, and `F` rules; the selected checks pass locally.
 - **Completed:** CI includes focused Biome frontend checks for undeclared variables and unreachable code; lint, 11 frontend tests, build and audit passed locally.
-- **Completed:** Game WebSocket transport was extracted to `backend/app/api/websocket.py`; focused backend tests, Ruff, and the real two-player browser smoke passed after extraction.
+- **Completed:** Game WebSocket transport was extracted to `backend/app/api/websocket.py`. Database sessions now close after initial authorization and each message, rather than remaining open while sockets are idle. Focused backend tests, Ruff, and the real two-player browser smoke passed.
 - **Completed:** Extracted game presentation and action panels from the game page. Frontend lint/tests/build and the two-player browser smoke passed.
 - **Completed:** Added `CONTRIBUTING.md` with setup, checks, test-data safety, and review workflow.
 - **Pending:** Broader browser/accessibility coverage, automated formatting, and remaining incremental structure improvements.

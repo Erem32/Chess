@@ -14,6 +14,12 @@ from app.api import websocket as websocket_api
 
 
 class FakeSession:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def close(self) -> None:
         pass
 

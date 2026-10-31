@@ -26,36 +26,34 @@ router = APIRouter()
 
 @router.websocket("/ws/games/{game_id}")
 async def game_websocket(websocket: WebSocket, game_id: int) -> None:
-    db = SessionLocal()
     token = websocket.query_params.get("token")
     # Uvicorn logs the ASGI scope's query string when accepting a socket.
     # The token has already been read; remove it before the handshake is logged.
     websocket.scope["query_string"] = b""
-    user = _authenticate_websocket_user(token, db)
-    if user is None:
-        print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)}")
-        await _close_unauthorized(websocket, "Could not validate credentials")
-        db.close()
-        return
+    with SessionLocal() as db:
+        user = _authenticate_websocket_user(token, db)
+        if user is None:
+            print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)}")
+            await _close_unauthorized(websocket, "Could not validate credentials")
+            return
 
-    print(f"WebSocket auth success game_id={game_id} user_id={user.id}")
-    try:
-        initial_state = get_game_state_for_user(db, game_id, user.id)
-    except (GameAccessError, GameNotFoundError) as exc:
-        print(f"WebSocket game access denied game_id={game_id} user_id={user.id} error={exc}")
-        await _close_unauthorized(websocket, str(exc))
-        db.close()
-        return
+        user_id = user.id
+        print(f"WebSocket auth success game_id={game_id} user_id={user_id}")
+        try:
+            initial_state = get_game_state_for_user(db, game_id, user_id)
+        except (GameAccessError, GameNotFoundError) as exc:
+            print(f"WebSocket game access denied game_id={game_id} user_id={user_id} error={exc}")
+            await _close_unauthorized(websocket, str(exc))
+            return
 
     await websocket_manager.connect(game_id, websocket)
-    print(f"WebSocket connected game_id={game_id} user_id={user.id}")
+    print(f"WebSocket connected game_id={game_id} user_id={user_id}")
     initial_state_sent = await websocket_manager.send(
         websocket,
         {"type": "game_state", "payload": {"game": initial_state}},
     )
     if not initial_state_sent:
         websocket_manager.disconnect(game_id, websocket)
-        db.close()
         return
 
     try:
@@ -65,12 +63,12 @@ async def game_websocket(websocket: WebSocket, game_id: int) -> None:
             except ValueError:
                 await _send_websocket_error(websocket, "WebSocket message must be valid JSON")
                 continue
-            await _handle_game_websocket_message(db, websocket, game_id, user.id, message)
+            with SessionLocal() as db:
+                await _handle_game_websocket_message(db, websocket, game_id, user_id, message)
     except WebSocketDisconnect:
         pass
     finally:
         websocket_manager.disconnect(game_id, websocket)
-        db.close()
 
 
 async def _handle_game_websocket_message(
