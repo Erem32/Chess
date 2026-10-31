@@ -26,7 +26,8 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
 - **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, moves from both players, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
-- **Pending:** Broader browser/accessibility coverage, linting and incremental structure improvements.
+- **Completed:** CI includes Ruff backend lint checks for `E4`, `E7`, `E9`, and `F` rules; the selected checks pass locally.
+- **Pending:** Broader browser/accessibility coverage, frontend linting/formatting, and incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
 
 ## Baseline and constraints
@@ -50,6 +51,6 @@ Review and integrate session recovery, then continue reconnect and resynchroniza
 - `docker compose exec -T backend pytest -q`
 - `docker compose exec -T frontend npm run build`
 - Integrated configuration/auth/WebSocket tests: 39 passed. Integrated frontend build passed.
-- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 82 passed (365 warnings). Clean frontend install, 11 tests, build and audit passed. The headless two-player smoke passed against disposable services. GitHub Actions completed successfully for commit `473271d`; later commits have not yet been confirmed.
+- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 82 passed (365 warnings). Clean frontend install, 11 tests, build and audit passed. The headless two-player smoke passed against disposable services. GitHub Actions completed successfully for commit `dde0267`; the claim UI and newer changes have not yet been confirmed.
 
 See the README for setup and manual two-player checks. Tests against isolated worktrees must run against their own source, not the running service's mounted checkout.

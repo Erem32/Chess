@@ -10,7 +10,6 @@ from app.db.session import Base, get_db
 from app import main
 from app.main import app
 from app.models import ChatMessage, Game, MatchmakingQueue
-from app.models import chat_message, game, game_player, matchmaking, move, user  # noqa: F401
 from app.services.chess_service import apply_player_move
 
 

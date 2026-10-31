@@ -10,7 +10,7 @@ import chess
 import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from app.db.session import Base
 from app.models import Game, GamePlayer, User
