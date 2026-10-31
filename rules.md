@@ -53,7 +53,7 @@ The backend is the authority for game state and move legality.
 - Protected routes use Bearer token auth
 - WebSocket auth uses `/ws/games/{game_id}?token=...`
 - Session separation matters when testing two users at once
-- We intentionally moved away from behavior that caused new windows to inherit the wrong account session
+- The current frontend stores the token in local storage, so normal tabs in one browser profile share a login. Use separate browser profiles or a normal and a private window for two accounts.
 
 ## Backend Design Rules
 
