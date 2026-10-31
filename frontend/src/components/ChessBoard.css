@@ -1,0 +1,24 @@
+.promotion-picker {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border, #64748b);
+  border-radius: 0.6rem;
+}
+
+.promotion-picker h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.promotion-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.promotion-picker button:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}

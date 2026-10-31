@@ -9,6 +9,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Registration, login, password hashing, and JWT authentication.
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
+- Promotion choice for queen, rook, bishop, or knight when a pawn reaches the last rank.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
 These flows are under development; see [Current limitations](#current-limitations) and the manual checks below.
@@ -115,6 +116,7 @@ With the services running:
 
 ~~~bash
 docker compose exec backend pytest
+docker compose exec frontend npm test
 docker compose exec frontend npm run build
 ~~~
 
