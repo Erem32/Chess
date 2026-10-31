@@ -2,12 +2,14 @@
 
 Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementally, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative.
 
-Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git status and worktree list are authoritative.
+Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Parallel worktrees: `improvement/production-config` at `/home/thergh/deve/Chess-production-config`, `improvement/game-locking` at `/home/thergh/deve/Chess-game-locking`, and `improvement/auth-ui` at `/tmp/chess-auth-ui`. Git status and worktree list are authoritative.
 
 ## Priorities
 
-- **In progress:** Remove WebSocket credential logging and secure deployment configuration.
-- **Pending:** Serialize competing game transitions and verify PostgreSQL concurrency.
+- **Completed:** Removed credential-bearing WebSocket application logs; failed authentication regression test passed and frontend built.
+- **In progress:** Secure deployment configuration in its isolated worktree.
+- **In progress:** Serialize competing game transitions and verify PostgreSQL concurrency in its isolated worktree.
+- **In progress:** Improve login and registration forms in an isolated worktree.
 - **Blocked on product decision:** Define abort eligibility and treatment of existing aborted-game statistics; continue independent work.
 - **Pending:** Improve authentication, session recovery, promotion, reconnects, chat, and dashboard feedback.
 - **Pending:** CI, reproducible dependencies, frontend and integration tests, incremental structure improvements.
@@ -16,14 +18,14 @@ Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git sta
 ## Baseline and constraints
 
 - Starting worktree had an uncommitted roadmap and README link from the preceding review; preserved as the starting documentation increment.
-- Docker services were already running. Baseline frontend `docker compose exec -T frontend npm run build` passed. Backend baseline is running; record its result after completion.
+- Docker services were already running. Baseline frontend `docker compose exec -T frontend npm run build` passed; backend `docker compose exec -T backend pytest -q` passed (27 tests, 86 warnings).
 - No visual browser review, PostgreSQL concurrency validation, hosting log audit, or deployment verification has been performed.
 - Existing WebSocket query-string tokens may reach proxy or hosting logs; rotation and external audit require deployment context and authorization.
 - Product decision requested: limit aborts to pre-move, permit any-time abort without a result, or retain existing behavior temporarily. Do not change abort semantics or historical data without that decision.
 
 ## Next task
 
-Remove credential-bearing logs from the WebSocket client and backend. Verify failed authentication still works and log output excludes the supplied token; build the frontend. In parallel, assess production configuration and game locking in isolated worktrees.
+Review and integrate the isolated production configuration, game locking, and authentication UI increments as they complete. Run their applicable tests on the integrated source; verify external proxy logging separately when deployment access is available.
 
 ## Checks
 

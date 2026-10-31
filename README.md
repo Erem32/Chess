@@ -149,6 +149,8 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
 
+The token is currently passed in the WebSocket URL. Configure reverse proxies, hosting access logs, and other request logging to redact query strings. Review existing logs for exposure and rotate credentials where appropriate. Application log redaction does not protect logs controlled by infrastructure.
+
 ~~~json
 {"type": "move", "payload": {"move_uci": "e2e4"}}
 ~~~

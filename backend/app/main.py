@@ -55,7 +55,7 @@ async def game_websocket(websocket: WebSocket, game_id: int) -> None:
     token = websocket.query_params.get("token")
     user = _authenticate_websocket_user(token, db)
     if user is None:
-        print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)} token={token}")
+        print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)}")
         await _close_unauthorized(websocket, "Could not validate credentials")
         db.close()
         return
