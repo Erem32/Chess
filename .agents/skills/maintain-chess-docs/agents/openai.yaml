@@ -1,4 +1,0 @@
-interface:
-  display_name: "Maintain Chess Docs"
-  short_description: "Keep the Chess project documentation current"
-  default_prompt: "Use $maintain-chess-docs to check and update this project’s documentation after my changes."
