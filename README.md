@@ -9,6 +9,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Registration, login, password hashing, and JWT authentication.
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
+- Promotion choice for queen, rook, bishop, or knight when a pawn reaches the last rank.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
 These flows are under development; see [Current limitations](#current-limitations) and the manual checks below.
@@ -22,7 +23,7 @@ These flows are under development; see [Current limitations](#current-limitation
 | Data | PostgreSQL, SQLAlchemy, Alembic |
 | Development | Docker Compose, pytest |
 
-For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md).
+For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For the proposed technical and product roadmap, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
 
 ## Run locally
 
@@ -72,7 +73,9 @@ To test two players, use separate browser profiles or a normal window and a priv
 
 ### Configuration
 
-The available development variables are listed in [.env.example](.env.example). They include PostgreSQL credentials and `DATABASE_URL`, the JWT `SECRET_KEY` and token lifetime, CORS origins, the seed flag, and the frontend API/WebSocket URLs.
+The available development variables are listed in [.env.example](.env.example). They include `APP_ENV`, PostgreSQL credentials and `DATABASE_URL`, the JWT `SECRET_KEY` and token lifetime, CORS origins, the seed flag, and the frontend API/WebSocket URLs. Development Compose enables development seeding by default; the preview disables it, and outside Compose it is disabled by default.
+
+Registration accepts a nonblank username of up to 50 characters and a nonempty password of at most 72 UTF-8 bytes; neither may contain null bytes. This password limit prevents bcrypt from silently ignoring trailing bytes. The current MVP does not enforce a minimum password strength.
 
 If you change the PostgreSQL username, password, or database name, also update `DATABASE_URL` to match. PostgreSQL initializes these credentials when its volume is first created; changing them later may require additional database configuration. Never commit a real `.env` or secrets.
 
@@ -105,7 +108,7 @@ The hosted deployment is configured in the hosting services, separately from the
 
 For the hosted frontend build, set `VITE_API_URL` to the public HTTPS backend address and `VITE_WS_URL` to its WSS address. Vite includes these values in the browser build, so they must not contain secrets.
 
-On the hosted backend, configure the production `DATABASE_URL`, a strong `SECRET_KEY`, the actual frontend origins in `BACKEND_CORS_ORIGINS`, and `ENABLE_DEV_SEED_USERS=false`. Keep credentials in the hosting provider's secret settings, not in the repository or a developer's local preview. The current backend startup runs Alembic migrations before starting the API; review database changes and the hosting release process before deployment.
+On the hosted backend, explicitly set `APP_ENV=production`, configure the production `DATABASE_URL`, a strong randomly generated `SECRET_KEY` of at least 32 characters, the actual HTTPS frontend origins in `BACKEND_CORS_ORIGINS`, and `ENABLE_DEV_SEED_USERS=false`. Production configuration rejects the known development secret and database credentials, enabled seeding, and non-HTTPS or wildcard CORS origins. These checks cannot establish secret randomness or verify that a database is safe; generate and store credentials securely. The default environment is `development`, so the deployment must set `APP_ENV=production` explicitly. Keep credentials in the hosting provider's secret settings, not in the repository or a developer's local preview. The current backend startup runs Alembic migrations before starting the API; review database changes and the hosting release process before deployment.
 
 ## Tests and checks
 
@@ -113,10 +116,13 @@ With the services running:
 
 ~~~bash
 docker compose exec backend pytest
+docker compose exec frontend npm test
 docker compose exec frontend npm run build
 ~~~
 
-The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. A frontend build is not a substitute for a browser test.
+The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. Frontend tests cover promotion choices and HTTP error handling. Protected routes retain the login and offer retry if session verification fails temporarily; rejected credentials return the user to login. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) applies migrations to a disposable PostgreSQL database, runs backend tests including PostgreSQL concurrency tests, and tests and builds the frontend using the committed npm lockfile. Browser coverage is not yet automated.
+
+Frontend dependencies are pinned and installed with `npm ci` in CI and Docker. Review dependency updates deliberately and run `npm audit` in `frontend/`; audit results can change as advisories are published.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
@@ -149,6 +155,8 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
 
+The token is currently passed in the WebSocket URL. Configure reverse proxies, hosting access logs, and other request logging to redact query strings. Review existing logs for exposure and rotate credentials where appropriate. Application log redaction does not protect logs controlled by infrastructure.
+
 ~~~json
 {"type": "move", "payload": {"move_uci": "e2e4"}}
 ~~~
@@ -164,6 +172,7 @@ The server sends `game_state`, `chat`, and `error` messages. In a `game_state` m
 - This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification.
 - Chat messages are stored by the backend, but the frontend does not currently restore chat history when a game page is reloaded.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
+- A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
 - There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.
 
 The project notes in [plan.md](plan.md) and [rules.md](rules.md) describe intended work and team conventions; check the current code when their status statements differ.

@@ -18,6 +18,10 @@ class GameAlreadyFinishedError(Exception):
     pass
 
 
+class GameCannotBeAbortedError(Exception):
+    pass
+
+
 class DrawOfferStateError(Exception):
     pass
 
@@ -45,7 +49,9 @@ class GameService:
         return active_games[0] if active_games else None
 
     def abort_active_games_for_user(self, db: Session, user: User) -> list[Game]:
-        active_games = game_repository.list_active_games_for_user(db, user.id)
+        active_games = game_repository.list_active_games_for_user_for_update(db, user.id)
+        if any(game_repository.list_game_moves(db, game.id) for game in active_games):
+            raise GameCannotBeAbortedError
         finished_at = datetime.utcnow()
 
         for game in active_games:
@@ -55,7 +61,7 @@ class GameService:
             game.draw_offer_by_user_id = None
             game.draw_offer_created_at = None
             for player in game.players:
-                player.result = "draw"
+                player.result = None
 
         db.commit()
         for game in active_games:
@@ -63,7 +69,11 @@ class GameService:
         return active_games
 
     def resign(self, db: Session, game_id: int, user: User) -> Game:
-        game = self.get_game_for_user(db, game_id, user)
+        game = game_repository.get_game_for_update(db, game_id)
+        if game is None:
+            raise GameNotFoundError
+        if game_repository.get_game_player(db, game_id, user.id) is None:
+            raise GameAccessDeniedError
         if game.finished_at is not None or game.status in {"white_win", "black_win", "draw", "resigned", "aborted"}:
             raise GameAlreadyFinishedError
 

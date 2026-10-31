@@ -53,9 +53,12 @@ app.include_router(api_router, prefix="/api/v1")
 async def game_websocket(websocket: WebSocket, game_id: int) -> None:
     db = SessionLocal()
     token = websocket.query_params.get("token")
+    # Uvicorn logs the ASGI scope's query string when accepting a socket.
+    # The token has already been read; remove it before the handshake is logged.
+    websocket.scope["query_string"] = b""
     user = _authenticate_websocket_user(token, db)
     if user is None:
-        print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)} token={token}")
+        print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)}")
         await _close_unauthorized(websocket, "Could not validate credentials")
         db.close()
         return

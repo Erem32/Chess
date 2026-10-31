@@ -18,6 +18,7 @@ services:
     build:
       context: ./backend
     environment:
+      APP_ENV: development
       DATABASE_URL: postgresql+psycopg://chess_preview:chess_preview_local@postgres:5432/chess_preview
       SECRET_KEY: local-preview-only-not-for-production
       ACCESS_TOKEN_EXPIRE_MINUTES: "60"

@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 
 export default function HistoryPage() {
   const { user } = useAuth();
-  const [games, setGames] = useState([]);
+  const [games, setGames] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -13,7 +13,6 @@ export default function HistoryPage() {
       .then((data) => setGames(data?.games ?? []))
       .catch((err) => {
         setError(err.message);
-        setGames([]);
       });
   }, []);
 
@@ -21,8 +20,9 @@ export default function HistoryPage() {
     <section>
       <h1>Game History</h1>
       <div className="panel history-panel">
-        {error && <p className="error">{error}</p>}
-        {games.length === 0 ? (
+        {error ? <p className="error" role="alert">Could not load game history: {error}</p> : games === null ? (
+          <p className="muted" role="status">Loading game history...</p>
+        ) : games.length === 0 ? (
           <p className="muted">No games yet.</p>
         ) : (
           <div className="history-list panel-scroll">
@@ -71,6 +71,7 @@ function formatHistoryStatus(game, userId) {
 }
 
 function resolveHistoryStatusClass(game, userId) {
+  if (game?.status === "aborted") return "history-status";
   const playerResult = resolvePlayerResult(game, userId);
   if (playerResult === "win") return "history-status history-status--win";
   if (playerResult === "loss") return "history-status history-status--loss";
@@ -78,7 +79,6 @@ function resolveHistoryStatusClass(game, userId) {
   if (game?.status === "active" || game?.status === "waiting") {
     return "history-status history-status--active";
   }
-  if (game?.status === "aborted") return "history-status history-status--loss";
   return "history-status";
 }
 

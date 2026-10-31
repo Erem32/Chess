@@ -63,9 +63,13 @@ The React application lives in [frontend/src/](../frontend/src/).
 
 ## Follow the main flows
 
-1. **Login:** [LoginPage.jsx](../frontend/src/pages/LoginPage.jsx) calls the frontend auth client. The backend auth route calls `auth_service` and security helpers. The frontend stores the returned token in browser storage and uses it for protected calls.
+1. **Login:** [LoginPage.jsx](../frontend/src/pages/LoginPage.jsx) calls the frontend auth client. The backend auth route calls `auth_service` and security helpers. The frontend stores the returned token in browser storage and loads the current user once through the authentication provider. Protected routes offer a retry on temporary session-check failures and return an invalid session to login while preserving the requested destination.
 2. **Matchmaking:** [DashboardPage.jsx](../frontend/src/pages/DashboardPage.jsx) requests a match and polls its status. The backend matchmaking service uses the database queue to return an existing game, wait for an opponent, or create a game.
 3. **A move:** [ChessBoard.jsx](../frontend/src/components/ChessBoard.jsx) and [GamePage.jsx](../frontend/src/pages/GamePage.jsx) send a UCI move over the game WebSocket. The handler in `main.py` calls `chess_service.py`, which checks the player and turn, validates the move with python-chess, stores the result, and broadcasts the new state.
 4. **Reloading a game:** The game page retrieves the current game and moves through REST, then connects to the WebSocket for live messages. Chat is stored on the backend but is not currently reloaded into the interface.
 
+Moves, draw actions, resignations, and aborts lock affected game rows before changing their state. The database transaction serializes competing changes on PostgreSQL; abort locks games in ID order. Matchmaking uses a separate PostgreSQL advisory lock.
+
 Backend tests are grouped by auth, matchmaking/game behavior, chess service, and health. Use the [README test commands](../README.md#tests-and-checks) and manually check both players when changing the live game flow.
+
+The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.

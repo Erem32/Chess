@@ -15,8 +15,8 @@ class FakeSession:
         return None
 
 
-def test_health_endpoint() -> None:
-    main.SessionLocal = FakeSession
+def test_health_endpoint(monkeypatch) -> None:
+    monkeypatch.setattr(main, "SessionLocal", FakeSession)
     client = TestClient(app)
     response = client.get("/health")
 
