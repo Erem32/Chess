@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.db.session import Base
 from app.models import Game, GamePlayer, User
 from app.repositories import game_repository
-from app.services.chess_service import GameNotActiveError, apply_player_move, respond_to_draw_offer
+from app.services.chess_service import GameNotActiveError, NotPlayerTurnError, apply_player_move, claim_draw, respond_to_draw_offer
 from app.services.game_service import GameAlreadyFinishedError, GameCannotBeAbortedError, GameService
 
 
@@ -174,3 +174,35 @@ def test_checkmate_wins_over_waiting_abort(pg_sessions):
     assert result == []
     with pg_sessions() as db:
         assert db.get(Game, game_id).status == "black_win"
+
+
+def test_claim_wins_over_waiting_move(pg_sessions):
+    fen = "8/8/8/8/8/8/R6r/K6k w - - 100 51"
+    game_id, white_id, _ = _setup_game(pg_sessions, fen)
+
+    def move(db, user):
+        with pytest.raises(GameNotActiveError):
+            apply_player_move(db, game_id, user.id, "a2a3")
+
+    _run_while_locked(pg_sessions, game_id, white_id, move,
+                      lambda db: claim_draw(db, game_id, white_id))
+    with pg_sessions() as db:
+        game = db.get(Game, game_id)
+        assert game.result == "draw_claimed_fifty_move"
+        assert not game.moves
+
+
+def test_move_invalidates_waiting_claim_from_previous_turn(pg_sessions):
+    fen = "8/8/8/8/8/8/R6r/K6k w - - 100 51"
+    game_id, white_id, _ = _setup_game(pg_sessions, fen)
+
+    def claim(db, user):
+        with pytest.raises(NotPlayerTurnError):
+            claim_draw(db, game_id, user.id)
+
+    _run_while_locked(pg_sessions, game_id, white_id, claim,
+                      lambda db: apply_player_move(db, game_id, white_id, "a2a3"))
+    with pg_sessions() as db:
+        game = db.get(Game, game_id)
+        assert game.status == "active"
+        assert len(game.moves) == 1

@@ -71,7 +71,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 
 Moves, draw actions, resignations, and aborts lock affected game rows before changing their state. The database transaction serializes competing changes on PostgreSQL; abort locks games in ID order. Matchmaking uses a separate PostgreSQL advisory lock.
 
-Automatic fivefold repetition detection replays persisted UCI moves from the standard starting position and is applied only if the reconstructed FEN matches the stored current position. The server also detects the 75-move rule from the FEN; claimable draws are not yet implemented.
+Automatic fivefold repetition and threefold draw claims replay persisted UCI moves from the standard starting position and are applied only if the reconstructed FEN matches the stored current position. The server detects the 75-move rule and 50-move claims from the FEN. Claim requests are rechecked under the game row lock and do not play a declared move when successful.
 
 Backend tests are grouped by auth, matchmaking/game behavior, chess service, and health. Use the [README test commands](../README.md#tests-and-checks) and manually check both players when changing the live game flow.
 

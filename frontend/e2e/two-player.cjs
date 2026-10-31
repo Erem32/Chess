@@ -52,12 +52,40 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await blackChat.getByText('Good game', { exact: false }).waitFor();
     await black.reload();
     await blackChat.getByText('Good game', { exact: false }).waitFor();
+    async function move(page, from, to, number) {
+      await page.locator(`[data-square="${from}"]`).click();
+      await page.locator(`[data-square="${to}"]`).click();
+      for (const participant of [white, black]) {
+        await participant.waitForFunction((count) => document.querySelectorAll('.desktop-game-sidebar .move-list li').length >= count, number);
+      }
+    }
+    await move(white, 'g1', 'f3', 3);
+    await move(black, 'g8', 'f6', 4);
+    await move(white, 'f3', 'g1', 5);
+    await move(black, 'f6', 'g8', 6);
+    await move(white, 'g1', 'f3', 7);
+    await move(black, 'g8', 'f6', 8);
+    await move(white, 'f3', 'g1', 9);
+    const blackActions = black.locator('.desktop-game-sidebar').last();
+    await blackActions.getByRole('button', { name: 'Check draw claim' }).click();
+    const claim = blackActions.getByRole('region', { name: 'Draw claim' });
+    await claim.getByLabel('Claim based on').selectOption('f6g8');
+    await claim.getByRole('button', { name: 'Claim draw', exact: true }).click();
+    await Promise.all([
+      white.getByRole('heading', { name: 'Game over' }).waitFor(),
+      black.getByRole('heading', { name: 'Game over' }).waitFor()
+    ]);
+    for (const page of [white, black]) await page.getByRole('button', { name: 'Back to dashboard' }).click();
+    await white.getByRole('button', { name: 'Join matchmaking' }).click();
+    await white.getByText('Searching for another player').waitFor();
+    await black.getByRole('button', { name: 'Join matchmaking' }).click();
+    await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
     await black.getByRole('button', { name: 'Resign' }).first().click();
     await Promise.all([
       white.getByRole('heading', { name: 'Game over' }).waitFor(),
       black.getByRole('heading', { name: 'Game over' }).waitFor()
     ]);
-    console.log('Two-player smoke passed: registration, matchmaking, moves by both players, chat, reload and resignation.');
+    console.log('Two-player smoke passed: registration, matchmaking, moves, chat, reload, a declared-move draw claim and resignation.');
   } finally {
     for (const context of contexts) await context.close();
     await browser.close();

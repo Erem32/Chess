@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { acceptDraw, declineDraw, getGame, getGameChat, getGameMoves, offerDraw, resignGame } from "../api/games.js";
+import { acceptDraw, declineDraw, getDrawClaimOptions, getGame, getGameChat, getGameMoves, offerDraw, resignGame, submitDrawClaim } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { mergeChatMessages } from "../api/chatMessages.js";
 import { classifyMove, fetchStableGameSnapshot, reconnectDelay } from "../api/gameSync.js";
@@ -24,6 +24,7 @@ export default function GamePage() {
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
   const refreshRequestRef = useRef(0);
+  const claimRequestRef = useRef(0);
   const pendingChatRef = useRef(new Map());
   const currentGameRef = useRef(gameId);
   currentGameRef.current = gameId;
@@ -41,6 +42,9 @@ export default function GamePage() {
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
   const [mobilePanel, setMobilePanel] = useState("players");
+  const [claimOptions, setClaimOptions] = useState(null);
+  const [claimMove, setClaimMove] = useState("");
+  const [claimBusy, setClaimBusy] = useState(false);
   const isGameOver = game && game.status !== "active" && game.status !== "waiting";
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
@@ -55,6 +59,7 @@ export default function GamePage() {
   const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
   const canOfferDraw = Boolean(playerColor) && !isGameOver && !hasPendingDrawOffer;
   const canRespondToDraw = hasPendingDrawOffer && !isOwnDrawOffer;
+  const canClaimDraw = Boolean(playerColor) && game?.status === "active" && game.turn_color === playerColor;
   const feedback = resolveBoardFeedback({
     currentUserId,
     error,
@@ -63,6 +68,12 @@ export default function GamePage() {
     playerColor,
     socketStatus
   });
+
+  useEffect(() => {
+    claimRequestRef.current += 1;
+    setClaimOptions(null);
+    setClaimBusy(false);
+  }, [gameId, fen, game?.status]);
 
   useEffect(() => {
     let active = true;
@@ -367,6 +378,41 @@ export default function GamePage() {
     }
   }
 
+  async function handleCheckClaim() {
+    const request = ++claimRequestRef.current;
+    setError("");
+    setClaimBusy(true);
+    try {
+      const options = await getDrawClaimOptions(gameId);
+      if (request !== claimRequestRef.current) return;
+      setClaimOptions(options);
+      setClaimMove(options.current_reasons.length ? "" : options.moves[0]?.uci ?? "");
+    } catch (err) {
+      if (request === claimRequestRef.current) setError(err.message);
+    } finally {
+      if (request === claimRequestRef.current) setClaimBusy(false);
+    }
+  }
+
+  async function handleClaimDraw() {
+    if (!claimOptions || claimBusy) return;
+    const request = ++claimRequestRef.current;
+    setError("");
+    setClaimBusy(true);
+    try {
+      const result = await submitDrawClaim(gameId, claimMove || null);
+      if (request !== claimRequestRef.current) return;
+      revisionRef.current += 1;
+      setGame(result);
+      setClaimOptions(null);
+      setInfo("Draw claimed");
+    } catch (err) {
+      if (request === claimRequestRef.current) setError(err.message);
+    } finally {
+      if (request === claimRequestRef.current) setClaimBusy(false);
+    }
+  }
+
   return (
     <section className="game-layout">
       <aside className="game-side-column desktop-game-sidebar">
@@ -431,6 +477,9 @@ export default function GamePage() {
             <>
               <PlayerSummaryPanel playerSummary={playerSummary} />
               <GameActionPanel
+                canClaimDraw={canClaimDraw}
+                claimBusy={claimBusy}
+                onCheckClaim={handleCheckClaim}
                 canOfferDraw={canOfferDraw}
                 canRespondToDraw={canRespondToDraw}
                 onAcceptDraw={handleAcceptDraw}
@@ -438,6 +487,7 @@ export default function GamePage() {
                 onOfferDraw={handleOfferDraw}
                 onResign={handleResign}
               />
+              {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={() => setClaimOptions(null)} busy={claimBusy} />}
               <DrawOfferPanel
                 drawOfferByUserId={drawOfferByUserId}
                 hasPendingDrawOffer={hasPendingDrawOffer}
@@ -463,6 +513,9 @@ export default function GamePage() {
       <aside className="game-side-column desktop-game-sidebar">
         <MoveHistory moves={moves} />
         <GameActionPanel
+          canClaimDraw={canClaimDraw}
+          claimBusy={claimBusy}
+          onCheckClaim={handleCheckClaim}
           canOfferDraw={canOfferDraw}
           canRespondToDraw={canRespondToDraw}
           onAcceptDraw={handleAcceptDraw}
@@ -470,6 +523,7 @@ export default function GamePage() {
           onOfferDraw={handleOfferDraw}
           onResign={handleResign}
         />
+        {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={() => setClaimOptions(null)} busy={claimBusy} />}
         <DrawOfferPanel
           drawOfferByUserId={drawOfferByUserId}
           hasPendingDrawOffer={hasPendingDrawOffer}
@@ -501,6 +555,9 @@ function PlayerSummaryPanel({ playerSummary }) {
 }
 
 function GameActionPanel({
+  canClaimDraw,
+  claimBusy,
+  onCheckClaim,
   canOfferDraw,
   canRespondToDraw,
   onAcceptDraw,
@@ -516,6 +573,11 @@ function GameActionPanel({
         </button>
       </div>
       <div className="actions">
+        {canClaimDraw && (
+          <button type="button" className="secondary-button" onClick={onCheckClaim} disabled={claimBusy}>
+            {claimBusy ? "Checking..." : "Check draw claim"}
+          </button>
+        )}
         {canOfferDraw && (
           <button type="button" className="secondary-button" onClick={onOfferDraw}>½ Offer draw</button>
         )}
@@ -527,6 +589,31 @@ function GameActionPanel({
         )}
       </div>
     </div>
+  );
+}
+
+function DrawClaimPanel({ options, selectedMove, onSelect, onClaim, onCancel, busy }) {
+  const hasCurrentClaim = options.current_reasons.length > 0;
+  const hasClaim = hasCurrentClaim || options.moves.length > 0;
+  const reasons = (values) => values.map((value) => value === "threefold" ? "threefold repetition" : "50-move rule").join(" and ");
+  return (
+    <section className="panel draw-claim-panel" aria-label="Draw claim">
+      <h2>Claim a draw</h2>
+      {hasClaim ? (
+        <>
+          <p>Choose the current position or a legal move you intend to play. A declared move is not played if the claim succeeds.</p>
+          <label>
+            Claim based on
+            <select value={selectedMove} onChange={(event) => onSelect(event.target.value)} disabled={busy}>
+              {hasCurrentClaim && <option value="">Current position: {reasons(options.current_reasons)}</option>}
+              {options.moves.map((move) => <option key={move.uci} value={move.uci}>{move.san}: {reasons(move.reasons)}</option>)}
+            </select>
+          </label>
+          <div className="actions"><button type="button" onClick={onClaim} disabled={busy}>{busy ? "Claiming..." : "Claim draw"}</button></div>
+        </>
+      ) : <p>No draw claim is currently available.</p>}
+      <button type="button" className="secondary-button" onClick={onCancel} disabled={busy}>Close</button>
+    </section>
   );
 }
 
@@ -575,7 +662,11 @@ function formatGameResult(game) {
   }
   if (game?.status === "white_win") return "White wins.";
   if (game?.status === "black_win") return "Black wins.";
-  if (game?.status === "draw") return "Draw.";
+  if (game?.status === "draw") {
+    if (game.result === "draw_claimed_threefold") return "Draw claimed by threefold repetition.";
+    if (game.result === "draw_claimed_fifty_move") return "Draw claimed under the 50-move rule.";
+    return "Draw.";
+  }
   return game?.result ?? "Game finished.";
 }
 

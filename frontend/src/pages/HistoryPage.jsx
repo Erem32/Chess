@@ -63,6 +63,8 @@ function formatHistoryStatus(game, userId) {
   }
   if (status === "draw") {
     if (result === "draw_agreed") return "Draw agreed";
+    if (result === "draw_claimed_threefold") return "Draw claimed by repetition";
+    if (result === "draw_claimed_fifty_move") return "Draw claimed under 50-move rule";
     if (result === "1/2-1/2") return "Draw on board";
     return "Draw";
   }

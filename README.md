@@ -169,7 +169,7 @@ The token is currently passed in the WebSocket URL. Configure reverse proxies, h
 
 Chat accepts a nonempty trimmed message of at most 1,000 Unicode characters without null bytes. A client may include a unique `client_message_id` of 1–64 ASCII letters, digits, underscores or hyphens in the chat payload; the server includes it in the corresponding successful `chat` event or validation `error`. Clients should correlate a successful event with both the ID and their own user ID. This acknowledgement does not make retries idempotent: a connection failure after persistence may leave delivery uncertain.
 
-On their turn, a player can request draw-claim options and submit a claim with `{}` for the current position or `{"move_uci":"..."}` for a declared legal move. The server checks the claim under the game lock; a declared move is not played if the claim succeeds. The interface for these claims is still being implemented.
+On their turn, a player can check draw-claim options in the game interface. The API accepts `{}` for the current position or `{"move_uci":"..."}` for a declared legal move. The server checks the claim under the game lock; a declared move is not played if the claim succeeds.
 
 Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which returns `{ "game_id": ..., "messages": [...] }` in ascending message ID order. It returns the newest 100 messages by default; `limit` can be 1–100, and `before_id` requests an older page. Chat is stored without an automatic retention or deletion policy.
 
@@ -181,7 +181,7 @@ The server sends `game_state`, `chat`, and `error` messages. In a `game_state` m
 - The game page restores up to the newest 100 chat messages. Older messages can be retrieved through the paginated API; there is no older-message control in the interface yet.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
-- The server automatically ends games on checkmate, stalemate, insufficient material, the 75-move rule, or fivefold repetition when stored moves reconstruct the current position. Claimable 50-move/threefold draws are available through the API; the game interface does not yet expose them. Repetition is not inferred from incomplete or inconsistent historical move records.
+- The server automatically ends games on checkmate, stalemate, insufficient material, the 75-move rule, or fivefold repetition when stored moves reconstruct the current position. Players can claim 50-move or threefold draws on their turn. Repetition is not inferred from incomplete or inconsistent historical move records.
 - There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.
 
 The project notes in [plan.md](plan.md) and [rules.md](rules.md) describe intended work and team conventions; check the current code when their status statements differ.

@@ -22,7 +22,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** Bounded, authorized chat history and acknowledged sends are integrated. An unconfirmed send keeps its draft and warns that delivery may have succeeded. A mocked browser smoke test covered acknowledgement and disconnect, and a real two-player browser smoke covered chat and reload. Retries are not idempotent; an older-message UI remains pending.
 - **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
 - **Completed:** The server implements the automatic 75-move and fivefold repetition rules. Repetition is applied only when persisted UCI moves reconstruct the current FEN; focused tests cover draw outcomes, checkmate precedence, and inconsistent history.
-- **In progress:** The server exposes turn-authorized, locked current-position and declared-move claims for threefold and 50-move draws. Declared moves are not played on a successful claim. Focused backend tests passed (29); the player interface, concurrency test and browser verification remain outstanding.
+- **Completed:** Players can check and claim threefold or 50-move draws on their turn, including with a declared legal move that is not played after a successful claim. The server revalidates under the game lock; PostgreSQL contention tests cover claims racing with moves. A real two-player browser smoke verified a declared-move claim and subsequent separate resignation.
 - **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
 - **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, moves from both players, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
@@ -50,6 +50,6 @@ Review and integrate session recovery, then continue reconnect and resynchroniza
 - `docker compose exec -T backend pytest -q`
 - `docker compose exec -T frontend npm run build`
 - Integrated configuration/auth/WebSocket tests: 39 passed. Integrated frontend build passed.
-- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 73 passed (272 warnings). Clean frontend install, 11 tests, build and audit passed. The headless two-player smoke passed against disposable services. GitHub Actions completed successfully for commit `473271d`; later commits have not yet been confirmed.
+- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 82 passed (365 warnings). Clean frontend install, 11 tests, build and audit passed. The headless two-player smoke passed against disposable services. GitHub Actions completed successfully for commit `473271d`; later commits have not yet been confirmed.
 
 See the README for setup and manual two-player checks. Tests against isolated worktrees must run against their own source, not the running service's mounted checkout.

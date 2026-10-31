@@ -42,6 +42,17 @@ export function offerDraw(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/draw-offer`, { method: "POST" });
 }
 
+export function getDrawClaimOptions(gameId) {
+  return apiRequest(`/api/v1/games/${gameId}/draw-claims`);
+}
+
+export function submitDrawClaim(gameId, moveUci = null) {
+  return apiRequest(`/api/v1/games/${gameId}/draw-claims`, {
+    method: "POST",
+    body: JSON.stringify({ move_uci: moveUci })
+  });
+}
+
 export function acceptDraw(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/draw-offer/accept`, { method: "POST" });
 }
