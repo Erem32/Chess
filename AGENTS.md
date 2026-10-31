@@ -14,6 +14,7 @@
 - `frontend/src/pages`: Page-level React screens.
 - `frontend/src/context`: React providers such as authentication state.
 - `frontend/src/styles`: Global styles.
+- `docs/PROJECT_STRUCTURE.md`: Guide to the codebase and the main application flows.
 
 ## Commands
 
@@ -60,6 +61,13 @@ docker compose exec backend alembic upgrade head
 - Add focused tests when implementing a feature.
 - Use environment variables for configuration.
 - Keep comments useful and brief.
+
+## Documentation Maintenance
+
+- When changing behavior, configuration, API contracts, commands, or project structure, check whether `README.md`, `docs/PROJECT_STRUCTURE.md`, or other affected project notes need updating.
+- Keep documentation changes in the same change set as the implementation. Base claims and examples on the current code and tests; distinguish unverified or planned behavior.
+- Use `$maintain-chess-docs` when available. If it is not available, perform the documentation check above directly.
+- Verify relevant links and examples. If no documentation needs changing, say so when reporting the work.
 
 ## Project Rules
 

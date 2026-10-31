@@ -81,7 +81,7 @@ These are the highest-value tasks for turning the current base into a strong dem
 
 These matter, but come after the core play loop is stable.
 
-- Persist and display chat history on reload
+- Retrieve and display stored chat history on reload
 - Improve error messages for auth and gameplay edge cases
 - Add clearer active game resume behavior from dashboard
 - Tighten profile stats updates after completed games

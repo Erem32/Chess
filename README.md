@@ -1,193 +1,138 @@
 # Online Chess Platform
 
-Minimal, Dockerized university MVP for an online chess platform inspired by chess.com.
+A university MVP for playing chess online. Two registered users can join a matchmaking queue, play a game in real time, chat, and view their games. The application consists of a React frontend, a FastAPI backend, and a PostgreSQL database.
 
-This repository currently contains a working project foundation: a FastAPI backend, a Vite React frontend, PostgreSQL through Docker Compose, an initial Alembic database migration, and clean folders for services, repositories, models, schemas, API routes, and tests.
+The backend is responsible for game state and move legality. The project is a development MVP, not a production deployment.
+
+## What is implemented
+
+- Registration, login, password hashing, and JWT authentication.
+- Database-backed matchmaking and game creation for two players.
+- Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
+- In-game chat, resignation, draw offers, game history, and basic user statistics.
+
+These flows are under development; see [Current limitations](#current-limitations) and the manual checks below.
 
 ## Stack
 
-- Frontend: React + Vite
-- Backend: Python FastAPI
-- Database: PostgreSQL
-- ORM: SQLAlchemy
-- Migrations: Alembic
-- Auth target: JWT access tokens + hashed passwords
-- Real-time target: FastAPI WebSockets
-- Chess validation target: python-chess
-- Testing: pytest and frontend build verification
-
-## Run With Docker
-
-Optional: copy the example environment file if you want to customize local settings:
-
-```bash
-cp .env.example .env
-```
-
-The default development database credentials are project-specific and safe for local Docker use:
-
-- database: `online_chess`
-- user: `online_chess_app`
-- password: `online_chess_dev_password`
-
-Start all services:
-
-```bash
-docker compose up --build
-```
-
-The backend container automatically runs `alembic upgrade head` before starting the API, so first-time setup creates the database tables for the committed schema.
-
-For local development, the backend also seeds two test users by default:
-
-| Email | Password |
+| Part | Technology |
 | --- | --- |
-| `123@123.pl` | `123` |
-| `321@321.pl` | `321` |
+| Frontend | React, Vite, React Router, react-chessboard, chess.js |
+| Backend | Python, FastAPI, WebSockets, python-chess |
+| Data | PostgreSQL, SQLAlchemy, Alembic |
+| Development | Docker Compose, pytest |
 
-Set `ENABLE_DEV_SEED_USERS=false` in `.env` to disable this.
+For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md).
 
-If you previously started the project with different database credentials, reset the local Docker database volume before starting again:
+## Run locally
 
-```bash
-docker compose down -v
-docker compose up --build
-```
+Requirements: Docker and Docker Compose.
 
-Services:
+1. Clone the repository and enter it:
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8000
-- Backend health: http://localhost:8000/health
-- PostgreSQL: localhost:5432
+   ~~~bash
+   git clone https://github.com/Erem32/Chess.git
+   cd Chess
+   ~~~
 
-The health endpoint should return:
+2. Optionally copy the example configuration. Compose also supplies the same development defaults when `.env` is absent:
 
-```json
-{
-  "status": "ok",
-  "database": "ok"
-}
-```
+   ~~~bash
+   cp .env.example .env
+   ~~~
 
-## Migrations
+3. Start the services:
 
-The current initial migration is committed. To apply migrations manually:
+   ~~~bash
+   docker compose up --build
+   ~~~
 
-```bash
-docker compose exec backend alembic upgrade head
-```
+The backend waits for PostgreSQL, runs Alembic migrations, and seeds the development users before starting the API.
 
-When models change later, create a new migration:
+| Service | Address |
+| --- | --- |
+| Frontend | http://localhost:5173 |
+| Backend | http://localhost:8000 |
+| Interactive API docs | http://localhost:8000/docs |
+| Database health check | http://localhost:8000/health |
+| PostgreSQL | localhost:5432 |
 
-```bash
-docker compose exec backend alembic revision --autogenerate -m "describe change"
-```
+A successful health check returns `{"status":"ok","database":"ok"}`. Stop the services with `docker compose down`; the database volume is kept.
 
-## Backend Tests
+### Development accounts
 
-```bash
-cd backend
-pytest
-```
+The backend creates or resets these accounts on startup when `ENABLE_DEV_SEED_USERS=true`:
 
-Or through Docker:
+| Email or username | Password |
+| --- | --- |
+| `123@123.pl` or `123` | `123` |
+| `321@321.pl` or `321` | `321` |
 
-```bash
+To test two players, use separate browser profiles or a normal window and a private window: login tokens are stored in browser local storage, which is shared by ordinary tabs from the same profile. Set `ENABLE_DEV_SEED_USERS=false` in `.env` to disable seeding. The sample passwords, database credentials, and secret key are for local development only.
+
+### Configuration
+
+The available development variables are listed in [.env.example](.env.example). They include PostgreSQL credentials and `DATABASE_URL`, the JWT `SECRET_KEY` and token lifetime, CORS origins, the seed flag, and the frontend API/WebSocket URLs.
+
+If you change the PostgreSQL username, password, or database name, also update `DATABASE_URL` to match. PostgreSQL initializes these credentials when its volume is first created; changing them later may require additional database configuration. Never commit a real `.env` or secrets.
+
+## Tests and checks
+
+With the services running:
+
+~~~bash
 docker compose exec backend pytest
-```
-
-## Frontend Build
-
-```bash
-cd frontend
-npm install
-npm run build
-```
-
-Or through Docker:
-
-```bash
 docker compose exec frontend npm run build
-```
+~~~
 
-## Main API Endpoints
+The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. A frontend build is not a substitute for a browser test.
 
-- `GET /health`
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `GET /api/v1/users/me`
-- `GET /api/v1/users/me/stats`
-- `POST /api/v1/matchmaking/join`
-- `POST /api/v1/matchmaking/leave`
-- `GET /api/v1/games/{game_id}`
-- `GET /api/v1/games/{game_id}/moves`
-- `GET /api/v1/games/my-history`
-- `POST /api/v1/games/{game_id}/resign`
-- `WebSocket /ws/games/{game_id}?token=...`
+For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
-Most feature routes are scaffolded for the MVP and should be implemented in services, not directly inside route files. The current priority is reliable project setup and connectivity for team handoff.
+## Database migrations
 
-## WebSocket Messages
+Migrations are applied automatically on backend startup. To apply them manually:
 
-Client move:
+~~~bash
+docker compose exec backend alembic upgrade head
+~~~
 
-```json
-{
-  "type": "move",
-  "payload": {
-    "move": "e2e4"
-  }
-}
-```
+After changing models, generate and review a new migration:
 
-Server game state:
+~~~bash
+docker compose exec backend alembic revision --autogenerate -m "describe change"
+~~~
 
-```json
-{
-  "type": "game_state",
-  "payload": {
-    "game_id": 1,
-    "fen": "...",
-    "turn_color": "black",
-    "status": "active",
-    "last_move": "e2e4"
-  }
-}
-```
+## API and WebSocket overview
 
-Error:
+The interactive API documentation at `/docs` is the most detailed reference for request and response schemas. Protected REST endpoints require a Bearer token.
 
-```json
-{
-  "type": "error",
-  "payload": {
-    "message": "Illegal move"
-  }
-}
-```
+| Area | Endpoints |
+| --- | --- |
+| Health | `GET /health` |
+| Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
+| Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
+| Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
+| Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves` |
+| Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline` |
 
-Chat:
+The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
 
-```json
-{
-  "type": "chat",
-  "payload": {
-    "message": "Good luck!"
-  }
-}
-```
+~~~json
+{"type": "move", "payload": {"move_uci": "e2e4"}}
+~~~
 
-## MVP Limitations
+~~~json
+{"type": "chat", "payload": {"message": "Good luck!"}}
+~~~
 
-- No Stockfish, puzzles, tournaments, payments, advanced rankings, or AI opponent.
-- Chess rules, matchmaking, persistence, auth, and WebSocket gameplay are organized but not fully implemented in this scaffold.
-- The backend must remain the source of truth for chess legality and game state.
+The server sends `game_state`, `chat`, and `error` messages. In a `game_state` message, the game is under `payload.game`, with fields including `id`, `current_fen`, `turn_color`, and `status`. After a move, the payload also includes the move and end-of-game flags. See [backend/app/main.py](backend/app/main.py) and [chess_service.py](backend/app/services/chess_service.py) for the current contract.
 
-## Future Extensions
+## Current limitations
 
-- Complete registration/login and JWT-protected routes.
-- Implement database-backed matchmaking.
-- Implement move validation and persistence with `python-chess`.
-- Add persisted chat messages.
-- Add richer profile, history, and game review pages.
+- This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification.
+- Chat messages are stored by the backend, but the frontend does not currently restore chat history when a game page is reloaded.
+- The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
+- There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.
+
+The project notes in [plan.md](plan.md) and [rules.md](rules.md) describe intended work and team conventions; check the current code when their status statements differ.
