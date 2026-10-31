@@ -2,7 +2,7 @@
 
 Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementally, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative.
 
-Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git status and worktree list are authoritative.
+Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The latest implementation snapshot is `d1c23f8`; this handoff adds a checkpoint-only commit. `origin/main` is now `0755235`. See the handoff snapshot below before integrating.
 
 Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b96`) and `improvement/chat-history` (now includes integration commit `20c0840`). Both were pushed and integrated into `improvement/roadmap`; their WIP commits remain in history. Original worktree paths are local to the source machine; use `git worktree list` to discover actual paths. Git history and remote refs are authoritative.
 
@@ -52,7 +52,32 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 
 ## Next task
 
-Review and integrate session recovery, then continue reconnect and resynchronization work. Verify external proxy logging separately when deployment access is available.
+Fetch the named branches in the handoff snapshot and review `improvement/roadmap` against the latest `main` before integrating. Then continue the pending gameplay polish, browser/accessibility review, and operational readiness work. Verify external proxy logging separately when deployment access is available.
+
+## Handoff snapshot (2026-10-31)
+
+The worktrees were clean, with no merge/rebase state or untracked project files. All refs below were pushed to `origin` and verified against the remote. Existing remote branches `improvement/roadmap`, `improvement/reconnect`, and `improvement/chat-history` were retained; the other refs are additional named snapshots for transfer.
+
+| Branch | Commit | Notes |
+|---|---|---|
+| `improvement/roadmap` | `d1c23f8cbb8078c756bbde497c15782013db2efc` | Implementation snapshot; remote matched before this checkpoint-only update. |
+| `improvement/reconnect` | `9ec0b96c5141d50437f849b0c39af5e30cae53e4` | Existing preserved WIP; remote matches. |
+| `improvement/chat-history` | `20c084031abf624b8959a39139d93bd42a94ab4e` | Existing preserved WIP; remote matches. |
+| `improvement/game-locking` | `b84240b630ced482b8b5ccb24d82b1a70b69f89a` | Clean worktree snapshot. |
+| `improvement/production-config` | `835712c7d4f5a2a8e2dea92974375af6e8d8bc78` | Clean worktree snapshot. |
+| `improvement/auth-ui` | `8e35de9892318c45feb08db87b3a93740bd84001` | Clean worktree snapshot. |
+| `improvement/ci-workflow` | `46e4695f1d905188e673b07d6f23ece2ed4cde41` | Clean worktree snapshot. |
+| `improvement/dependency-audit` | `5d29e9e63c454bbb932fbf2d7406eb7f47fe1dc3` | Clean worktree snapshot. |
+| `improvement/promotion` | `689f7d07330f79ed9e07593fa61e94b27021373c` | Clean worktree snapshot. |
+| `improvement/session-recovery` | `6389fded62dc11629f507a08a0c69f4516353703` | Clean worktree snapshot. |
+| `improvement/websocket-tests` | `60b92edb2862339c325538379a4234d249828bbf` | Clean worktree snapshot. |
+| `handoff/stash-recovery` | `1244bad8dfbc79f0634346f077200d7e7f4f118f` | WIP recovered from the original stash; see below. |
+
+`handoff/stash-recovery` preserves an older HTTP move endpoint, move-entry UI, and WebSocket fallback/sync implementation on the stash's original base (`7a1c176`). It was committed and pushed without integration. It has not been tested; review its debug UI, polling behavior, and compatibility before using it. The original `stash@{0}` remains in the source repository as an extra local backup.
+
+At handoff, `origin/main` is `075523532dddfb9c1735ad72889e1c0feb4aa3c6`. Compared with `improvement/roadmap`, it has one main-only commit while the roadmap has 33 commits not on `main`; inspect the graph and current source before merging or rebasing. This handoff ran `git diff --check` on the preserved changes and verified remote ref hashes; it did not run tests. Historical checks above describe earlier commits, not this snapshot.
+
+The ignored local environment file, caches, and build output were excluded. The pre-existing offline bundle is stale and was not refreshed; use the verified remote branches, or create a new reviewed bundle if offline transfer is needed.
 
 ## Checks
 
