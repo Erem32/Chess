@@ -2,7 +2,7 @@
 
 Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementally, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative.
 
-Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The latest implementation snapshot is `d1c23f8`; this handoff adds a checkpoint-only commit. `origin/main` is now `0755235`. See the handoff snapshot below before integrating.
+Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The latest implementation snapshot is `d1c23f8`; this handoff adds checkpoint-only documentation commits. `origin/main` is now `0755235`. See the handoff snapshot below before integrating.
 
 Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b96`) and `improvement/chat-history` (now includes integration commit `20c0840`). Both were pushed and integrated into `improvement/roadmap`; their WIP commits remain in history. Original worktree paths are local to the source machine; use `git worktree list` to discover actual paths. Git history and remote refs are authoritative.
 
@@ -75,7 +75,7 @@ The worktrees were clean, with no merge/rebase state or untracked project files.
 
 `handoff/stash-recovery` preserves an older HTTP move endpoint, move-entry UI, and WebSocket fallback/sync implementation on the stash's original base (`7a1c176`). It was committed and pushed without integration. It has not been tested; review its debug UI, polling behavior, and compatibility before using it. The original `stash@{0}` remains in the source repository as an extra local backup.
 
-At handoff, `origin/main` is `075523532dddfb9c1735ad72889e1c0feb4aa3c6`. Compared with `improvement/roadmap`, it has one main-only commit while the roadmap has 33 commits not on `main`; inspect the graph and current source before merging or rebasing. This handoff ran `git diff --check` on the preserved changes and verified remote ref hashes; it did not run tests. Historical checks above describe earlier commits, not this snapshot.
+At implementation snapshot `d1c23f8`, `origin/main` was `075523532dddfb9c1735ad72889e1c0feb4aa3c6`. At that comparison point, `main` had one main-only commit while the roadmap had 33 commits not on `main`; the checkpoint-only documentation commits add no implementation changes. Inspect the graph and current source before merging or rebasing. This handoff ran `git diff --check` on the preserved changes and verified remote ref hashes; it did not run tests. Historical checks above describe earlier commits, not this snapshot.
 
 The ignored local environment file, caches, and build output were excluded. The pre-existing offline bundle is stale and was not refreshed; use the verified remote branches, or create a new reviewed bundle if offline transfer is needed.
 
