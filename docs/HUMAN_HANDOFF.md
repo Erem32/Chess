@@ -31,6 +31,8 @@ git -C /path/to/worktree commit -m "WIP: preserve unfinished feature"
 
 Repeat `git add` for each reviewed path. Never use a blanket add without inspecting all files. If a merge conflict, stash, ignored file, unknown ownership, missing identity, or credential requires attention, do not guess or discard it; document it and ask the owner. A normal commit cannot represent an unresolved merge. Commit the updated checkpoint on the appropriate project branch once WIP hashes are known.
 
+For a relevant stash you own, inspect it first with `git stash show --include-untracked -p 'stash@{0}'` (choose the correct entry and avoid displaying secrets). To preserve the stash, create a new worktree and branch from its base with `git worktree add -b handoff/stash-recovery /safe/new/path 'stash@{0}^1'`, then run `git -C /safe/new/path stash apply --index 'stash@{0}'`. Inspect the restored files and commit only the intended content as above. Applying can conflict; preserve both the stash and worktree until resolved. Check separately for files the stash did not include. Do not use `stash pop` or drop the original merely because a copy was created.
+
 ## 3. Publish named branches
 
 Confirm the intended remote and access with your team. With permission to publish, push each intended branch explicitly, for example:
