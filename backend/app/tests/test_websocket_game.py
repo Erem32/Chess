@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 from starlette.websockets import WebSocketDisconnect
 
 from app import main
+from app.api import websocket as websocket_api
 from app.core.security import create_access_token
 from app.db.session import Base
 from app.models import Game, GamePlayer, Move, User
@@ -38,8 +39,8 @@ def game_client(monkeypatch):
         tokens = {color: create_access_token(str(user.id)) for color, user in
                   (("white", white), ("black", black), ("outsider", outsider))}
 
-    monkeypatch.setattr(main, "SessionLocal", sessions)
-    monkeypatch.setattr(main, "websocket_manager", WebSocketManager())
+    monkeypatch.setattr(websocket_api, "SessionLocal", sessions)
+    monkeypatch.setattr(websocket_api, "websocket_manager", WebSocketManager())
     try:
         with TestClient(main.app) as client:
             yield client, sessions, game_id, tokens

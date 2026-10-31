@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.db.session import Base, get_db
-from app import main
+from app.api import websocket as websocket_api
 from app.main import app
 from app.models import ChatMessage, Game, MatchmakingQueue
 from app.services.chess_service import apply_player_move
@@ -267,7 +267,7 @@ def test_chat_socket_acknowledges_success_and_rejection(client: TestClient, db_s
     bob = _auth_headers(client, "bob")
     client.post("/api/v1/matchmaking/join", headers=alice)
     game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game"]["id"]
-    monkeypatch.setattr(main, "SessionLocal", db_session_factory)
+    monkeypatch.setattr(websocket_api, "SessionLocal", db_session_factory)
     token = alice["Authorization"].split(" ", 1)[1]
     with client.websocket_connect(f"/ws/games/{game_id}?token={token}") as socket:
         assert socket.receive_json()["type"] == "game_state"

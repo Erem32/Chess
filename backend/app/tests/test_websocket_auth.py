@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app import main
+from app.api import websocket as websocket_api
 
 
 class FakeSession:
@@ -18,7 +19,7 @@ class FakeSession:
 
 
 def test_invalid_socket_token_is_rejected_without_logging_it(monkeypatch, capsys, caplog) -> None:
-    monkeypatch.setattr(main, "SessionLocal", FakeSession)
+    monkeypatch.setattr(websocket_api, "SessionLocal", FakeSession)
     token = "invalid-secret-token-for-test"
 
     with TestClient(main.app) as client:
