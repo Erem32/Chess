@@ -1,0 +1,42 @@
+# Local preview of a production frontend build. Never use production credentials here.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: chess_preview
+      POSTGRES_PASSWORD: chess_preview_local
+      POSTGRES_DB: chess_preview
+    volumes:
+      - preview_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chess_preview -d chess_preview"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://chess_preview:chess_preview_local@postgres:5432/chess_preview
+      SECRET_KEY: local-preview-only-not-for-production
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      BACKEND_CORS_ORIGINS: http://localhost:5174,http://127.0.0.1:5174
+      ENABLE_DEV_SEED_USERS: "false"
+    ports:
+      - "127.0.0.1:8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.preview
+    ports:
+      - "127.0.0.1:5174:80"
+    depends_on:
+      - backend
+
+volumes:
+  preview_data:

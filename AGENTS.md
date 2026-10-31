@@ -26,6 +26,12 @@ docker compose up --build
 
 The backend Docker command runs `alembic upgrade head` automatically before starting FastAPI.
 
+Preview the built frontend with a separate local database:
+
+```bash
+docker compose -p chess-preview -f docker-compose.preview.yml up --build
+```
+
 Verify API and database connectivity:
 
 ```bash
