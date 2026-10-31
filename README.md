@@ -25,6 +25,8 @@ These flows are under development; see [Current limitations](#current-limitation
 
 For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For the proposed technical and product roadmap, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
 
+For interrupted development work, see the [implementation checkpoint](docs/IMPLEMENTATION_PROGRESS.md) and [human handoff guide](docs/HUMAN_HANDOFF.md). Reusable agent workflows live in `.agents/skills/`.
+
 ## Run locally
 
 Requirements: Docker and Docker Compose.
@@ -173,7 +175,7 @@ The server sends `game_state`, `chat`, and `error` messages. In a `game_state` m
 
 ## Current limitations
 
-- This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification.
+- This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification. The game reconnects with backoff after temporary socket failures and reloads game and move state before allowing another move. Authentication failures require signing in again.
 - Chat messages are stored by the backend, but the frontend does not currently restore chat history when a game page is reloaded.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.

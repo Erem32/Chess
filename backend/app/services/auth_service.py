@@ -46,6 +46,14 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
 
 
 def authenticate_user(db: Session, username_or_email: str, password: str) -> User:
+    # Invalid text for bcrypt or PostgreSQL is an authentication failure.
+    if "\x00" in password or "\x00" in username_or_email:
+        raise InvalidCredentialsError
+    try:
+        password.encode("utf-8")
+        username_or_email.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise InvalidCredentialsError from exc
     user = user_repository.get_user_by_username_or_email(db, username_or_email)
     if user is None or not password_matches(password, user.hashed_password) or not user.is_active:
         raise InvalidCredentialsError

@@ -40,13 +40,14 @@ function setMatchmakingPending(value) {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [stats, setStats] = useState(EMPTY_STATS);
+  const [stats, setStats] = useState(null);
+  const [statsError, setStatsError] = useState("");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const [activeGame, setActiveGame] = useState(null);
-  const [recentGames, setRecentGames] = useState([]);
+  const [recentGames, setRecentGames] = useState(null);
   const [historyError, setHistoryError] = useState("");
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function DashboardPage() {
         if (active) setStats({ ...EMPTY_STATS, ...(data ?? {}) });
       })
       .catch((err) => {
-        if (active) setError(err.message);
+        if (active) setStatsError(err.message);
       });
 
     getMyActiveGame()
@@ -70,7 +71,9 @@ export default function DashboardPage() {
         }
         setActiveGame(data?.id ? data : null);
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (active) setError(`Could not check your active game: ${err.message}`);
+      });
 
     getMatchmakingStatus()
       .then((data) => {
@@ -87,7 +90,9 @@ export default function DashboardPage() {
           setStatus("Waiting for another player");
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (active) setError(`Could not check matchmaking: ${err.message}`);
+      });
 
     getMyHistory()
       .then((data) => {
@@ -225,7 +230,7 @@ export default function DashboardPage() {
       if (data?.games) {
         setRecentGames((currentGames) => {
           const updatedGameIds = new Set(data.games.map((game) => game.id));
-          return [...data.games, ...currentGames.filter((game) => !updatedGameIds.has(game.id))];
+          return [...data.games, ...(currentGames ?? []).filter((game) => !updatedGameIds.has(game.id))];
         });
       }
       setStatus(data?.games?.length ? "Game aborted" : "No active game to abort");
@@ -234,12 +239,12 @@ export default function DashboardPage() {
     }
   }
 
-  const totalGames = Number(stats.games_played ?? 0);
-  const wins = Number(stats.wins ?? 0);
-  const losses = Number(stats.losses ?? 0);
-  const draws = Number(stats.draws ?? 0);
+  const totalGames = Number(stats?.games_played ?? 0);
+  const wins = Number(stats?.wins ?? 0);
+  const losses = Number(stats?.losses ?? 0);
+  const draws = Number(stats?.draws ?? 0);
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
-  const latestGames = recentGames.slice(0, 5);
+  const latestGames = recentGames?.slice(0, 5) ?? [];
   const statCards = [
     { label: "Games played", value: totalGames },
     { label: "Wins", value: wins },
@@ -325,6 +330,8 @@ export default function DashboardPage() {
 
             {historyError ? (
               <p className="error">Could not load recent games: {historyError}</p>
+            ) : recentGames === null ? (
+              <p className="muted" role="status">Loading recent games...</p>
             ) : latestGames.length === 0 ? (
               <p className="muted dashboard-empty-state">
                 No games yet. Your active and completed games will appear here.
@@ -368,14 +375,16 @@ export default function DashboardPage() {
                 <p className="muted">Based on completed games.</p>
               </div>
             </div>
-            <div className="dashboard-stat-grid">
+            {statsError ? <p className="error" role="alert">Could not load statistics: {statsError}</p> : !stats ? (
+              <p className="muted" role="status">Loading statistics...</p>
+            ) : <div className="dashboard-stat-grid">
               {statCards.map((item) => (
                 <div key={item.label} className="dashboard-stat-card">
                   <span className="muted">{item.label}</span>
                   <strong>{item.value}</strong>
                 </div>
               ))}
-            </div>
+            </div>}
           </section>
         </aside>
       </div>
