@@ -107,36 +107,13 @@ export default function GamePage() {
 
     let active = true;
     let opened = false;
-    console.debug("GamePage websocket effect", {
-      gameId,
-      socketAttempt,
-        socketTokenPresent: Boolean(socketToken),
-        currentUserId,
-        playerColor,
-        canConnect,
-        canOpenSocket,
-      gameIdFromState: game?.id,
-    });
-
     if (!socketToken) {
-      console.warn("GamePage websocket skipped because no socket token was available", {
-        gameId,
-        socketAttempt,
-        currentUserId,
-        playerColor,
-        canConnect,
-      });
       setSocketStatus("disconnected");
       setError("No active login session. Log in again before opening the game.");
       return undefined;
     }
 
     if (socketRef.current && socketRef.current.readyState !== WebSocket.CLOSED && socketRef.current.readyState !== WebSocket.CLOSING) {
-      console.debug("GamePage websocket already active, skipping duplicate connect", {
-        gameId,
-        socketAttempt,
-        readyState: socketRef.current.readyState,
-      });
       return undefined;
     }
 
@@ -145,7 +122,6 @@ export default function GamePage() {
     socketRef.current = ws;
     ws.onopen = () => {
       opened = true;
-      console.info("GamePage websocket open", { gameId, socketAttempt, currentUserId, playerColor });
       if (active && socketRef.current === ws) {
         setSocketStatus("connected");
         setInfo("Connected");
@@ -190,15 +166,13 @@ export default function GamePage() {
         setError(payload.message ?? "WebSocket error");
       }
     };
-    ws.onerror = (event) => {
-      console.warn("GamePage websocket error", { gameId, socketAttempt, event });
+    ws.onerror = () => {
       if (active && socketRef.current === ws) {
         setSocketStatus("disconnected");
         setError("Game connection failed. Retrying...");
       }
     };
     ws.onclose = (event) => {
-      console.info("GamePage websocket close", { gameId, socketAttempt, event, opened });
       if (!active || socketRef.current !== ws) return;
       setSocketStatus("disconnected");
       setInfo("Disconnected");
@@ -210,16 +184,9 @@ export default function GamePage() {
         reconnectTimerRef.current = window.setTimeout(() => {
           setSocketAttempt((current) => current + 1);
         }, 1200);
-      } else {
-        console.warn("GamePage websocket closed before open, not attempting reconnect", {
-          gameId,
-          socketAttempt,
-          event,
-        });
       }
     };
     return () => {
-      console.info("GamePage websocket cleanup", { gameId, socketAttempt, currentUserId });
       active = false;
       if (reconnectTimerRef.current) {
         window.clearTimeout(reconnectTimerRef.current);

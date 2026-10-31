@@ -8,7 +8,7 @@ Active worktrees: `improvement/promotion` at `/tmp/chess-promotion`, `improvemen
 
 ## Priorities
 
-- **Completed:** Removed credential-bearing WebSocket application logs; failed authentication regression test passed and frontend built.
+- **Completed:** Removed credential-bearing frontend logs and backend token logging; cleared the WebSocket query string before Uvicorn handshake logging. Regression tests include a real Uvicorn server and failed authentication; frontend built. Proxies and other ASGI servers still require independent verification.
 - **Completed:** Explicit production mode validates common unsafe settings and disables implicit seeding; development Compose still seeds explicitly. Production must set `APP_ENV=production` and real secrets. Migrations remain on startup.
 - **Completed:** Row locks protect resignation and abort against concurrent moves and draw responses. Five PostgreSQL contention tests passed against a disposable database; matchmaking interactions with terminal transitions remain unverified.
 - **Completed:** Login and registration forms have labels, autocomplete, pending feedback, error announcements, and registration confirmation. Agent verified a clean build and a mocked-API headless mobile smoke check; no automated frontend regression suite yet.
@@ -31,7 +31,7 @@ Active worktrees: `improvement/promotion` at `/tmp/chess-promotion`, `improvemen
 
 ## Next task
 
-Remove WebSocket query strings from Uvicorn handshake logs and test a real server; review and integrate session recovery, promotion and dependency worktrees as they complete. Verify external proxy logging separately when deployment access is available.
+Review and integrate session recovery, promotion and dependency worktrees as they complete. Verify external proxy logging separately when deployment access is available.
 
 ## Checks
 
