@@ -10,8 +10,9 @@ Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Paralle
 - **In progress:** Secure deployment configuration in its isolated worktree.
 - **In progress:** Serialize competing game transitions and verify PostgreSQL concurrency in its isolated worktree.
 - **In progress:** Improve login and registration forms in an isolated worktree.
-- **Blocked on product decision:** Define abort eligibility and treatment of existing aborted-game statistics; continue independent work.
-- **Pending:** Improve authentication, session recovery, promotion, reconnects, chat, and dashboard feedback.
+- **Pending:** Enforce user-selected abort only before the first move, with no result; require resignation afterward. Review legacy aborted-game statistics separately before any historical data correction.
+- **Completed:** Registration rejects blank or oversized usernames and passwords outside bcrypt’s byte limit; `docker compose exec -T backend pytest -q app/tests/test_auth.py` passed (21 tests). Existing login behavior remains unchanged.
+- **Pending:** Improve session recovery, promotion, reconnects, chat, and dashboard feedback.
 - **Pending:** CI, reproducible dependencies, frontend and integration tests, incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
 
@@ -21,7 +22,7 @@ Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Paralle
 - Docker services were already running. Baseline frontend `docker compose exec -T frontend npm run build` passed; backend `docker compose exec -T backend pytest -q` passed (27 tests, 86 warnings).
 - No visual browser review, PostgreSQL concurrency validation, hosting log audit, or deployment verification has been performed.
 - Existing WebSocket query-string tokens may reach proxy or hosting logs; rotation and external audit require deployment context and authorization.
-- Product decision requested: limit aborts to pre-move, permit any-time abort without a result, or retain existing behavior temporarily. Do not change abort semantics or historical data without that decision.
+- User selected abort only before the first move, recording no result and requiring resignation afterward. Do not change historical data without separate review and authorization.
 
 ## Next task
 

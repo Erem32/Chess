@@ -96,6 +96,27 @@ def test_register_rejects_duplicate_email_or_username(client: TestClient) -> Non
     assert duplicate_username.status_code == 409
 
 
+@pytest.mark.parametrize(
+    "username,password",
+    [("", "secret"), ("   ", "secret"), ("bad\x00name", "secret"), ("x" * 51, "secret"),
+     ("alice", ""), ("alice", "x" * 73), ("alice", "ą" * 37), ("alice", "bad\x00password")],
+)
+def test_register_rejects_invalid_username_or_password(client: TestClient, username: str, password: str) -> None:
+    response = client.post(
+        "/api/v1/auth/register",
+        json={"username": username, "email": "alice@example.com", "password": password},
+    )
+    assert response.status_code == 422
+
+
+def test_register_accepts_password_at_bcrypt_byte_limit(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/auth/register",
+        json={"username": "alice", "email": "alice@example.com", "password": "ą" * 36},
+    )
+    assert response.status_code == 201
+
+
 def test_login_returns_jwt_for_valid_credentials(client: TestClient) -> None:
     client.post(
         "/api/v1/auth/register",

@@ -74,6 +74,8 @@ To test two players, use separate browser profiles or a normal window and a priv
 
 The available development variables are listed in [.env.example](.env.example). They include PostgreSQL credentials and `DATABASE_URL`, the JWT `SECRET_KEY` and token lifetime, CORS origins, the seed flag, and the frontend API/WebSocket URLs.
 
+Registration accepts a nonblank username of up to 50 characters and a nonempty password of at most 72 UTF-8 bytes; neither may contain null bytes. This password limit prevents bcrypt from silently ignoring trailing bytes. The current MVP does not enforce a minimum password strength.
+
 If you change the PostgreSQL username, password, or database name, also update `DATABASE_URL` to match. PostgreSQL initializes these credentials when its volume is first created; changing them later may require additional database configuration. Never commit a real `.env` or secrets.
 
 ## Preview a production frontend build locally
