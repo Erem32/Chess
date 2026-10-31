@@ -22,7 +22,7 @@ These flows are under development; see [Current limitations](#current-limitation
 | Data | PostgreSQL, SQLAlchemy, Alembic |
 | Development | Docker Compose, pytest |
 
-For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md).
+For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For the proposed technical and product roadmap, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
 
 ## Run locally
 
