@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getCurrentUser, getMyStats } from "../api/auth.js";
+import { getMyStats } from "../api/auth.js";
 import {
   abortMyActiveGames,
   getMatchmakingStatus,
@@ -39,7 +39,7 @@ function setMatchmakingPending(value) {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState(EMPTY_STATS);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -51,15 +51,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let active = true;
-
-    getCurrentUser()
-      .then((data) => {
-        if (!active) return;
-        if (data && !data.message) {
-          setUser(data);
-        }
-      })
-      .catch(() => {});
 
     getMyStats()
       .then((data) => {
@@ -109,7 +100,7 @@ export default function DashboardPage() {
     return () => {
       active = false;
     };
-  }, [navigate, setUser]);
+  }, [navigate]);
 
   useEffect(() => {
     if (!isWaiting && !isMatchmakingPending()) return undefined;

@@ -115,10 +115,11 @@ With the services running:
 
 ~~~bash
 docker compose exec backend pytest
+docker compose exec frontend npm test
 docker compose exec frontend npm run build
 ~~~
 
-The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs the backend suite and a frontend build on pushes and pull requests, using the committed npm lockfile. It does not yet provide browser or PostgreSQL concurrency coverage.
+The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. The frontend tests cover HTTP error handling; protected routes retain the login and offer retry if session verification fails temporarily, while rejected credentials return the user to login. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs the backend suite, frontend tests, and a frontend build on pushes and pull requests, using the committed npm lockfile. It does not yet provide browser or PostgreSQL concurrency coverage.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
