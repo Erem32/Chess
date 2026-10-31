@@ -18,7 +18,8 @@ Active worktrees: `improvement/reconnect` at `/tmp/chess-reconnect`, `improvemen
 - **Completed:** Pinned frontend dependencies and updated vulnerable packages; clean install/build/tests passed and npm audit reported zero findings at the time of checking.
 - **Completed:** Session recovery distinguishes rejected credentials from temporary failures, keeps valid tokens for retry, restores protected destinations, and removes duplicate profile requests. Five integrated frontend tests and a clean build passed; agent also ran mocked browser checks.
 - **In progress:** Reconnect/resynchronization, bounded chat history, and additional WebSocket integration tests in isolated worktrees.
-- **Pending:** Dashboard feedback and remaining gameplay polish.
+- **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
+- **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
 - **Pending:** Frontend/browser tests, linting and incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
