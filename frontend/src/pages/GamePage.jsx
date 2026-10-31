@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { acceptDraw, declineDraw, getGame, getGameMoves, offerDraw, resignGame } from "../api/games.js";
+import { acceptDraw, declineDraw, getGame, getGameChat, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
+import { mergeChatMessages } from "../api/chatMessages.js";
 import { classifyMove, fetchStableGameSnapshot, reconnectDelay } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
@@ -23,10 +24,16 @@ export default function GamePage() {
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
   const refreshRequestRef = useRef(0);
+  const pendingChatRef = useRef(new Map());
+  const currentGameRef = useRef(gameId);
+  currentGameRef.current = gameId;
   const [fen, setFen] = useState(STARTING_FEN);
   const [game, setGame] = useState(null);
   const [moves, setMoves] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatError, setChatError] = useState("");
+  const [chatSending, setChatSending] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +73,9 @@ export default function GamePage() {
       setFen(STARTING_FEN);
       setMoves([]);
       setMessages([]);
+      setChatDraft("");
+      setChatError("");
+      setChatSending(false);
       lastMoveNumberRef.current = 0;
       retryCountRef.current = 0;
       revisionRef.current += 1;
@@ -156,6 +166,13 @@ export default function GamePage() {
       if (!active || socketRef.current !== ws) return;
       setSocketStatus("syncing");
       setInfo("Synchronizing game...");
+      getGameChat(gameId).then((data) => {
+        if (active && socketRef.current === ws) {
+          setMessages((current) => mergeChatMessages(current, data.messages ?? []));
+        }
+      }).catch(() => {
+        if (active && socketRef.current === ws) setChatError("Could not load chat history. Reconnect to try again.");
+      });
       try {
         const snapshot = await fetchStableGameSnapshot(gameId, getGame, getGameMoves);
         if (!active || socketRef.current !== ws || ws.readyState !== WebSocket.OPEN) return;
@@ -199,11 +216,14 @@ export default function GamePage() {
         if (synchronized) applyGameMessage(data);
         else queuedGameMessages.push(data);
       } else if (data.type === "chat") {
-        setMessages((current) => [...current, payload]);
+        setMessages((current) => mergeChatMessages(current, [payload]));
+        if (Number(payload.user_id) === Number(currentUserId)) settleChat(payload.client_message_id, null);
       } else if (data.type === "info") {
         setInfo(payload.message ?? "Connected");
       } else if (data.type === "error") {
-        setError(payload.message ?? "WebSocket error");
+        if (!settleChat(payload.client_message_id, payload.message ?? "Message rejected")) {
+          setError(payload.message ?? "WebSocket error");
+        }
       }
     };
     ws.onerror = () => {
@@ -211,6 +231,7 @@ export default function GamePage() {
     };
     ws.onclose = (event) => {
       if (!active || socketRef.current !== ws) return;
+      rejectPendingChat();
       setSocketStatus("disconnected");
       setInfo("Disconnected");
       if (event.code === 1008 || !authorized) {
@@ -226,6 +247,7 @@ export default function GamePage() {
     };
     return () => {
       active = false;
+      rejectPendingChat();
       if (reconnectTimerRef.current) {
         window.clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
@@ -249,10 +271,55 @@ export default function GamePage() {
     activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: move } }));
   }
 
-  function sendChat(message) {
+  function settleChat(id, error) {
+    const pending = pendingChatRef.current.get(id);
+    if (!pending) return false;
+    pendingChatRef.current.delete(id);
+    window.clearTimeout(pending.timer);
+    if (error) pending.reject(new Error(error));
+    else pending.resolve();
+    return true;
+  }
+
+  function rejectPendingChat() {
+    for (const id of pendingChatRef.current.keys()) {
+      settleChat(id, "Connection lost before confirmation. The message may have been delivered; check history before retrying.");
+    }
+  }
+
+  async function sendChat(message) {
+    if (chatSending) return;
+    if (Array.from(message).length > 1000 || message.includes("\0")) {
+      setChatError("Messages must be at most 1000 characters and cannot contain null bytes.");
+      return;
+    }
     const activeSocket = socketRef.current;
-    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) return;
-    activeSocket.send(JSON.stringify({ type: "chat", payload: { message } }));
+    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
+      setChatError("Chat is disconnected. Your message has been kept.");
+      return;
+    }
+    const gameAtSend = gameId;
+    const id = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setChatError("");
+    setChatSending(true);
+    try {
+      await new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => {
+          settleChat(id, "Message was not confirmed. It may have been delivered; check history before retrying.");
+        }, 10000);
+        pendingChatRef.current.set(id, { resolve, reject, timer });
+        try {
+          activeSocket.send(JSON.stringify({ type: "chat", payload: { message, client_message_id: id } }));
+        } catch {
+          settleChat(id, "Could not send message. Your draft has been kept.");
+        }
+      });
+      if (currentGameRef.current === gameAtSend) setChatDraft("");
+    } catch (err) {
+      if (currentGameRef.current === gameAtSend) setChatError(err.message);
+    } finally {
+      if (currentGameRef.current === gameAtSend) setChatSending(false);
+    }
   }
 
   async function handleResign() {
@@ -307,6 +374,10 @@ export default function GamePage() {
         <ChatBox
           messages={messages}
           onSend={sendChat}
+          message={chatDraft}
+          onMessageChange={setChatDraft}
+          isSending={chatSending}
+          error={chatError}
           getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
         />
       </aside>
@@ -380,6 +451,10 @@ export default function GamePage() {
             <ChatBox
               messages={messages}
               onSend={sendChat}
+              message={chatDraft}
+              onMessageChange={setChatDraft}
+              isSending={chatSending}
+              error={chatError}
               getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
             />
           )}

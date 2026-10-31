@@ -1,7 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 
-export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
-  const [message, setMessage] = useState("");
+export default function ChatBox({ messages = [], onSend, getAuthorLabel, message, onMessageChange, isSending, error }) {
   const scrollRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -15,9 +14,7 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
 
   function handleSubmit(event) {
     event.preventDefault();
-    if (!message.trim()) return;
-    onSend(message.trim());
-    setMessage("");
+    if (message.trim() && !isSending) onSend(message.trim());
   }
 
   return (
@@ -36,9 +33,10 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
         )}
       </div>
       <form onSubmit={handleSubmit} className="inline-form chat-form">
-        <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" />
-        <button type="submit">Send</button>
+        <input aria-label="Chat message" value={message} onChange={(event) => onMessageChange(event.target.value)} placeholder="Message" disabled={isSending} />
+        <button type="submit" disabled={isSending || !message.trim()}>{isSending ? "Sending..." : "Send"}</button>
       </form>
+      {error && <p className="error" role="alert">{error}</p>}
     </section>
   );
 }

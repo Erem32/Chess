@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models import Game, Move, User
+from app.models import ChatMessage, Game, Move, User
 from app.repositories import game_repository
 
 
@@ -40,6 +40,10 @@ class GameService:
     def list_moves_for_user(self, db: Session, game_id: int, user: User) -> list[Move]:
         self.get_game_for_user(db, game_id, user)
         return game_repository.list_game_moves(db, game_id)
+
+    def list_chat_for_user(self, db: Session, game_id: int, user: User, limit: int, before_id: int | None) -> list[ChatMessage]:
+        self.get_game_for_user(db, game_id, user)
+        return game_repository.list_chat_messages(db, game_id, limit, before_id)
 
     def list_history_for_user(self, db: Session, user: User) -> list[Game]:
         return game_repository.list_games_for_user(db, user.id)

@@ -152,7 +152,7 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
 | Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
 | Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
-| Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves` |
+| Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
 | Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline` |
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
@@ -167,12 +167,16 @@ The token is currently passed in the WebSocket URL. Configure reverse proxies, h
 {"type": "chat", "payload": {"message": "Good luck!"}}
 ~~~
 
+Chat accepts a nonempty trimmed message of at most 1,000 Unicode characters without null bytes. A client may include a unique `client_message_id` of 1–64 ASCII letters, digits, underscores or hyphens in the chat payload; the server includes it in the corresponding successful `chat` event or validation `error`. Clients should correlate a successful event with both the ID and their own user ID. This acknowledgement does not make retries idempotent: a connection failure after persistence may leave delivery uncertain.
+
+Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which returns `{ "game_id": ..., "messages": [...] }` in ascending message ID order. It returns the newest 100 messages by default; `limit` can be 1–100, and `before_id` requests an older page. Chat is stored without an automatic retention or deletion policy.
+
 The server sends `game_state`, `chat`, and `error` messages. In a `game_state` message, the game is under `payload.game`, with fields including `id`, `current_fen`, `turn_color`, and `status`. After a move, the payload also includes the move and end-of-game flags. See [backend/app/main.py](backend/app/main.py) and [chess_service.py](backend/app/services/chess_service.py) for the current contract.
 
 ## Current limitations
 
 - This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification. The game reconnects with backoff after temporary socket failures and reloads game and move state before allowing another move. Authentication failures require signing in again.
-- Chat messages are stored by the backend, but the frontend does not currently restore chat history when a game page is reloaded.
+- The game page restores up to the newest 100 chat messages. Older messages can be retrieved through the paginated API; there is no older-message control in the interface yet.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
 - There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.

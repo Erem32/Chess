@@ -28,6 +28,12 @@ export function getGameMoves(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/moves`);
 }
 
+export function getGameChat(gameId, { limit = 100, beforeId } = {}) {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (beforeId != null) query.set("before_id", String(beforeId));
+  return apiRequest(`/api/v1/games/${gameId}/chat?${query}`);
+}
+
 export function resignGame(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/resign`, { method: "POST" });
 }

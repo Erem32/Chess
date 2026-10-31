@@ -10,6 +10,7 @@ from app.db.session import Base
 from app.models import ChatMessage, Game, GamePlayer, Move, User
 from app.services.chess_service import (
     IllegalMoveError,
+    ChatMessageError,
     NotPlayerTurnError,
     apply_player_move,
     apply_uci_move,
@@ -100,6 +101,21 @@ def test_persist_chat_message_strips_and_stores_message(
         assert chat_message.message == "hello"
         assert payload["message"] == "hello"
         assert payload["game_id"] == game_id
+
+
+@pytest.mark.parametrize("text", [" ", "x" * 1001, "bad\x00message", "bad\ud800message"])
+def test_chat_rejects_empty_oversized_or_invalid_messages(db_session_factory, text):
+    with db_session_factory() as db:
+        game_id, user_id, _ = _create_active_game(db)
+        with pytest.raises(ChatMessageError):
+            persist_chat_message(db, game_id, user_id, text)
+        assert db.query(ChatMessage).count() == 0
+
+
+def test_chat_accepts_exact_maximum_unicode_length(db_session_factory):
+    with db_session_factory() as db:
+        game_id, user_id, _ = _create_active_game(db)
+        assert persist_chat_message(db, game_id, user_id, "😀" * 1000)["message"] == "😀" * 1000
 
 
 def _create_active_game(db: Session) -> tuple[int, int, int]:

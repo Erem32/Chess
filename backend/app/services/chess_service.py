@@ -31,6 +31,9 @@ class ChatMessageError(ValueError):
     pass
 
 
+MAX_CHAT_MESSAGE_LENGTH = 1000
+
+
 class DrawOfferError(ValueError):
     pass
 
@@ -116,6 +119,14 @@ def persist_chat_message(db: Session, game_id: int, user_id: int, message: str) 
     text = message.strip()
     if not text:
         raise ChatMessageError("Chat message cannot be empty")
+    if len(text) > MAX_CHAT_MESSAGE_LENGTH:
+        raise ChatMessageError(f"Chat message cannot exceed {MAX_CHAT_MESSAGE_LENGTH} characters")
+    if "\x00" in text:
+        raise ChatMessageError("Chat message cannot contain null bytes")
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ChatMessageError("Chat message must contain valid Unicode") from exc
 
     chat_message = ChatMessage(game_id=game_id, user_id=user_id, message=text)
     db.add(chat_message)
