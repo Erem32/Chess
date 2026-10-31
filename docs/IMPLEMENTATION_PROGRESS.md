@@ -4,7 +4,7 @@ Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementall
 
 Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git status and worktree list are authoritative.
 
-Active worktrees: `improvement/reconnect` at `/tmp/chess-reconnect`, `improvement/chat-history` at `/tmp/chess-chat-history`, and `improvement/websocket-tests` (see `git worktree list` for its path). Previously integrated worktrees remain; Git history and `git worktree list` identify them.
+Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9ec0b96`, `/tmp/chess-reconnect`) and `improvement/chat-history` (`262f8e9`, `/tmp/chess-chat-history`). Neither is integrated or verified as complete. Both push attempts failed because GitHub HTTPS credentials are unavailable; these branches remain local only. The remote `improvement/roadmap` was verified at `df52002` before the current handoff changes. Worktree paths are specific to this machine; use `git worktree list` to discover actual paths. Previously integrated branches remain in Git history.
 
 ## Priorities
 
@@ -18,7 +18,7 @@ Active worktrees: `improvement/reconnect` at `/tmp/chess-reconnect`, `improvemen
 - **Completed:** Pinned frontend dependencies and updated vulnerable packages; clean install/build/tests passed and npm audit reported zero findings at the time of checking.
 - **Completed:** Session recovery distinguishes rejected credentials from temporary failures, keeps valid tokens for retry, restores protected destinations, and removes duplicate profile requests. Five integrated frontend tests and a clean build passed; agent also ran mocked browser checks.
 - **Completed:** WebSocket integration tests cover authorization, two-player broadcasts, invalid messages, persisted moves, and reconnect snapshots; six integrated WebSocket/health tests passed.
-- **In progress:** Reconnect/resynchronization and bounded chat history in isolated worktrees; chat acknowledgement requires integration with the reconnect lifecycle.
+- **In progress:** Reconnect/resynchronization and bounded chat history are saved as local WIP commits; chat acknowledgement requires integration with the reconnect lifecycle. The agents were interrupted by a usage limit; do not assume their work is complete or tested.
 - **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
 - **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
@@ -33,6 +33,8 @@ Active worktrees: `improvement/reconnect` at `/tmp/chess-reconnect`, `improvemen
 - Frontend dependencies were updated; clean `npm audit` reported zero findings at the time of checking. Advisory results can change.
 - Existing WebSocket query-string tokens may reach proxy or hosting logs; rotation and external audit require deployment context and authorization.
 - User selected abort only before the first move, recording no result and requiring resignation afterward. Existing aborted records were not mutated; statistics now exclude them.
+- User selected a modern, understated visual direction for the later interface overhaul.
+- The user authorized routine pushes to project branches; GitHub HTTPS authentication currently fails and `gh` is unavailable. Do not claim local WIP commits have been uploaded.
 
 ## Next task
 
