@@ -27,7 +27,8 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
 - **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, moves from both players, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
 - **Completed:** CI includes Ruff backend lint checks for `E4`, `E7`, `E9`, and `F` rules; the selected checks pass locally.
-- **Pending:** Broader browser/accessibility coverage, frontend linting/formatting, and incremental structure improvements.
+- **Completed:** CI includes focused Biome frontend checks for undeclared variables and unreachable code; lint, 11 frontend tests, build and audit passed locally.
+- **Pending:** Broader browser/accessibility coverage, automated formatting, and incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
 
 ## Baseline and constraints
