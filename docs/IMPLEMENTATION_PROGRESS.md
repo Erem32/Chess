@@ -4,7 +4,7 @@ Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementall
 
 Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git status and worktree list are authoritative.
 
-Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9ec0b96`, `/tmp/chess-reconnect`) and `improvement/chat-history` (`262f8e9`, `/tmp/chess-chat-history`). Neither is integrated or verified as complete. Both WIP branches were pushed over SSH and their remote hashes verified. The remote `improvement/roadmap` was verified at `bee05fa` before the subsequent checkpoint update. Worktree paths are specific to this machine; use `git worktree list` to discover actual paths. Previously integrated branches remain in Git history.
+Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9ec0b96`, `/tmp/chess-reconnect`) and `improvement/chat-history` (`262f8e9`, `/tmp/chess-chat-history`). Reconnect has been integrated after review; chat remains unintegrated WIP. Both WIP branches were pushed over SSH and their remote hashes verified. The remote `improvement/roadmap` was verified at `bee05fa` before the subsequent checkpoint update. Worktree paths are specific to this machine; use `git worktree list` to discover actual paths. Previously integrated branches remain in Git history.
 
 ## Priorities
 
@@ -18,7 +18,8 @@ Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9e
 - **Completed:** Pinned frontend dependencies and updated vulnerable packages; clean install/build/tests passed and npm audit reported zero findings at the time of checking.
 - **Completed:** Session recovery distinguishes rejected credentials from temporary failures, keeps valid tokens for retry, restores protected destinations, and removes duplicate profile requests. Five integrated frontend tests and a clean build passed; agent also ran mocked browser checks.
 - **Completed:** WebSocket integration tests cover authorization, two-player broadcasts, invalid messages, persisted moves, and reconnect snapshots; six integrated WebSocket/health tests passed.
-- **In progress:** Reconnect/resynchronization and bounded chat history are saved as local WIP commits; chat acknowledgement requires integration with the reconnect lifecycle. The agents were interrupted by a usage limit. The reconnect worktree passed nine frontend tests and a build; the chat worktree passed 63 backend tests with five PostgreSQL tests skipped. Neither has been integrated or fully verified.
+- **Completed:** Reconnect/resynchronization is integrated. Nine frontend tests and a clean build passed; a headless browser smoke test with mocked sockets verified initial failure retry and missed-move recovery. Real two-player reconnect verification remains pending.
+- **In progress:** Bounded chat history and acknowledgement remain unintegrated WIP (`improvement/chat-history`); its backend suite passed 63 tests with five PostgreSQL tests skipped. The chat UI requires acknowledgement and reconnect integration before use.
 - **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
 - **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
