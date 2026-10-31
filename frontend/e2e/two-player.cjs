@@ -45,6 +45,9 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     const black = await register(`black${suffix}`);
     await white.getByRole('button', { name: 'Join matchmaking' }).click();
     await white.getByText('Searching for another player').waitFor();
+    await white.evaluate(() => sessionStorage.removeItem('matchmaking_pending'));
+    await white.reload();
+    await white.getByText('Searching for another player').waitFor();
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
     assert.equal(new URL(white.url()).pathname, new URL(black.url()).pathname);

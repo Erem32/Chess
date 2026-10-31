@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getMyStats } from "../api/auth.js";
@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [activeGame, setActiveGame] = useState(null);
   const [recentGames, setRecentGames] = useState(null);
   const [historyError, setHistoryError] = useState("");
+  const matchmakingRevision = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -75,9 +76,10 @@ export default function DashboardPage() {
         if (active) setError(`Could not check your active game: ${err.message}`);
       });
 
+    const initialMatchmakingRevision = matchmakingRevision.current;
     getMatchmakingStatus()
       .then((data) => {
-        if (!active) return;
+        if (!active || initialMatchmakingRevision !== matchmakingRevision.current) return;
         const gameId = resolveGameId(data);
         if (gameId && isMatchmakingPending()) {
           setMatchmakingPending(false);
@@ -85,13 +87,16 @@ export default function DashboardPage() {
           navigate(`/games/${gameId}`);
           return;
         }
-        if (data?.status === "waiting" && isMatchmakingPending()) {
+        if (data?.status === "waiting") {
+          setMatchmakingPending(true);
           setIsWaiting(true);
           setStatus("Waiting for another player");
         }
       })
       .catch((err) => {
-        if (active) setError(`Could not check matchmaking: ${err.message}`);
+        if (active && initialMatchmakingRevision === matchmakingRevision.current) {
+          setError(`Could not check matchmaking: ${err.message}`);
+        }
       });
 
     getMyHistory()
@@ -113,9 +118,10 @@ export default function DashboardPage() {
     let active = true;
 
     async function checkMatchmakingStatus() {
+      const revision = matchmakingRevision.current;
       try {
         const data = await getMatchmakingStatus();
-        if (!active) return;
+        if (!active || revision !== matchmakingRevision.current) return;
         const gameId = resolveGameId(data);
         if (gameId) {
           setMatchmakingPending(false);
@@ -132,7 +138,7 @@ export default function DashboardPage() {
         }
         setStatus(data?.message ?? "Waiting for another player");
       } catch (err) {
-        if (active) setError(err.message);
+        if (active && revision === matchmakingRevision.current) setError(err.message);
       }
     }
 
@@ -146,6 +152,7 @@ export default function DashboardPage() {
   }, [isWaiting, navigate]);
 
   async function handleJoinQueue() {
+    matchmakingRevision.current += 1;
     setIsJoining(true);
     setStatus("");
     setError("");
@@ -177,6 +184,7 @@ export default function DashboardPage() {
   }
 
   async function handleCheckStatus() {
+    matchmakingRevision.current += 1;
     setError("");
     try {
       const active = await getMyActiveGame();
@@ -209,6 +217,7 @@ export default function DashboardPage() {
   }
 
   async function handleLeaveQueue() {
+    matchmakingRevision.current += 1;
     setError("");
     try {
       const data = await leaveMatchmaking();
