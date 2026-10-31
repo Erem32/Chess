@@ -21,8 +21,8 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** Reconnect/resynchronization is integrated. Nine frontend tests and a clean build passed; a headless browser smoke test with mocked sockets verified initial failure retry and missed-move recovery. A real browser reload was tested; transient-network reconnect behavior was tested with mocked sockets.
 - **Completed:** Bounded, authorized chat history and acknowledged sends are integrated. An unconfirmed send keeps its draft and warns that delivery may have succeeded. A mocked browser smoke test covered acknowledgement and disconnect, and a real two-player browser smoke covered chat and reload. Retries are not idempotent; an older-message UI remains pending.
 - **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
-- **Completed:** The server ends a game under the automatic 75-move rule; tests cover the draw result and checkmate precedence.
-- **Pending:** Repetition and claimable draws require history-aware rules; remaining gameplay polish.
+- **Completed:** The server implements the automatic 75-move and fivefold repetition rules. Repetition is applied only when persisted UCI moves reconstruct the current FEN; focused tests cover draw outcomes, checkmate precedence, and inconsistent history.
+- **Pending:** Claimable 50-move and threefold draws need a player interaction and history-aware checks; remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
 - **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, moves from both players, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
 - **Pending:** Broader browser/accessibility coverage, linting and incremental structure improvements.

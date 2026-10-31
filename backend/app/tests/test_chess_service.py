@@ -82,6 +82,40 @@ def test_seventyfive_move_rule_ends_game_as_draw(db_session_factory: sessionmake
         assert {player.result for player in db.get(Game, game_id).players} == {"draw"}
 
 
+def test_fivefold_repetition_uses_persisted_move_history(db_session_factory: sessionmaker[Session]) -> None:
+    with db_session_factory() as db:
+        game_id, white_user_id, black_user_id = _create_active_game(db)
+        sequence = [(white_user_id, "g1f3"), (black_user_id, "g8f6"),
+                    (white_user_id, "f3g1"), (black_user_id, "f6g8")]
+        for user_id, move in sequence * 3:
+            assert apply_player_move(db, game_id, user_id, move)["game"]["status"] == "active"
+        for user_id, move in sequence[:-1]:
+            assert apply_player_move(db, game_id, user_id, move)["game"]["status"] == "active"
+        result = apply_player_move(db, game_id, black_user_id, "f6g8")
+        assert result["is_fivefold_repetition"] is True
+        assert result["game"]["status"] == "draw"
+        assert result["game"]["result"] == "1/2-1/2"
+        assert {player.result for player in db.get(Game, game_id).players} == {"draw"}
+
+
+def test_inconsistent_history_does_not_invent_repetition(db_session_factory: sessionmaker[Session]) -> None:
+    with db_session_factory() as db:
+        game_id, white_user_id, black_user_id = _create_active_game(db)
+        sequence = [(white_user_id, "g1f3"), (black_user_id, "g8f6"),
+                    (white_user_id, "f3g1"), (black_user_id, "f6g8")]
+        for user_id, move in sequence * 3:
+            apply_player_move(db, game_id, user_id, move)
+        game = db.get(Game, game_id)
+        board = chess.Board(game.current_fen)
+        board.halfmove_clock = 50
+        game.current_fen = board.fen()
+        db.commit()
+        for user_id, move in sequence:
+            result = apply_player_move(db, game_id, user_id, move)
+        assert result["is_fivefold_repetition"] is False
+        assert result["game"]["status"] == "active"
+
+
 def test_apply_player_move_persists_move_and_updates_game(
     db_session_factory: sessionmaker[Session],
 ) -> None:

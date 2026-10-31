@@ -82,7 +82,16 @@ def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) ->
         raise NotPlayerTurnError("It is not this player's turn")
 
     move_result = apply_uci_move(game.current_fen, move_uci)
-    move_number = db.query(Move).filter(Move.game_id == game_id).count() + 1
+    previous_moves = game_repository.list_game_moves(db, game_id)
+    board = _replay_game_history(game.current_fen, previous_moves)
+    is_fivefold_repetition = False
+    if board is not None:
+        board.push_uci(move_uci)
+        is_fivefold_repetition = board.is_fivefold_repetition()
+        if is_fivefold_repetition and not move_result["is_checkmate"]:
+            move_result["is_finished"] = True
+            move_result["result"] = "1/2-1/2"
+    move_number = len(previous_moves) + 1
     move = Move(
         game_id=game_id,
         user_id=user_id,
@@ -113,7 +122,19 @@ def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) ->
         "is_stalemate": move_result["is_stalemate"],
         "is_insufficient_material": move_result["is_insufficient_material"],
         "is_seventyfive_moves": move_result["is_seventyfive_moves"],
+        "is_fivefold_repetition": is_fivefold_repetition,
     }
+
+
+def _replay_game_history(current_fen: str, moves: list[Move]) -> chess.Board | None:
+    """Recover repetition history only when the stored moves reproduce the game."""
+    board = chess.Board()
+    try:
+        for move in moves:
+            board.push_uci(move.move_uci)
+    except ValueError:
+        return None
+    return board if board.fen() == current_fen else None
 
 
 def persist_chat_message(db: Session, game_id: int, user_id: int, message: str) -> dict:

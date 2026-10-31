@@ -179,7 +179,7 @@ The server sends `game_state`, `chat`, and `error` messages. In a `game_state` m
 - The game page restores up to the newest 100 chat messages. Older messages can be retrieved through the paginated API; there is no older-message control in the interface yet.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
-- The server automatically ends games on checkmate, stalemate, insufficient material, or the 75-move rule. Repetition and claimable 50-move/threefold draws are not yet implemented.
+- The server automatically ends games on checkmate, stalemate, insufficient material, the 75-move rule, or fivefold repetition when stored moves reconstruct the current position. Claimable 50-move/threefold draws are not yet implemented; repetition is not inferred from incomplete or inconsistent historical move records.
 - There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.
 
 The project notes in [plan.md](plan.md) and [rules.md](rules.md) describe intended work and team conventions; check the current code when their status statements differ.

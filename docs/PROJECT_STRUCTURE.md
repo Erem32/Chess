@@ -71,6 +71,8 @@ The React application lives in [frontend/src/](../frontend/src/).
 
 Moves, draw actions, resignations, and aborts lock affected game rows before changing their state. The database transaction serializes competing changes on PostgreSQL; abort locks games in ID order. Matchmaking uses a separate PostgreSQL advisory lock.
 
+Automatic fivefold repetition detection replays persisted UCI moves from the standard starting position and is applied only if the reconstructed FEN matches the stored current position. The server also detects the 75-move rule from the FEN; claimable draws are not yet implemented.
+
 Backend tests are grouped by auth, matchmaking/game behavior, chess service, and health. Use the [README test commands](../README.md#tests-and-checks) and manually check both players when changing the live game flow.
 
 The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.
