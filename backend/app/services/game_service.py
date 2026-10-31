@@ -18,6 +18,10 @@ class GameAlreadyFinishedError(Exception):
     pass
 
 
+class GameCannotBeAbortedError(Exception):
+    pass
+
+
 class DrawOfferStateError(Exception):
     pass
 
@@ -46,6 +50,8 @@ class GameService:
 
     def abort_active_games_for_user(self, db: Session, user: User) -> list[Game]:
         active_games = game_repository.list_active_games_for_user_for_update(db, user.id)
+        if any(game_repository.list_game_moves(db, game.id) for game in active_games):
+            raise GameCannotBeAbortedError
         finished_at = datetime.utcnow()
 
         for game in active_games:
@@ -55,7 +61,7 @@ class GameService:
             game.draw_offer_by_user_id = None
             game.draw_offer_created_at = None
             for player in game.players:
-                player.result = "draw"
+                player.result = None
 
         db.commit()
         for game in active_games:

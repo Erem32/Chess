@@ -242,6 +242,7 @@ def test_my_stats_counts_completed_game_results(
             Game(current_fen="start", result="black_wins"),
             Game(current_fen="start", result="draw"),
             Game(current_fen="start"),
+            Game(current_fen="start", status="aborted", result="aborted"),
         ]
         db.add_all(games)
         db.flush()
@@ -251,6 +252,7 @@ def test_my_stats_counts_completed_game_results(
                 GamePlayer(game_id=games[1].id, user_id=user_id, color="black", result="loss"),
                 GamePlayer(game_id=games[2].id, user_id=user_id, color="white", result="draw"),
                 GamePlayer(game_id=games[3].id, user_id=user_id, color="black", result=None),
+                GamePlayer(game_id=games[4].id, user_id=user_id, color="white", result="draw"),
             ]
         )
         db.commit()

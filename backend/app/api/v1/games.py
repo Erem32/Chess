@@ -19,6 +19,7 @@ from app.services.chess_service import (
 from app.services.game_service import (
     GameAccessDeniedError,
     GameAlreadyFinishedError,
+    GameCannotBeAbortedError,
     GameNotFoundError,
     GameService,
 )
@@ -34,6 +35,8 @@ def _game_error_response(exc: Exception) -> HTTPException:
         return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a player in this game")
     if isinstance(exc, GameAlreadyFinishedError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Game is already finished")
+    if isinstance(exc, GameCannotBeAbortedError):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A game can only be aborted before the first move; resign instead")
     return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected game error")
 
 
@@ -72,7 +75,10 @@ def abort_my_active_games(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> GameHistoryResponse:
-    games = game_service.abort_active_games_for_user(db, current_user)
+    try:
+        games = game_service.abort_active_games_for_user(db, current_user)
+    except GameCannotBeAbortedError as exc:
+        raise _game_error_response(exc) from exc
     return GameHistoryResponse(games=games)
 
 

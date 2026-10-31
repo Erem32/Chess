@@ -10,6 +10,7 @@ from app.db.session import Base, get_db
 from app.main import app
 from app.models import Game, MatchmakingQueue
 from app.models import chat_message, game, game_player, matchmaking, move, user  # noqa: F401
+from app.services.chess_service import apply_player_move
 
 
 @pytest.fixture()
@@ -152,8 +153,25 @@ def test_user_can_abort_active_games_for_clean_dashboard(client: TestClient) -> 
     assert active_response.json()["id"] == game_id
     assert abort_response.status_code == 200
     assert abort_response.json()["games"][0]["status"] == "aborted"
+    assert all(player["result"] is None for player in abort_response.json()["games"][0]["players"])
+    assert client.get("/api/v1/users/me/stats", headers=alice_headers).json()["games_played"] == 0
     assert next_active_response.status_code == 200
     assert next_active_response.json() is None
+
+
+def test_cannot_abort_after_first_move(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    white = next(player for player in game["players"] if player["color"] == "white")
+    with db_session_factory() as db:
+        apply_player_move(db, game["id"], white["user_id"], "e2e4")
+
+    response = client.post("/api/v1/games/my-active/abort", headers=alice_headers)
+    assert response.status_code == 409
+    assert "resign" in response.json()["detail"]
+    assert client.get("/api/v1/games/my-active", headers=alice_headers).json()["status"] == "active"
 
 
 def test_player_can_offer_draw_and_opponent_can_accept(client: TestClient) -> None:

@@ -225,6 +225,7 @@ export default function DashboardPage() {
   }
 
   async function handleEndActiveGame() {
+    if (!window.confirm("Abort this game? This is only allowed before the first move and will not count as a result. After a move, open the game to resign.")) return;
     setError("");
     try {
       const data = await abortMyActiveGames();
@@ -236,7 +237,7 @@ export default function DashboardPage() {
           return [...data.games, ...currentGames.filter((game) => !updatedGameIds.has(game.id))];
         });
       }
-      setStatus("Active game ended");
+      setStatus(data?.games?.length ? "Game aborted" : "No active game to abort");
     } catch (err) {
       setError(err.message);
     }
@@ -283,7 +284,7 @@ export default function DashboardPage() {
                   Resume game
                 </button>
                 <button type="button" className="danger-button" onClick={handleEndActiveGame}>
-                  End active game
+                  Abort game
                 </button>
               </div>
             </section>
@@ -406,6 +407,7 @@ function formatLatestGameStatus(game, userId) {
 }
 
 function resolveLatestGameStatusClass(game, userId) {
+  if (game?.status === "aborted") return "history-status";
   const playerResult = resolvePlayerResult(game, userId);
 
   if (playerResult === "win") return "history-status history-status--win";
@@ -414,7 +416,6 @@ function resolveLatestGameStatusClass(game, userId) {
   if (game?.status === "active" || game?.status === "waiting") {
     return "history-status history-status--active";
   }
-  if (game?.status === "aborted") return "history-status history-status--loss";
   return "history-status";
 }
 

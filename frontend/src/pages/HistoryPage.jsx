@@ -71,6 +71,7 @@ function formatHistoryStatus(game, userId) {
 }
 
 function resolveHistoryStatusClass(game, userId) {
+  if (game?.status === "aborted") return "history-status";
   const playerResult = resolvePlayerResult(game, userId);
   if (playerResult === "win") return "history-status history-status--win";
   if (playerResult === "loss") return "history-status history-status--loss";
@@ -78,7 +79,6 @@ function resolveHistoryStatusClass(game, userId) {
   if (game?.status === "active" || game?.status === "waiting") {
     return "history-status history-status--active";
   }
-  if (game?.status === "aborted") return "history-status history-status--loss";
   return "history-status";
 }
 

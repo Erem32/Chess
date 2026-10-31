@@ -16,7 +16,7 @@ from app.db.session import Base
 from app.models import Game, GamePlayer, User
 from app.repositories import game_repository
 from app.services.chess_service import GameNotActiveError, apply_player_move, respond_to_draw_offer
-from app.services.game_service import GameAlreadyFinishedError, GameService
+from app.services.game_service import GameAlreadyFinishedError, GameCannotBeAbortedError, GameService
 
 
 @pytest.fixture()
@@ -143,6 +143,21 @@ def test_abort_wins_over_waiting_move(pg_sessions):
         assert game.status == "aborted"
         assert game.current_fen == chess.STARTING_FEN
         assert not game.moves
+
+
+def test_first_move_prevents_waiting_abort(pg_sessions):
+    game_id, white_id, _ = _setup_game(pg_sessions)
+
+    def abort(db, user):
+        with pytest.raises(GameCannotBeAbortedError):
+            GameService().abort_active_games_for_user(db, user)
+
+    _run_while_locked(pg_sessions, game_id, white_id, abort,
+                      lambda db: apply_player_move(db, game_id, white_id, "e2e4"))
+    with pg_sessions() as db:
+        game = db.get(Game, game_id)
+        assert game.status == "active"
+        assert len(game.moves) == 1
 
 
 def test_checkmate_wins_over_waiting_abort(pg_sessions):
