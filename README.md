@@ -76,6 +76,37 @@ The available development variables are listed in [.env.example](.env.example). 
 
 If you change the PostgreSQL username, password, or database name, also update `DATABASE_URL` to match. PostgreSQL initializes these credentials when its volume is first created; changing them later may require additional database configuration. Never commit a real `.env` or secrets.
 
+## Preview a production frontend build locally
+
+This option builds the frontend with `npm run build` and serves the result with nginx. It runs a separate local backend and PostgreSQL database. It does not deploy anything or connect to the hosted database.
+
+From the repository root, with Docker Desktop running:
+
+~~~bash
+docker compose -p chess-preview -f docker-compose.preview.yml up --build
+~~~
+
+- Frontend: http://localhost:5174
+- Backend health check: http://localhost:8001/health
+
+The preview uses a separate Docker project and database volume from the development setup. It disables the development seed accounts, so register new users to test it. Opening the preview and development URLs in separate browser profiles can help keep their login sessions distinct.
+
+Press Ctrl+C to stop the logs. To remove the preview containers while keeping their database:
+
+~~~bash
+docker compose -p chess-preview -f docker-compose.preview.yml down
+~~~
+
+This checks a production frontend build, but does not reproduce every setting of the hosting provider.
+
+## Hosting
+
+The hosted deployment is configured in the hosting services, separately from the local Compose files. Confirm the actual frontend and backend providers, their deployment branches, and their release process before publishing. The repository includes `frontend/vercel.json`, but that file alone does not confirm the currently active hosting setup.
+
+For the hosted frontend build, set `VITE_API_URL` to the public HTTPS backend address and `VITE_WS_URL` to its WSS address. Vite includes these values in the browser build, so they must not contain secrets.
+
+On the hosted backend, configure the production `DATABASE_URL`, a strong `SECRET_KEY`, the actual frontend origins in `BACKEND_CORS_ORIGINS`, and `ENABLE_DEV_SEED_USERS=false`. Keep credentials in the hosting provider's secret settings, not in the repository or a developer's local preview. The current backend startup runs Alembic migrations before starting the API; review database changes and the hosting release process before deployment.
+
 ## Tests and checks
 
 With the services running:

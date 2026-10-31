@@ -9,6 +9,7 @@ This guide shows where to start when changing the online chess MVP. For setup, d
 | [frontend/](../frontend/) | React interface and browser-side API clients. |
 | [backend/](../backend/) | FastAPI application, game logic, persistence, and tests. |
 | [docker-compose.yml](../docker-compose.yml) | Starts the frontend, backend, and PostgreSQL services. |
+| [docker-compose.preview.yml](../docker-compose.preview.yml) | Runs a local production frontend build with its own backend and database. |
 | [.env.example](../.env.example) | Example development configuration. |
 | [AGENTS.md](../AGENTS.md) | Instructions for coding agents, including project rules and checks. |
 | [plan.md](../plan.md), [rules.md](../rules.md) | Project planning notes and team conventions; verify status claims against the code. |
