@@ -18,6 +18,7 @@ export function PlayerSummaryPanel({ playerSummary }) {
 }
 
 export function GameActionPanel({
+  canResign,
   canClaimDraw,
   claimBusy,
   onCheckClaim,
@@ -28,13 +29,16 @@ export function GameActionPanel({
   onOfferDraw,
   onResign
 }) {
+  if (!canResign && !canClaimDraw && !canOfferDraw && !canRespondToDraw) return null;
   return (
     <div className="panel button-panel">
-      <div className="actions">
-        <button type="button" className="danger-button" onClick={onResign}>
-          <span aria-hidden="true">🏁</span> Resign
-        </button>
-      </div>
+      {canResign && (
+        <div className="actions">
+          <button type="button" className="danger-button" onClick={onResign}>
+            <span aria-hidden="true">🏁</span> Resign
+          </button>
+        </div>
+      )}
       <div className="actions">
         {canClaimDraw && (
           <button type="button" className="secondary-button" onClick={onCheckClaim} disabled={claimBusy}>

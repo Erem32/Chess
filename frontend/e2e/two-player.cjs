@@ -41,6 +41,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await white.locator('[data-square="e2"]').click();
     await white.locator('[data-square="e4"]').click();
     for (const page of [white, black]) await page.getByText('e4', { exact: true }).first().waitFor();
+    assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
     await black.waitForFunction(() => document.querySelector('#game-board-square-e7 [role=button]')?.getAttribute('aria-disabled') === 'false');
     await black.locator('[data-square="e7"]').click();
     await black.locator('[data-square="e5"]').click();
@@ -53,6 +54,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.reload();
     await blackChat.getByText('Good game', { exact: false }).waitFor();
     async function move(page, from, to, number) {
+      await page.waitForFunction((square) => document.querySelector(`[data-square="${square}"] [role=button]`)?.getAttribute('aria-disabled') === 'false', from);
       await page.locator(`[data-square="${from}"]`).click();
       await page.locator(`[data-square="${to}"]`).click();
       for (const participant of [white, black]) {
@@ -80,11 +82,16 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await white.getByText('Searching for another player').waitFor();
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
+    black.once('dialog', (dialog) => dialog.dismiss());
+    await black.getByRole('button', { name: 'Resign' }).first().click();
+    assert.equal(await black.getByRole('heading', { name: 'Game over' }).count(), 0);
+    black.once('dialog', (dialog) => dialog.accept());
     await black.getByRole('button', { name: 'Resign' }).first().click();
     await Promise.all([
       white.getByRole('heading', { name: 'Game over' }).waitFor(),
       black.getByRole('heading', { name: 'Game over' }).waitFor()
     ]);
+    assert.equal(await black.getByRole('button', { name: 'Resign' }).count(), 0);
     console.log('Two-player smoke passed: registration, matchmaking, moves, chat, reload, a declared-move draw claim and resignation.');
   } finally {
     for (const context of contexts) await context.close();

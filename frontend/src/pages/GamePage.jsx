@@ -54,20 +54,22 @@ export default function GamePage() {
   const playerSummary = buildPlayerSummary(game, currentUserId);
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && String(game?.id) === String(gameId);
-  const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
+  const canMove = game?.status === "active" && Boolean(playerColor) && game.turn_color === playerColor && socketStatus === "connected";
   const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
   const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
   const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
   const canOfferDraw = Boolean(playerColor) && !isGameOver && !hasPendingDrawOffer;
   const canRespondToDraw = hasPendingDrawOffer && !isOwnDrawOffer;
   const canClaimDraw = Boolean(playerColor) && game?.status === "active" && game.turn_color === playerColor;
+  const canResign = Boolean(playerColor) && game?.status === "active";
   const feedback = resolveBoardFeedback({
     currentUserId,
     error,
     isGameOver,
     isLoading,
     playerColor,
-    socketStatus
+    socketStatus,
+    turnColor: game?.turn_color
   });
 
   useEffect(() => {
@@ -335,6 +337,7 @@ export default function GamePage() {
   }
 
   async function handleResign() {
+    if (!window.confirm("Resign this game? Your opponent will win.")) return;
     setError("");
     try {
       const data = await resignGame(gameId);
@@ -478,6 +481,7 @@ export default function GamePage() {
             <>
               <PlayerSummaryPanel playerSummary={playerSummary} />
               <GameActionPanel
+                canResign={canResign}
                 canClaimDraw={canClaimDraw}
                 claimBusy={claimBusy}
                 onCheckClaim={handleCheckClaim}
@@ -514,6 +518,7 @@ export default function GamePage() {
       <aside className="game-side-column desktop-game-sidebar">
         <MoveHistory moves={moves} />
         <GameActionPanel
+          canResign={canResign}
           canClaimDraw={canClaimDraw}
           claimBusy={claimBusy}
           onCheckClaim={handleCheckClaim}
@@ -610,7 +615,7 @@ function buildPlayerSummary(game, currentUserId) {
   return players;
 }
 
-function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, playerColor, socketStatus }) {
+function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, playerColor, socketStatus, turnColor }) {
   if (error) {
     return { message: error, tone: "error" };
   }
@@ -622,6 +627,9 @@ function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, pla
   }
   if (playerColor && socketStatus !== "connected" && !isGameOver) {
     return { message: "Waiting for live game connection...", tone: "muted" };
+  }
+  if (playerColor && !isGameOver && turnColor && turnColor !== playerColor) {
+    return { message: "Waiting for your opponent's move.", tone: "muted" };
   }
   return null;
 }
