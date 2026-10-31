@@ -34,7 +34,9 @@ def get_game(db: Session, game_id: int) -> Game | None:
 
 
 def get_game_for_update(db: Session, game_id: int) -> Game | None:
-    return db.query(Game).filter(Game.id == game_id).with_for_update().one_or_none()
+    # A session may already hold this object from an earlier read. Refresh it
+    # after the lock is acquired so decisions use the committed state.
+    return db.query(Game).filter(Game.id == game_id).with_for_update().populate_existing().one_or_none()
 
 
 def get_game_player(db: Session, game_id: int, user_id: int) -> GamePlayer | None:
@@ -69,6 +71,18 @@ def list_active_games_for_user(db: Session, user_id: int) -> list[Game]:
             Game.finished_at.is_(None),
         )
         .order_by(Game.started_at.desc().nullslast(), Game.id.desc())
+        .all()
+    )
+
+
+def list_active_games_for_user_for_update(db: Session, user_id: int) -> list[Game]:
+    player_games = db.query(GamePlayer.game_id).filter(GamePlayer.user_id == user_id)
+    return (
+        db.query(Game)
+        .filter(Game.id.in_(player_games), Game.status == "active", Game.finished_at.is_(None))
+        .order_by(Game.id.asc())
+        .with_for_update(of=Game)
+        .populate_existing()
         .all()
     )
 
