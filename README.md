@@ -72,7 +72,7 @@ To test two players, use separate browser profiles or a normal window and a priv
 
 ### Configuration
 
-The available development variables are listed in [.env.example](.env.example). They include PostgreSQL credentials and `DATABASE_URL`, the JWT `SECRET_KEY` and token lifetime, CORS origins, the seed flag, and the frontend API/WebSocket URLs.
+The available development variables are listed in [.env.example](.env.example). They include `APP_ENV`, PostgreSQL credentials and `DATABASE_URL`, the JWT `SECRET_KEY` and token lifetime, CORS origins, the seed flag, and the frontend API/WebSocket URLs. Development Compose enables development seeding by default; the preview disables it, and outside Compose it is disabled by default.
 
 If you change the PostgreSQL username, password, or database name, also update `DATABASE_URL` to match. PostgreSQL initializes these credentials when its volume is first created; changing them later may require additional database configuration. Never commit a real `.env` or secrets.
 
@@ -105,7 +105,7 @@ The hosted deployment is configured in the hosting services, separately from the
 
 For the hosted frontend build, set `VITE_API_URL` to the public HTTPS backend address and `VITE_WS_URL` to its WSS address. Vite includes these values in the browser build, so they must not contain secrets.
 
-On the hosted backend, configure the production `DATABASE_URL`, a strong `SECRET_KEY`, the actual frontend origins in `BACKEND_CORS_ORIGINS`, and `ENABLE_DEV_SEED_USERS=false`. Keep credentials in the hosting provider's secret settings, not in the repository or a developer's local preview. The current backend startup runs Alembic migrations before starting the API; review database changes and the hosting release process before deployment.
+On the hosted backend, explicitly set `APP_ENV=production`, configure the production `DATABASE_URL`, a strong randomly generated `SECRET_KEY` of at least 32 characters, the actual HTTPS frontend origins in `BACKEND_CORS_ORIGINS`, and `ENABLE_DEV_SEED_USERS=false`. Production configuration rejects the known development secret and database credentials, enabled seeding, and non-HTTPS or wildcard CORS origins. These checks cannot establish secret randomness or verify that a database is safe; generate and store credentials securely. The default environment is `development`, so the deployment must set `APP_ENV=production` explicitly. Keep credentials in the hosting provider's secret settings, not in the repository or a developer's local preview. The current backend startup runs Alembic migrations before starting the API; review database changes and the hosting release process before deployment.
 
 ## Tests and checks
 
