@@ -160,6 +160,8 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
 
+The server checks the token when the socket connects; an existing connection is not automatically closed when that token later expires. A reconnect requires a valid token.
+
 The token is currently passed in the WebSocket URL. Configure reverse proxies, hosting access logs, and other request logging to redact query strings. Review existing logs for exposure and rotate credentials where appropriate. Application log redaction does not protect logs controlled by infrastructure.
 
 ~~~json

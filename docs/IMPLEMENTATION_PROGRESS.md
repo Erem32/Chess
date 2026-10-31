@@ -47,6 +47,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - User selected abort only before the first move, recording no result and requiring resignation afterward. Existing aborted records were not mutated; statistics now exclude them.
 - User selected a modern, understated visual direction for the later interface overhaul.
 - User selected standard player-initiated claims for threefold repetition and the 50-move rule, including claims based on a declared legal move; the server must verify each claim.
+- User chose to retain current WebSocket expiry behavior: token validation occurs at connection; already open sockets are not closed solely on expiry. Reconnection requires a valid token.
 - The user authorized routine pushes to project branches. GitHub HTTPS authentication failed, but the loaded SSH key works with `git@github.com:Erem32/Chess.git`; all three named branches were pushed and their hashes verified. An offline bundle at `/home/thergh/deve/Chess-handoff.bundle` is a local artifact; rebuild it after branch tips change before transferring.
 
 ## Next task
