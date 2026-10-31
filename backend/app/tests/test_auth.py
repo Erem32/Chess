@@ -168,6 +168,19 @@ def test_login_rejects_invalid_credentials(client: TestClient) -> None:
     assert missing_user.status_code == 401
 
 
+def test_login_rejects_password_with_null_byte(client: TestClient) -> None:
+    client.post(
+        "/api/v1/auth/register",
+        json={"username": "alice", "email": "alice@example.com", "password": "secret"},
+    )
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"username_or_email": "alice", "password": "bad\x00password"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid username/email or password"
+
+
 def test_get_current_user_returns_user_from_token(
     client: TestClient,
     db_session_factory: sessionmaker[Session],

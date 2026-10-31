@@ -13,12 +13,12 @@ Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9e
 - **Completed:** Row locks protect resignation and abort against concurrent moves and draw responses. Five PostgreSQL contention tests passed against a disposable database; matchmaking interactions with terminal transitions remain unverified.
 - **Completed:** Login and registration forms have labels, autocomplete, pending feedback, error announcements, and registration confirmation. Agent verified a clean build and a mocked-API headless mobile smoke check; no automated frontend regression suite yet.
 - **Completed:** Abort is restricted to before the first persisted move; after that the API asks players to resign. New aborts record no player result, and statistics exclude historical aborted games without altering stored records. Dashboard asks for confirmation.
-- **Completed:** Registration rejects blank or oversized usernames and passwords outside bcrypt’s byte limit; `docker compose exec -T backend pytest -q app/tests/test_auth.py` passed (21 tests). Existing login behavior remains unchanged.
+- **Completed:** Registration rejects blank or oversized usernames and passwords outside bcrypt’s byte limit. Login rejects null-byte passwords as invalid credentials instead of returning a server error. `docker compose exec -T backend pytest -q app/tests/test_auth.py` passed (22 tests).
 - **Completed:** Promotion picker supports all four pieces for both colors; three frontend tests and mocked-board browser checks passed. Real drag/two-player verification remains pending.
 - **Completed:** Pinned frontend dependencies and updated vulnerable packages; clean install/build/tests passed and npm audit reported zero findings at the time of checking.
 - **Completed:** Session recovery distinguishes rejected credentials from temporary failures, keeps valid tokens for retry, restores protected destinations, and removes duplicate profile requests. Five integrated frontend tests and a clean build passed; agent also ran mocked browser checks.
 - **Completed:** WebSocket integration tests cover authorization, two-player broadcasts, invalid messages, persisted moves, and reconnect snapshots; six integrated WebSocket/health tests passed.
-- **In progress:** Reconnect/resynchronization and bounded chat history are saved as local WIP commits; chat acknowledgement requires integration with the reconnect lifecycle. The agents were interrupted by a usage limit; do not assume their work is complete or tested.
+- **In progress:** Reconnect/resynchronization and bounded chat history are saved as local WIP commits; chat acknowledgement requires integration with the reconnect lifecycle. The agents were interrupted by a usage limit. The reconnect worktree passed nine frontend tests and a build; the chat worktree passed 63 backend tests with five PostgreSQL tests skipped. Neither has been integrated or fully verified.
 - **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
 - **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
@@ -34,7 +34,7 @@ Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9e
 - Existing WebSocket query-string tokens may reach proxy or hosting logs; rotation and external audit require deployment context and authorization.
 - User selected abort only before the first move, recording no result and requiring resignation afterward. Existing aborted records were not mutated; statistics now exclude them.
 - User selected a modern, understated visual direction for the later interface overhaul.
-- The user authorized routine pushes to project branches; GitHub HTTPS authentication currently fails and `gh` is unavailable. Do not claim local WIP commits have been uploaded.
+- The user authorized routine pushes to project branches; GitHub HTTPS authentication currently fails and `gh` is unavailable. Do not claim local WIP commits have been uploaded. An offline bundle is at `/home/thergh/deve/Chess-handoff.bundle`; it is a local artifact, not a remote backup. Rebuild it after branch tips change before transferring.
 
 ## Next task
 

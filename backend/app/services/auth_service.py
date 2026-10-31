@@ -46,6 +46,13 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
 
 
 def authenticate_user(db: Session, username_or_email: str, password: str) -> User:
+    # Invalid bcrypt inputs should be rejected as credentials, not trigger a 500.
+    if "\x00" in password:
+        raise InvalidCredentialsError
+    try:
+        password.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise InvalidCredentialsError from exc
     user = user_repository.get_user_by_username_or_email(db, username_or_email)
     if user is None or not password_matches(password, user.hashed_password) or not user.is_active:
         raise InvalidCredentialsError
