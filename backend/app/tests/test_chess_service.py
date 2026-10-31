@@ -57,6 +57,31 @@ def test_checkmate_detection() -> None:
     assert result["is_checkmate"] is True
 
 
+def test_checkmate_takes_precedence_over_seventyfive_move_draw() -> None:
+    board = chess.Board()
+    for move in ["f2f3", "e7e5", "g2g4"]:
+        board.push_uci(move)
+    board.halfmove_clock = 149
+    result = apply_uci_move(board.fen(), "d8h4")
+    assert result["is_checkmate"] is True
+    assert result["result"] == "0-1"
+
+
+def test_seventyfive_move_rule_ends_game_as_draw(db_session_factory: sessionmaker[Session]) -> None:
+    with db_session_factory() as db:
+        game_id, white_user_id, _ = _create_active_game(db)
+        game = db.get(Game, game_id)
+        game.current_fen = "8/8/8/8/8/8/R6r/K6k w - - 149 76"
+        db.commit()
+
+        result = apply_player_move(db, game_id, white_user_id, "a2a3")
+
+        assert result["is_seventyfive_moves"] is True
+        assert result["game"]["status"] == "draw"
+        assert result["game"]["result"] == "1/2-1/2"
+        assert {player.result for player in db.get(Game, game_id).players} == {"draw"}
+
+
 def test_apply_player_move_persists_move_and_updates_game(
     db_session_factory: sessionmaker[Session],
 ) -> None:

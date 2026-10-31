@@ -54,7 +54,8 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
     is_checkmate = board.is_checkmate()
     is_stalemate = board.is_stalemate()
     is_insufficient_material = board.is_insufficient_material()
-    is_finished = is_checkmate or is_stalemate or is_insufficient_material
+    is_seventyfive_moves = board.is_seventyfive_moves()
+    is_finished = is_checkmate or is_stalemate or is_insufficient_material or is_seventyfive_moves
 
     return {
         "fen": board.fen(),
@@ -62,6 +63,7 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
         "is_checkmate": is_checkmate,
         "is_stalemate": is_stalemate,
         "is_insufficient_material": is_insufficient_material,
+        "is_seventyfive_moves": is_seventyfive_moves,
         "is_finished": is_finished,
         "result": board.result() if is_finished else None,
         "san": san,
@@ -110,6 +112,7 @@ def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) ->
         "is_checkmate": move_result["is_checkmate"],
         "is_stalemate": move_result["is_stalemate"],
         "is_insufficient_material": move_result["is_insufficient_material"],
+        "is_seventyfive_moves": move_result["is_seventyfive_moves"],
     }
 
 
