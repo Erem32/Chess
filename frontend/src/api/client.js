@@ -1,6 +1,14 @@
 import { getAuthToken } from "./session.js";
 
-export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const API_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:8000";
+
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 export async function apiRequest(path, options = {}) {
   const token = getAuthToken();
@@ -33,7 +41,7 @@ export async function apiRequest(path, options = {}) {
     } catch {
       // Keep the generic status message when the response is not JSON.
     }
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) {

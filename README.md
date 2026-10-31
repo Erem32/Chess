@@ -120,7 +120,7 @@ docker compose exec frontend npm test
 docker compose exec frontend npm run build
 ~~~
 
-The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. The frontend tests can be run with `npm test` inside `frontend/`. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) applies migrations to a disposable PostgreSQL database, runs the backend suite including PostgreSQL concurrency tests, and tests and builds the frontend using the committed npm lockfile. Browser coverage is not yet automated.
+The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. Frontend tests cover promotion choices and HTTP error handling. Protected routes retain the login and offer retry if session verification fails temporarily; rejected credentials return the user to login. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) applies migrations to a disposable PostgreSQL database, runs backend tests including PostgreSQL concurrency tests, and tests and builds the frontend using the committed npm lockfile. Browser coverage is not yet automated.
 
 Frontend dependencies are pinned and installed with `npm ci` in CI and Docker. Review dependency updates deliberately and run `npm audit` in `frontend/`; audit results can change as advisories are published.
 

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { getCurrentUser, loginUser } from "../api/auth.js";
-import { clearAuthToken, setAuthToken } from "../api/session.js";
+import { loginUser } from "../api/auth.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function LoginPage() {
@@ -18,22 +17,19 @@ export default function LoginPage() {
     if (isSubmitting) return;
     setError("");
     setIsSubmitting(true);
-    clearAuthToken();
     try {
       const data = await loginUser(form);
       if (!data?.access_token) {
         throw new Error("Login response did not include an access token");
       }
-      setAuthToken(data.access_token);
-      let profile = null;
-      try {
-        const user = await getCurrentUser();
-        profile = user?.message ? null : user;
-      } catch {
-        profile = null;
-      }
-      login(data.access_token, profile);
-      navigate("/dashboard");
+      login(data.access_token);
+      const from = location.state?.from;
+      const pathname = typeof from?.pathname === "string" && from.pathname.startsWith("/") && !from.pathname.startsWith("//")
+        ? from.pathname
+        : "/dashboard";
+      const search = typeof from?.search === "string" && from.search.startsWith("?") ? from.search : "";
+      const hash = typeof from?.hash === "string" && from.hash.startsWith("#") ? from.hash : "";
+      navigate(`${pathname}${search}${hash}`, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

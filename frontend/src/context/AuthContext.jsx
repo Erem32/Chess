@@ -8,54 +8,66 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => getAuthToken());
   const [user, setUser] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState("checking");
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
 
     async function loadStoredUser() {
       if (!token) {
-        setIsAuthReady(true);
+        setSessionStatus("ready");
         return;
       }
 
+      setSessionStatus("checking");
       try {
         const profile = await getCurrentUser();
         if (!active) return;
-        setUser(profile?.message ? null : profile);
-      } catch {
-        clearAuthToken();
+        setUser(profile);
+        setSessionStatus("ready");
+      } catch (error) {
         if (!active) return;
-        setToken(null);
-        setUser(null);
-      } finally {
-        if (active) setIsAuthReady(true);
+        if (error.status === 401 || error.status === 403) {
+          clearAuthToken();
+          setToken(null);
+          setUser(null);
+          setSessionStatus("ready");
+        } else {
+          setSessionStatus("unavailable");
+        }
       }
     }
 
     loadStoredUser();
-
-    return () => {
-      active = false;
-    };
-  }, [token]);
+    return () => { active = false; };
+  }, [token, retryCount]);
 
   const value = useMemo(() => ({
-    isAuthReady,
+    isAuthReady: sessionStatus === "ready",
+    sessionStatus,
     token,
     user,
-    login(nextToken, nextUser = null) {
+    login(nextToken) {
       setAuthToken(nextToken);
+      setUser(null);
+      setSessionStatus("checking");
       setToken(nextToken);
-      setUser(nextUser);
+      // Revalidate even if the same token is issued again.
+      setRetryCount((count) => count + 1);
+    },
+    retrySession() {
+      setSessionStatus("checking");
+      setRetryCount((count) => count + 1);
     },
     setUser,
     logout() {
       clearAuthToken();
       setToken(null);
       setUser(null);
+      setSessionStatus("ready");
     }
-  }), [isAuthReady, token, user]);
+  }), [sessionStatus, token, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
