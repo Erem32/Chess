@@ -214,6 +214,30 @@ input {
   width: 100%;
 }
 
+.auth-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.auth-page .auth-notice,
+.auth-page .auth-error {
+  margin: 0;
+  text-align: left;
+}
+
+.auth-page .auth-error {
+  color: #fca5a5;
+}
+
+:root[data-theme="light"] .auth-page .auth-error {
+  color: #991b1b;
+}
+
+.auth-page :is(input, button, a):focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}
+
 .auth-page > p {
   margin: 0;
   text-align: center;
