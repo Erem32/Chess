@@ -14,7 +14,9 @@ Active worktrees: `improvement/promotion` at `/tmp/chess-promotion`, `improvemen
 - **Completed:** Login and registration forms have labels, autocomplete, pending feedback, error announcements, and registration confirmation. Agent verified a clean build and a mocked-API headless mobile smoke check; no automated frontend regression suite yet.
 - **Completed:** Abort is restricted to before the first persisted move; after that the API asks players to resign. New aborts record no player result, and statistics exclude historical aborted games without altering stored records. Dashboard asks for confirmation.
 - **Completed:** Registration rejects blank or oversized usernames and passwords outside bcrypt’s byte limit; `docker compose exec -T backend pytest -q app/tests/test_auth.py` passed (21 tests). Existing login behavior remains unchanged.
-- **In progress:** Session recovery, promotion, and frontend dependency audit in isolated worktrees.
+- **Completed:** Promotion picker supports all four pieces for both colors; three frontend tests and mocked-board browser checks passed. Real drag/two-player verification remains pending.
+- **Completed:** Pinned frontend dependencies and updated vulnerable packages; clean install/build/tests passed and npm audit reported zero findings at the time of checking.
+- **In progress:** Session recovery in its isolated worktree.
 - **Pending:** Reconnects, chat, and dashboard feedback.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
 - **Pending:** Frontend/browser tests, linting and incremental structure improvements.
@@ -25,19 +27,19 @@ Active worktrees: `improvement/promotion` at `/tmp/chess-promotion`, `improvemen
 - Starting worktree had an uncommitted roadmap and README link from the preceding review; preserved as the starting documentation increment.
 - Docker services were already running. Baseline frontend `docker compose exec -T frontend npm run build` passed; backend `docker compose exec -T backend pytest -q` passed (27 tests, 86 warnings).
 - A limited headless mobile authentication smoke check used mocked API responses. Full visual/accessibility review, hosting log audit, and deployment verification remain outstanding.
-- Clean frontend installation reported six npm audit findings (one moderate, five high); investigate without indiscriminate upgrades.
+- Frontend dependencies were updated; clean `npm audit` reported zero findings at the time of checking. Advisory results can change.
 - Existing WebSocket query-string tokens may reach proxy or hosting logs; rotation and external audit require deployment context and authorization.
 - User selected abort only before the first move, recording no result and requiring resignation afterward. Existing aborted records were not mutated; statistics now exclude them.
 
 ## Next task
 
-Review and integrate session recovery, promotion and dependency worktrees as they complete. Verify external proxy logging separately when deployment access is available.
+Review and integrate session recovery, then continue reconnect and resynchronization work. Verify external proxy logging separately when deployment access is available.
 
 ## Checks
 
 - `docker compose exec -T backend pytest -q`
 - `docker compose exec -T frontend npm run build`
 - Integrated configuration/auth/WebSocket tests: 39 passed. Integrated frontend build passed.
-- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 60 passed (115 warnings). Integrated frontend build passed. GitHub Actions itself has not yet run.
+- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 60 passed (115 warnings). Clean frontend install, three tests, build and audit passed. GitHub Actions itself has not yet run.
 
 See the README for setup and manual two-player checks. Tests against isolated worktrees must run against their own source, not the running service's mounted checkout.
