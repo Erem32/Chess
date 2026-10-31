@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { acceptDraw, declineDraw, getGame, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
+import { classifyMove, fetchStableGameSnapshot, reconnectDelay } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
@@ -18,6 +19,10 @@ export default function GamePage() {
   const { token, user } = useAuth();
   const socketRef = useRef(null);
   const reconnectTimerRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const lastMoveNumberRef = useRef(0);
+  const revisionRef = useRef(0);
+  const refreshRequestRef = useRef(0);
   const [fen, setFen] = useState(STARTING_FEN);
   const [game, setGame] = useState(null);
   const [moves, setMoves] = useState([]);
@@ -25,6 +30,7 @@ export default function GamePage() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
   const [mobilePanel, setMobilePanel] = useState("players");
@@ -35,7 +41,7 @@ export default function GamePage() {
   const playerNamesById = buildPlayerNamesById(game);
   const playerSummary = buildPlayerSummary(game, currentUserId);
   const canConnect = Boolean(socketToken);
-  const canOpenSocket = canConnect && Boolean(game?.id);
+  const canOpenSocket = canConnect && String(game?.id) === String(gameId);
   const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
   const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
   const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
@@ -56,6 +62,13 @@ export default function GamePage() {
 
     async function loadGame() {
       setIsLoading(true);
+      setGame(null);
+      setFen(STARTING_FEN);
+      setMoves([]);
+      setMessages([]);
+      lastMoveNumberRef.current = 0;
+      retryCountRef.current = 0;
+      revisionRef.current += 1;
       setError("");
       try {
         const [gameData, movesData] = await Promise.all([
@@ -78,7 +91,7 @@ export default function GamePage() {
     return () => {
       active = false;
     };
-  }, [gameId]);
+  }, [gameId, loadAttempt]);
 
   useEffect(() => {
     if (!game?.id || isGameOver) return undefined;
@@ -86,9 +99,11 @@ export default function GamePage() {
     let active = true;
 
     async function refreshGameOnly() {
+      const revision = revisionRef.current;
+      const request = ++refreshRequestRef.current;
       try {
         const gameData = await getGame(gameId);
-        if (active) setGame(gameData);
+        if (active && request === refreshRequestRef.current && revision === revisionRef.current) setGame(gameData);
       } catch {
         // Keep current state on background refresh failures.
       }
@@ -106,29 +121,73 @@ export default function GamePage() {
     if (!canOpenSocket) return undefined;
 
     let active = true;
-    let opened = false;
-    if (!socketToken) {
-      setSocketStatus("disconnected");
-      setError("No active login session. Log in again before opening the game.");
-      return undefined;
-    }
-
-    if (socketRef.current && socketRef.current.readyState !== WebSocket.CLOSED && socketRef.current.readyState !== WebSocket.CLOSING) {
-      return undefined;
-    }
-
+    let synchronized = false;
+    let authorized = true;
+    let stableSince = 0;
+    const queuedGameMessages = [];
     setSocketStatus("connecting");
     const ws = createGameSocket(gameId, socketToken);
     socketRef.current = ws;
-    ws.onopen = () => {
-      opened = true;
-      if (active && socketRef.current === ws) {
+
+    function applyGameMessage(data) {
+      const payload = data.payload ?? data;
+      const nextGame = payload.game ?? (payload.current_fen || payload.fen ? payload : null);
+      const nextMove = data.type === "move" || data.type === "move_made"
+        ? payload.move ?? payload : payload.move ?? nextGame?.move;
+      // The server's initial unversioned game_state can predate our REST snapshot.
+      if (!nextMove) return;
+      const classification = classifyMove(nextMove, lastMoveNumberRef.current);
+      if (classification === "duplicate") return;
+      if (classification === "gap") {
+        setError("Game updates were missed. Reconnecting to synchronize...");
+        ws.close();
+        return;
+      }
+      lastMoveNumberRef.current = Number(nextMove.move_number);
+      revisionRef.current += 1;
+      if (nextGame) setGame((current) => ({ ...(current ?? {}), ...nextGame }));
+      const nextFen = resolveFen(nextMove, resolveFen(nextGame, null));
+      if (nextFen) setFen(nextFen);
+      setMoves((current) => appendMove(current, nextMove));
+      setError("");
+    }
+
+    ws.onopen = async () => {
+      if (!active || socketRef.current !== ws) return;
+      setSocketStatus("syncing");
+      setInfo("Synchronizing game...");
+      try {
+        const snapshot = await fetchStableGameSnapshot(gameId, getGame, getGameMoves);
+        if (!active || socketRef.current !== ws || ws.readyState !== WebSocket.OPEN) return;
+        lastMoveNumberRef.current = snapshot.moves.length
+          ? Number(snapshot.moves[snapshot.moves.length - 1].move_number) : 0;
+        revisionRef.current += 1;
+        setGame(snapshot.game);
+        setFen(resolveFen(snapshot.game));
+        setMoves(snapshot.moves);
+        synchronized = true;
+        for (const message of queuedGameMessages) {
+          if (ws.readyState !== WebSocket.OPEN) return;
+          applyGameMessage(message);
+        }
+        if (ws.readyState !== WebSocket.OPEN) return;
+        stableSince = Date.now();
         setSocketStatus("connected");
         setInfo("Connected");
         setError("");
+      } catch (err) {
+        if (!active || socketRef.current !== ws) return;
+        if (err.status === 401 || err.status === 403) {
+          authorized = false;
+          setError("Your session is not authorized for this game. Sign in again.");
+        } else {
+          setError("Could not synchronize game. Retrying...");
+        }
+        ws.close();
       }
     };
     ws.onmessage = (event) => {
+      if (!active || socketRef.current !== ws) return;
       let data;
       try {
         data = JSON.parse(event.data);
@@ -136,55 +195,34 @@ export default function GamePage() {
         return;
       }
       const payload = data.payload ?? data;
-      if (data.type === "game_state" || data.type === "game_updated") {
-        const nextGame = payload.game ?? (payload.current_fen || payload.fen ? payload : null);
-        const nextMove = payload.move ?? nextGame?.move ?? null;
-        if (nextGame) setGame((current) => ({ ...(current ?? {}), ...nextGame }));
-        const nextFen = resolveFen(nextGame ?? payload, null);
-        if (nextFen) setFen(nextFen);
-        if (Array.isArray(payload.moves) || Array.isArray(nextGame?.moves)) {
-          setMoves(resolveMoves(payload.moves ?? nextGame.moves));
-        }
-        if (nextMove) {
-          setMoves((current) => appendMove(current, nextMove));
-        }
-        setError("");
-      }
-      if (data.type === "move" || data.type === "move_made") {
-        const move = payload.move ?? payload;
-        if (move?.fen_after_move || move?.fen) setFen(move.fen_after_move ?? move.fen);
-        setMoves((current) => appendMove(current, move));
-        setError("");
-      }
-      if (data.type === "chat") {
+      if (["game_state", "game_updated", "move", "move_made"].includes(data.type)) {
+        if (synchronized) applyGameMessage(data);
+        else queuedGameMessages.push(data);
+      } else if (data.type === "chat") {
         setMessages((current) => [...current, payload]);
-      }
-      if (data.type === "info") {
+      } else if (data.type === "info") {
         setInfo(payload.message ?? "Connected");
-      }
-      if (data.type === "error") {
+      } else if (data.type === "error") {
         setError(payload.message ?? "WebSocket error");
       }
     };
     ws.onerror = () => {
-      if (active && socketRef.current === ws) {
-        setSocketStatus("disconnected");
-        setError("Game connection failed. Retrying...");
-      }
+      if (active && socketRef.current === ws) setSocketStatus("disconnected");
     };
     ws.onclose = (event) => {
       if (!active || socketRef.current !== ws) return;
       setSocketStatus("disconnected");
       setInfo("Disconnected");
-      if (event.code === 1008) {
+      if (event.code === 1008 || !authorized) {
         setError("This browser is not authorized for this game. Log out and sign in with the account that joined it.");
         return;
       }
-      if (opened) {
-        reconnectTimerRef.current = window.setTimeout(() => {
-          setSocketAttempt((current) => current + 1);
-        }, 1200);
-      }
+      if (stableSince && Date.now() - stableSince >= 30000) retryCountRef.current = 0;
+      const delay = reconnectDelay(retryCountRef.current++);
+      setError("Game connection lost. Retrying...");
+      reconnectTimerRef.current = window.setTimeout(() => {
+        setSocketAttempt((current) => current + 1);
+      }, delay);
     };
     return () => {
       active = false;
@@ -192,9 +230,7 @@ export default function GamePage() {
         window.clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
       }
-      if (socketRef.current === ws) {
-        socketRef.current = null;
-      }
+      if (socketRef.current === ws) socketRef.current = null;
       ws.close();
     };
   }, [canOpenSocket, gameId, socketAttempt, socketToken]);
@@ -205,7 +241,7 @@ export default function GamePage() {
       return;
     }
     const activeSocket = socketRef.current;
-    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
+    if (socketStatus !== "connected" || !activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
       setError("Game connection is still opening. Try again in a moment.");
       return;
     }
@@ -291,6 +327,9 @@ export default function GamePage() {
             <p className={feedback.tone === "error" ? "error" : "muted"}>{feedback.message}</p>
           ) : (
             <p className="muted">Status ready.</p>
+          )}
+          {!isLoading && !game && error && (
+            <button type="button" onClick={() => setLoadAttempt((current) => current + 1)}>Retry loading game</button>
           )}
         </section>
         <section className="mobile-game-nav" aria-label="Game panels">
