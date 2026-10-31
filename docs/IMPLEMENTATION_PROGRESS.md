@@ -31,7 +31,8 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** Game WebSocket transport was extracted to `backend/app/api/websocket.py`; focused backend tests, Ruff, and the real two-player browser smoke passed after extraction.
 - **Completed:** Added `CONTRIBUTING.md` with setup, checks, test-data safety, and review workflow.
 - **Pending:** Broader browser/accessibility coverage, automated formatting, and remaining incremental structure improvements.
-- **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
+- **Completed (partial UI):** Refreshed login and registration layout in the selected modern, understated direction. Visually checked dark desktop and light mobile; no mobile horizontal overflow observed. Frontend lint/tests/build and the real two-player smoke passed.
+- **Pending:** Full browser accessibility and UI review, other screen redesigns, operational readiness and remaining roadmap items.
 
 ## Baseline and constraints
 

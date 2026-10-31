@@ -39,7 +39,11 @@ export default function LoginPage() {
 
   return (
     <section className="auth-page">
-      <h1>Login</h1>
+      <header className="auth-header">
+        <p className="auth-eyebrow">Online chess</p>
+        <h1>Login</h1>
+        <p>Welcome back. Your next game awaits.</p>
+      </header>
       {location.state?.registrationComplete && (
         <p className="auth-notice" role="status">Account created. You can now log in.</p>
       )}
@@ -55,7 +59,7 @@ export default function LoginPage() {
         {error && <p className="error auth-error" role="alert">{error}</p>}
         <button type="submit" disabled={isSubmitting}>{isSubmitting ? "Logging in..." : "Login"}</button>
       </form>
-      <p><Link to="/register">Create an account</Link></p>
+      <p className="auth-footer">New here? <Link to="/register">Create an account</Link></p>
     </section>
   );
 }
