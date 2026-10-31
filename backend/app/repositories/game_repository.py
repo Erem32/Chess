@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.models import Game, GamePlayer, MatchmakingQueue, Move
+from app.models import ChatMessage, Game, GamePlayer, MatchmakingQueue, Move
 
 
 MATCHMAKING_ADVISORY_LOCK_ID = 842_001
@@ -49,6 +49,13 @@ def get_game_player(db: Session, game_id: int, user_id: int) -> GamePlayer | Non
 
 def list_game_moves(db: Session, game_id: int) -> list[Move]:
     return db.query(Move).filter(Move.game_id == game_id).order_by(Move.move_number.asc()).all()
+
+
+def list_chat_messages(db: Session, game_id: int, limit: int, before_id: int | None) -> list[ChatMessage]:
+    query = db.query(ChatMessage).filter(ChatMessage.game_id == game_id)
+    if before_id is not None:
+        query = query.filter(ChatMessage.id < before_id)
+    return list(reversed(query.order_by(ChatMessage.id.desc()).limit(limit).all()))
 
 
 def list_games_for_user(db: Session, user_id: int) -> list[Game]:

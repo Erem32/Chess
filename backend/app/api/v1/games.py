@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models import User
+from app.schemas.chat import ChatHistoryResponse
 from app.schemas.game import GameDetailRead, GameHistoryResponse
 from app.schemas.move import MoveListResponse
 from app.services.chess_service import (
@@ -106,6 +107,21 @@ def get_game_moves(
     except (GameAccessDeniedError, GameNotFoundError) as exc:
         raise _game_error_response(exc) from exc
     return MoveListResponse(game_id=game_id, moves=moves)
+
+
+@router.get("/{game_id}/chat", response_model=ChatHistoryResponse)
+def get_game_chat(
+    game_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    before_id: Annotated[int | None, Query(ge=1)] = None,
+) -> ChatHistoryResponse:
+    try:
+        messages = game_service.list_chat_for_user(db, game_id, current_user, limit, before_id)
+    except (GameAccessDeniedError, GameNotFoundError) as exc:
+        raise _game_error_response(exc) from exc
+    return ChatHistoryResponse(game_id=game_id, messages=messages)
 
 
 @router.post("/{game_id}/resign", response_model=GameDetailRead)

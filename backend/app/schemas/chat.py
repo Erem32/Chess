@@ -11,3 +11,8 @@ class ChatMessageRead(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class ChatHistoryResponse(BaseModel):
+    game_id: int
+    messages: list[ChatMessageRead]

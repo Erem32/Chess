@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.db.session import Base, get_db
+from app import main
 from app.main import app
-from app.models import Game, MatchmakingQueue
+from app.models import ChatMessage, Game, MatchmakingQueue
 from app.models import chat_message, game, game_player, matchmaking, move, user  # noqa: F401
 from app.services.chess_service import apply_player_move
 
@@ -172,6 +173,58 @@ def test_cannot_abort_after_first_move(client: TestClient, db_session_factory: s
     assert response.status_code == 409
     assert "resign" in response.json()["detail"]
     assert client.get("/api/v1/games/my-active", headers=alice_headers).json()["status"] == "active"
+
+
+def test_chat_history_is_authorized_bounded_and_paginated(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    eve = _auth_headers(client, "eve")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game = client.post("/api/v1/matchmaking/join", headers=bob).json()["game"]
+    game_id = game["id"]
+    sender = game["players"][0]["user_id"]
+    with db_session_factory() as db:
+        db.add_all([ChatMessage(game_id=game_id, user_id=sender, message=f"message {i}") for i in range(105)])
+        db.commit()
+
+    assert client.get(f"/api/v1/games/{game_id}/chat").status_code == 401
+    assert client.get(f"/api/v1/games/{game_id}/chat", headers=eve).status_code == 403
+    assert client.get("/api/v1/games/999999/chat", headers=alice).status_code == 404
+    assert client.get(f"/api/v1/games/{game_id}/chat?limit=101", headers=alice).status_code == 422
+    assert client.get(f"/api/v1/games/{game_id}/chat?limit=0", headers=alice).status_code == 422
+    assert client.get(f"/api/v1/games/{game_id}/chat?before_id=0", headers=alice).status_code == 422
+    latest = client.get(f"/api/v1/games/{game_id}/chat", headers=alice).json()["messages"]
+    assert len(latest) == 100
+    assert latest[0]["message"] == "message 5"
+    assert latest[-1]["message"] == "message 104"
+    older = client.get(f"/api/v1/games/{game_id}/chat?before_id={latest[0]['id']}&limit=10", headers=bob).json()["messages"]
+    assert [item["message"] for item in older] == [f"message {i}" for i in range(5)]
+
+
+def test_chat_socket_acknowledges_success_and_rejection(client: TestClient, db_session_factory, monkeypatch):
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game"]["id"]
+    monkeypatch.setattr(main, "SessionLocal", db_session_factory)
+    token = alice["Authorization"].split(" ", 1)[1]
+    with client.websocket_connect(f"/ws/games/{game_id}?token={token}") as socket:
+        assert socket.receive_json()["type"] == "game_state"
+        socket.send_json({"type": "chat", "payload": {"message": "hello", "client_message_id": "test-1"}})
+        event = socket.receive_json()
+        assert event["type"] == "chat"
+        assert event["payload"]["client_message_id"] == "test-1"
+        assert event["payload"]["message"] == "hello"
+        socket.send_json({"type": "chat", "payload": {"message": " ", "client_message_id": "test-2"}})
+        rejection = socket.receive_json()
+        assert rejection["type"] == "error"
+        assert rejection["payload"]["client_message_id"] == "test-2"
+        socket.send_json({"type": "chat", "payload": {"message": "hello", "client_message_id": "x" * 65}})
+        assert socket.receive_json()["type"] == "error"
+        socket.send_json({"type": "chat", "payload": {"message": "legacy"}})
+        assert socket.receive_json()["payload"]["message"] == "legacy"
+    with db_session_factory() as db:
+        assert db.query(ChatMessage).count() == 2
 
 
 def test_player_can_offer_draw_and_opponent_can_accept(client: TestClient) -> None:

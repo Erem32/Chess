@@ -1,3 +1,5 @@
+import re
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError
@@ -129,18 +131,27 @@ async def _handle_game_websocket_message(
         return
 
     if message_type == "chat":
-        chat_text = payload.get("message") or message.get("message")
+        client_message_id = payload.get("client_message_id")
+        if client_message_id is not None and (
+            not isinstance(client_message_id, str)
+            or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", client_message_id)
+        ):
+            await _send_websocket_error(websocket, "Invalid chat client_message_id")
+            return
+        chat_text = payload.get("message") if "message" in payload else message.get("message")
         if not isinstance(chat_text, str):
-            await _send_websocket_error(websocket, "Chat payload must include message")
+            await _send_websocket_error(websocket, "Chat payload must include message", client_message_id)
             return
 
         try:
             chat_message = persist_chat_message(db, game_id, user_id, chat_text)
         except (ChatMessageError, GameAccessError, GameNotFoundError) as exc:
             db.rollback()
-            await _send_websocket_error(websocket, str(exc))
+            await _send_websocket_error(websocket, str(exc), client_message_id)
             return
 
+        if client_message_id is not None:
+            chat_message["client_message_id"] = client_message_id
         await websocket_manager.broadcast(game_id, {"type": "chat", "payload": chat_message})
         return
 
@@ -166,8 +177,11 @@ def _authenticate_websocket_user(token: str | None, db: Session) -> User | None:
     return user
 
 
-async def _send_websocket_error(websocket: WebSocket, message: str) -> None:
-    await websocket_manager.send(websocket, {"type": "error", "payload": {"message": message}})
+async def _send_websocket_error(websocket: WebSocket, message: str, client_message_id: str | None = None) -> None:
+    payload = {"message": message}
+    if client_message_id is not None:
+        payload["client_message_id"] = client_message_id
+    await websocket_manager.send(websocket, {"type": "error", "payload": payload})
 
 
 async def _close_unauthorized(websocket: WebSocket, message: str) -> None:

@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -13,11 +15,24 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
     return () => window.cancelAnimationFrame(frameId);
   }, [messages.length]);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    if (!message.trim()) return;
-    onSend(message.trim());
-    setMessage("");
+    const text = message.trim();
+    if (!text || isSending) return;
+    if (Array.from(text).length > 1000 || text.includes("\0")) {
+      setError("Messages must be at most 1000 characters and cannot contain null bytes.");
+      return;
+    }
+    setError("");
+    setIsSending(true);
+    try {
+      if ((await onSend(text)) !== true) throw new Error("Message could not be confirmed. Please try again.");
+      setMessage("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Message could not be sent. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
@@ -36,9 +51,10 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
         )}
       </div>
       <form onSubmit={handleSubmit} className="inline-form chat-form">
-        <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" />
-        <button type="submit">Send</button>
+        <input aria-label="Chat message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" disabled={isSending} />
+        <button type="submit" disabled={isSending || !message.trim()}>{isSending ? "Sending..." : "Send"}</button>
       </form>
+      {error && <p className="error" role="alert">{error}</p>}
     </section>
   );
 }
