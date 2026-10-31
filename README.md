@@ -176,7 +176,7 @@ The server sends `game_state`, `chat`, and `error` messages. In a `game_state` m
 ## Current limitations
 
 - This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification. The game reconnects with backoff after temporary socket failures and reloads game and move state before allowing another move. Authentication failures require signing in again.
-- Chat messages are stored by the backend, but the frontend does not currently restore chat history when a game page is reloaded.
+- The game page restores up to the newest 100 chat messages. Older messages can be retrieved through the paginated API; there is no older-message control in the interface yet.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
 - There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.

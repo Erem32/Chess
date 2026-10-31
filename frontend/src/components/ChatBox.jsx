@@ -1,9 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 
-export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [isSending, setIsSending] = useState(false);
+export default function ChatBox({ messages = [], onSend, getAuthorLabel, message, onMessageChange, isSending, error }) {
   const scrollRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -15,24 +12,9 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
     return () => window.cancelAnimationFrame(frameId);
   }, [messages.length]);
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
-    const text = message.trim();
-    if (!text || isSending) return;
-    if (Array.from(text).length > 1000 || text.includes("\0")) {
-      setError("Messages must be at most 1000 characters and cannot contain null bytes.");
-      return;
-    }
-    setError("");
-    setIsSending(true);
-    try {
-      if ((await onSend(text)) !== true) throw new Error("Message could not be confirmed. Please try again.");
-      setMessage("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Message could not be sent. Please try again.");
-    } finally {
-      setIsSending(false);
-    }
+    if (message.trim() && !isSending) onSend(message.trim());
   }
 
   return (
@@ -51,7 +33,7 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
         )}
       </div>
       <form onSubmit={handleSubmit} className="inline-form chat-form">
-        <input aria-label="Chat message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" disabled={isSending} />
+        <input aria-label="Chat message" value={message} onChange={(event) => onMessageChange(event.target.value)} placeholder="Message" disabled={isSending} />
         <button type="submit" disabled={isSending || !message.trim()}>{isSending ? "Sending..." : "Send"}</button>
       </form>
       {error && <p className="error" role="alert">{error}</p>}
