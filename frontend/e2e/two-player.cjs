@@ -41,6 +41,10 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await white.locator('[data-square="e2"]').click();
     await white.locator('[data-square="e4"]').click();
     for (const page of [white, black]) await page.getByText('e4', { exact: true }).first().waitFor();
+    await black.waitForFunction(() => document.querySelector('#game-board-square-e7 [role=button]')?.getAttribute('aria-disabled') === 'false');
+    await black.locator('[data-square="e7"]').click();
+    await black.locator('[data-square="e5"]').click();
+    for (const page of [white, black]) await page.getByText('e5', { exact: true }).first().waitFor();
     const whiteChat = white.locator('.desktop-game-sidebar .chat-panel').first();
     const blackChat = black.locator('.desktop-game-sidebar .chat-panel').first();
     await whiteChat.getByLabel('Chat message').fill('Good game');
@@ -53,7 +57,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       white.getByRole('heading', { name: 'Game over' }).waitFor(),
       black.getByRole('heading', { name: 'Game over' }).waitFor()
     ]);
-    console.log('Two-player smoke passed: registration, matchmaking, move, chat, reload and resignation.');
+    console.log('Two-player smoke passed: registration, matchmaking, moves by both players, chat, reload and resignation.');
   } finally {
     for (const context of contexts) await context.close();
     await browser.close();

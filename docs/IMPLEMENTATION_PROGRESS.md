@@ -23,7 +23,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** Dashboard and history distinguish loading and errors from empty results; active-game and matchmaking startup failures are visible. Frontend build passed; browser verification is pending.
 - **Pending:** Remaining gameplay polish.
 - **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
-- **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, a move, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
+- **Completed:** A reusable headless two-player browser smoke test covers registration, login, matchmaking, moves from both players, chat, reload and resignation on disposable services; it is configured in CI. GitHub-hosted execution remains unverified.
 - **Pending:** Broader browser/accessibility coverage, linting and incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
 
