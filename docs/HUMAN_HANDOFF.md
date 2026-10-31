@@ -46,6 +46,8 @@ git ls-remote --heads origin improvement/roadmap improvement/reconnect improveme
 
 Use the actual branch names from step 1. Compare the resulting remote hashes with `git rev-parse <branch>`. Do not force-push or replace someone else's branch. WIP branches require review and tests before integration. If authentication fails, configure your normal Git credentials and retry; do not paste access tokens into commands, documents, or chat. A local commit does not mean the work has been uploaded.
 
+If `origin` uses HTTPS but your GitHub SSH key is loaded, you can push to the same repository over SSH without changing `origin`, for example `git push git@github.com:Erem32/Chess.git improvement/roadmap`. First verify the repository address and `ssh -T git@github.com`; GitHub's successful SSH authentication message still exits with status 1 because it provides no shell. Push only the intended branch names.
+
 ## 4. Offline fallback
 
 If the remote cannot be used, create a bundle containing **only the reviewed, committed branches** intended for transfer, for example:

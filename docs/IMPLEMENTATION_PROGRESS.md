@@ -4,7 +4,7 @@ Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementall
 
 Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git status and worktree list are authoritative.
 
-Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9ec0b96`, `/tmp/chess-reconnect`) and `improvement/chat-history` (`262f8e9`, `/tmp/chess-chat-history`). Neither is integrated or verified as complete. Both push attempts failed because GitHub HTTPS credentials are unavailable; these branches remain local only. The remote `improvement/roadmap` was verified at `df52002` before the current handoff changes. Worktree paths are specific to this machine; use `git worktree list` to discover actual paths. Previously integrated branches remain in Git history.
+Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9ec0b96`, `/tmp/chess-reconnect`) and `improvement/chat-history` (`262f8e9`, `/tmp/chess-chat-history`). Neither is integrated or verified as complete. Both WIP branches were pushed over SSH and their remote hashes verified. The remote `improvement/roadmap` was verified at `bee05fa` before the subsequent checkpoint update. Worktree paths are specific to this machine; use `git worktree list` to discover actual paths. Previously integrated branches remain in Git history.
 
 ## Priorities
 
@@ -34,7 +34,7 @@ Interrupted work is preserved on local WIP branches `improvement/reconnect` (`9e
 - Existing WebSocket query-string tokens may reach proxy or hosting logs; rotation and external audit require deployment context and authorization.
 - User selected abort only before the first move, recording no result and requiring resignation afterward. Existing aborted records were not mutated; statistics now exclude them.
 - User selected a modern, understated visual direction for the later interface overhaul.
-- The user authorized routine pushes to project branches; GitHub HTTPS authentication currently fails and `gh` is unavailable. Do not claim local WIP commits have been uploaded. An offline bundle is at `/home/thergh/deve/Chess-handoff.bundle`; it is a local artifact, not a remote backup. Rebuild it after branch tips change before transferring.
+- The user authorized routine pushes to project branches. GitHub HTTPS authentication failed, but the loaded SSH key works with `git@github.com:Erem32/Chess.git`; all three named branches were pushed and their hashes verified. An offline bundle at `/home/thergh/deve/Chess-handoff.bundle` is a local artifact; rebuild it after branch tips change before transferring.
 
 ## Next task
 
