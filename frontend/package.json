@@ -9,13 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-router-dom": "latest",
-    "react-chessboard": "latest",
-    "chess.js": "latest"
-  },
-  "devDependencies": {}
+    "@vitejs/plugin-react": "6.0.2",
+    "chess.js": "1.4.0",
+    "react": "19.2.6",
+    "react-chessboard": "5.10.0",
+    "react-dom": "19.2.6",
+    "react-router-dom": "7.18.5",
+    "vite": "8.3.5"
+  }
 }
