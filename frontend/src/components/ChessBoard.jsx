@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard, defaultPieces } from "react-chessboard";
 
-import { legalMovesFrom, moveChoices } from "./boardMoves.js";
+import { legalMovesFrom, moveChoices, notationMove } from "./boardMoves.js";
 import "./ChessBoard.css";
 
 const FIREFOX_SAFE_PIECES = Object.fromEntries(
@@ -28,6 +28,8 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
   const boardRef = useRef(null);
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [promotion, setPromotion] = useState(null);
+  const [moveText, setMoveText] = useState("");
+  const [moveError, setMoveError] = useState("");
   const isChoosingPromotion = Boolean(promotion && promotion.fen === fen && promotion.playerColor === playerColor && isInteractive);
   const boardInteractive = isInteractive && !isChoosingPromotion;
   const legalMoves = legalMovesFrom(fen, selectedSquare, playerColor, boardInteractive);
@@ -37,6 +39,11 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
     setSelectedSquare(null);
     setPromotion(null);
   }, [fen, playerColor, isInteractive]);
+
+  useEffect(() => {
+    setMoveText("");
+    setMoveError("");
+  }, [fen]);
 
   function tryMove(sourceSquare, targetSquare) {
     const choices = moveChoices(fen, sourceSquare, targetSquare, playerColor, boardInteractive);
@@ -88,7 +95,20 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
     setSelectedSquare(null);
   }
 
+  function handleNotationSubmit(event) {
+    event.preventDefault();
+    const move = notationMove(fen, moveText, playerColor, boardInteractive);
+    if (!move) {
+      setMoveError("Enter a legal move, for example e4, Nf3, or a8=N.");
+      return;
+    }
+    setMoveError("");
+    onMove(move);
+    setMoveText("");
+  }
+
   return (
+    <>
     <div className="board-wrap" ref={boardRef} tabIndex={-1}>
       <Chessboard
         options={{
@@ -138,6 +158,17 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
         </section>
       )}
     </div>
+    <form className="notation-move-form" onSubmit={handleNotationSubmit}>
+      <label htmlFor="notation-move">Play a move</label>
+      <p id="notation-move-help">Use chess notation, for example e4 or Nf3. For promotion, use a8=N.</p>
+      <div className="notation-move-row">
+        <input id="notation-move" value={moveText} onChange={(event) => setMoveText(event.target.value)}
+          aria-describedby="notation-move-help" autoComplete="off" spellCheck={false} disabled={!boardInteractive} />
+        <button type="submit" disabled={!boardInteractive || !moveText.trim()}>Play move</button>
+      </div>
+      {moveError && <p className="error" role="alert">{moveError}</p>}
+    </form>
+    </>
   );
 }
 

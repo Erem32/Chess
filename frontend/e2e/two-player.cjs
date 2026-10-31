@@ -43,8 +43,12 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     for (const page of [white, black]) await page.getByText('e4', { exact: true }).first().waitFor();
     assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
     await black.waitForFunction(() => document.querySelector('#game-board-square-e7 [role=button]')?.getAttribute('aria-disabled') === 'false');
-    await black.locator('[data-square="e7"]').click();
-    await black.locator('[data-square="e5"]').click();
+    const notation = black.getByLabel('Play a move');
+    await notation.fill('e8');
+    await notation.press('Enter');
+    await black.getByRole('alert').filter({ hasText: 'Enter a legal move' }).waitFor();
+    await notation.fill('e5');
+    await notation.press('Enter');
     for (const page of [white, black]) await page.getByText('e5', { exact: true }).first().waitFor();
     const whiteChat = white.locator('.desktop-game-sidebar .chat-panel').first();
     const blackChat = black.locator('.desktop-game-sidebar .chat-panel').first();
