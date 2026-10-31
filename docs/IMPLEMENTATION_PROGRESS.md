@@ -2,7 +2,9 @@
 
 Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementally, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative.
 
-Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Parallel worktrees: `improvement/production-config` at `/home/thergh/deve/Chess-production-config`, `improvement/game-locking` at `/home/thergh/deve/Chess-game-locking`, and `improvement/auth-ui` at `/tmp/chess-auth-ui`. Git status and worktree list are authoritative.
+Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Git status and worktree list are authoritative.
+
+Active worktrees: `improvement/promotion` at `/tmp/chess-promotion`, `improvement/session-recovery` at `/tmp/chess-session-recovery`, and `improvement/dependency-audit` at `/tmp/chess-dependency-audit`. Completed integrated worktrees: `improvement/production-config`, `improvement/game-locking`, `improvement/auth-ui`, and `improvement/ci-workflow`; retain until reviewed for cleanup.
 
 ## Priorities
 
@@ -12,8 +14,10 @@ Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Paralle
 - **Completed:** Login and registration forms have labels, autocomplete, pending feedback, error announcements, and registration confirmation. Agent verified a clean build and a mocked-API headless mobile smoke check; no automated frontend regression suite yet.
 - **Completed:** Abort is restricted to before the first persisted move; after that the API asks players to resign. New aborts record no player result, and statistics exclude historical aborted games without altering stored records. Dashboard asks for confirmation.
 - **Completed:** Registration rejects blank or oversized usernames and passwords outside bcrypt’s byte limit; `docker compose exec -T backend pytest -q app/tests/test_auth.py` passed (21 tests). Existing login behavior remains unchanged.
-- **Pending:** Improve session recovery, promotion, reconnects, chat, and dashboard feedback.
-- **Pending:** CI, reproducible dependencies, frontend and integration tests, incremental structure improvements.
+- **In progress:** Session recovery, promotion, and frontend dependency audit in isolated worktrees.
+- **Pending:** Reconnects, chat, and dashboard feedback.
+- **Completed:** CI is configured for backend tests, PostgreSQL concurrency tests and migrations, plus a locked frontend install and build; GitHub-hosted execution is unverified.
+- **Pending:** Frontend/browser tests, linting and incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
 
 ## Baseline and constraints
@@ -27,13 +31,13 @@ Integration branch: `improvement/roadmap`, based on `main` at `07a8cf9`. Paralle
 
 ## Next task
 
-Review and integrate the CI worktree; investigate dependency audit findings. Continue with session recovery and chess promotion. Verify external proxy logging separately when deployment access is available.
+Remove WebSocket query strings from Uvicorn handshake logs and test a real server; review and integrate session recovery, promotion and dependency worktrees as they complete. Verify external proxy logging separately when deployment access is available.
 
 ## Checks
 
 - `docker compose exec -T backend pytest -q`
 - `docker compose exec -T frontend npm run build`
 - Integrated configuration/auth/WebSocket tests: 39 passed. Integrated frontend build passed.
-- Backend suite: 55 passed, four PostgreSQL tests skipped in the standard run (a fifth test was added afterward); separate isolated PostgreSQL concurrency run: five passed.
+- Integrated migration upgrade plus full backend suite against a disposable PostgreSQL database: 60 passed (115 warnings). Integrated frontend build passed. GitHub Actions itself has not yet run.
 
 See the README for setup and manual two-player checks. Tests against isolated worktrees must run against their own source, not the running service's mounted checkout.

@@ -11,6 +11,23 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: chess_test
+          POSTGRES_PASSWORD: chess_test
+          POSTGRES_DB: chess_test_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U chess_test -d chess_test_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://chess_test:chess_test@localhost:5432/chess_test_ci
+      TEST_POSTGRES_URL: postgresql+psycopg://chess_test:chess_test@localhost:5432/chess_test_ci
     defaults:
       run:
         working-directory: backend
@@ -23,6 +40,8 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
+      - name: Apply database migrations
+        run: alembic upgrade head
       - name: Run backend tests
         run: python -m pytest -q
 
