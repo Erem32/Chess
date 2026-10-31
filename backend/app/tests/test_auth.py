@@ -168,14 +168,15 @@ def test_login_rejects_invalid_credentials(client: TestClient) -> None:
     assert missing_user.status_code == 401
 
 
-def test_login_rejects_password_with_null_byte(client: TestClient) -> None:
+@pytest.mark.parametrize("identity,password", [("alice", "bad\x00password"), ("alice\x00", "secret")])
+def test_login_rejects_credentials_with_null_byte(client: TestClient, identity: str, password: str) -> None:
     client.post(
         "/api/v1/auth/register",
         json={"username": "alice", "email": "alice@example.com", "password": "secret"},
     )
     response = client.post(
         "/api/v1/auth/login",
-        json={"username_or_email": "alice", "password": "bad\x00password"},
+        json={"username_or_email": identity, "password": password},
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid username/email or password"
