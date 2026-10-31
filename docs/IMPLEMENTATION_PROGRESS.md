@@ -29,6 +29,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** CI includes Ruff backend lint checks for `E4`, `E7`, `E9`, and `F` rules; the selected checks pass locally.
 - **Completed:** CI includes focused Biome frontend checks for undeclared variables and unreachable code; lint, 11 frontend tests, build and audit passed locally.
 - **Completed:** Game WebSocket transport was extracted to `backend/app/api/websocket.py`; focused backend tests, Ruff, and the real two-player browser smoke passed after extraction.
+- **Completed:** Added `CONTRIBUTING.md` with setup, checks, test-data safety, and review workflow.
 - **Pending:** Broader browser/accessibility coverage, automated formatting, and remaining incremental structure improvements.
 - **Pending:** Browser accessibility and UI review, operational readiness and remaining roadmap items.
 

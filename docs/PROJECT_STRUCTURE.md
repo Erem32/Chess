@@ -12,6 +12,7 @@ This guide shows where to start when changing the online chess MVP. For setup, d
 | [docker-compose.preview.yml](../docker-compose.preview.yml) | Runs a local production frontend build with its own backend and database. |
 | [.env.example](../.env.example) | Example development configuration. |
 | [AGENTS.md](../AGENTS.md) | Instructions for coding agents, including project rules and checks. |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Developer workflow, checks, and contribution guidance. |
 | [plan.md](../plan.md), [rules.md](../rules.md) | Project planning notes and team conventions; verify status claims against the code. |
 
 The frontend sends HTTP requests and opens a game WebSocket to the backend. The backend uses PostgreSQL to store users, queue entries, games, moves, and chat messages. Server-side chess validation is the authority for game state.
