@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class GameRead(BaseModel):
@@ -32,6 +32,22 @@ class GameDetailRead(GameRead):
 
 class GameHistoryResponse(BaseModel):
     games: list[GameDetailRead]
+
+
+class DrawClaimRequest(BaseModel):
+    move_uci: str | None = Field(default=None, max_length=5)
+
+
+class DrawClaimMove(BaseModel):
+    uci: str
+    san: str
+    reasons: list[str]
+
+
+class DrawClaimOptions(BaseModel):
+    game_id: int
+    current_reasons: list[str]
+    moves: list[DrawClaimMove]
 
 
 class MatchmakingResponse(BaseModel):

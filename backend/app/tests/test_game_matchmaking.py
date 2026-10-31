@@ -175,6 +175,68 @@ def test_cannot_abort_after_first_move(client: TestClient, db_session_factory: s
     assert client.get("/api/v1/games/my-active", headers=alice_headers).json()["status"] == "active"
 
 
+def test_claim_threefold_with_declared_move(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    white = next(player["user_id"] for player in game["players"] if player["color"] == "white")
+    black = next(player["user_id"] for player in game["players"] if player["color"] == "black")
+    sequence = [(white, "g1f3"), (black, "g8f6"), (white, "f3g1"), (black, "f6g8")]
+    with db_session_factory() as db:
+        for user_id, move in sequence + sequence[:-1]:
+            apply_player_move(db, game["id"], user_id, move)
+
+    options = client.get(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers)
+    assert options.status_code == 200
+    assert any(move["uci"] == "f6g8" and "threefold" in move["reasons"] for move in options.json()["moves"])
+    rejected = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers, json={"move_uci": "f6e4"})
+    assert rejected.status_code == 409
+    response = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers, json={"move_uci": "f6g8"})
+    assert response.status_code == 200
+    assert response.json()["status"] == "draw"
+    assert response.json()["result"] == "draw_claimed_threefold"
+    assert len(client.get(f'/api/v1/games/{game["id"]}/moves', headers=bob_headers).json()["moves"]) == 7
+
+
+def test_claim_threefold_on_current_position_and_deny_nonplayer(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    outsider_headers = _auth_headers(client, "outsider")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    white = next(player["user_id"] for player in game["players"] if player["color"] == "white")
+    black = next(player["user_id"] for player in game["players"] if player["color"] == "black")
+    sequence = [(white, "g1f3"), (black, "g8f6"), (white, "f3g1"), (black, "f6g8")]
+    with db_session_factory() as db:
+        for user_id, move in sequence * 2:
+            apply_player_move(db, game["id"], user_id, move)
+
+    denied = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=outsider_headers, json={})
+    assert denied.status_code == 403
+    options = client.get(f'/api/v1/games/{game["id"]}/draw-claims', headers=alice_headers)
+    assert "threefold" in options.json()["current_reasons"]
+    response = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=alice_headers, json={})
+    assert response.status_code == 200
+    assert response.json()["result"] == "draw_claimed_threefold"
+
+
+def test_claim_fifty_move_rule_and_reject_wrong_turn(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    with db_session_factory() as db:
+        stored = db.get(Game, game["id"])
+        stored.current_fen = "8/8/8/8/8/8/R6r/K6k w - - 99 51"
+        db.commit()
+    wrong_turn = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers, json={"move_uci": "a2a3"})
+    assert wrong_turn.status_code == 409
+    response = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=alice_headers, json={"move_uci": "a2a3"})
+    assert response.status_code == 200
+    assert response.json()["result"] == "draw_claimed_fifty_move"
+
+
 def test_chat_history_is_authorized_bounded_and_paginated(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
     alice = _auth_headers(client, "alice")
     bob = _auth_headers(client, "bob")

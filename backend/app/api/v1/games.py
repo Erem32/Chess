@@ -7,13 +7,16 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models import User
 from app.schemas.chat import ChatHistoryResponse
-from app.schemas.game import GameDetailRead, GameHistoryResponse
+from app.schemas.game import DrawClaimOptions, DrawClaimRequest, GameDetailRead, GameHistoryResponse
 from app.schemas.move import MoveListResponse
 from app.services.chess_service import (
     DrawOfferError,
     GameAccessError,
     GameNotActiveError,
     GameNotFoundError as ChessGameNotFoundError,
+    NotPlayerTurnError,
+    claim_draw,
+    draw_claim_options,
     offer_draw,
     respond_to_draw_offer,
 )
@@ -49,6 +52,8 @@ def _draw_error_response(exc: Exception) -> HTTPException:
     if isinstance(exc, GameNotActiveError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Game is not active")
     if isinstance(exc, DrawOfferError):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    if isinstance(exc, NotPlayerTurnError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected draw-offer error")
 
@@ -149,6 +154,32 @@ def create_draw_offer(
     except (ChessGameNotFoundError, GameAccessError, GameNotActiveError, DrawOfferError) as exc:
         raise _draw_error_response(exc) from exc
     return GameDetailRead.model_validate(game)
+
+
+@router.get("/{game_id}/draw-claims", response_model=DrawClaimOptions)
+def get_draw_claim_options(
+    game_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> DrawClaimOptions:
+    try:
+        return DrawClaimOptions.model_validate(draw_claim_options(db, game_id, current_user.id))
+    except (ChessGameNotFoundError, GameAccessError, GameNotActiveError, NotPlayerTurnError) as exc:
+        raise _draw_error_response(exc) from exc
+
+
+@router.post("/{game_id}/draw-claims", response_model=GameDetailRead)
+def submit_draw_claim(
+    game_id: int,
+    payload: DrawClaimRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> GameDetailRead:
+    try:
+        claim_draw(db, game_id, current_user.id, payload.move_uci)
+        return GameDetailRead.model_validate(game_service.get_game_for_user(db, game_id, current_user))
+    except (ChessGameNotFoundError, GameAccessError, GameNotActiveError, NotPlayerTurnError, DrawOfferError) as exc:
+        raise _draw_error_response(exc) from exc
 
 
 @router.post("/{game_id}/draw-offer/accept", response_model=GameDetailRead)

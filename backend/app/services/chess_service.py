@@ -180,6 +180,65 @@ def offer_draw(db: Session, game_id: int, user_id: int) -> dict:
     return game_state_payload(game)
 
 
+def draw_claim_options(db: Session, game_id: int, user_id: int) -> dict:
+    game, board, history_available = _draw_claim_position(db, game_id, user_id)
+    current_reasons = _claim_reasons(board, history_available)
+    moves = []
+    for move in list(board.legal_moves):
+        san = board.san(move)
+        board.push(move)
+        reasons = _claim_reasons(board, history_available)
+        board.pop()
+        if reasons:
+            moves.append({"uci": move.uci(), "san": san, "reasons": reasons})
+    return {"game_id": game.id, "current_reasons": current_reasons, "moves": moves}
+
+
+def claim_draw(db: Session, game_id: int, user_id: int, move_uci: str | None = None) -> dict:
+    game, board, history_available = _draw_claim_position(db, game_id, user_id)
+    if move_uci is not None:
+        try:
+            move = chess.Move.from_uci(move_uci)
+        except ValueError as exc:
+            raise DrawOfferError("Declared move is invalid") from exc
+        if move not in board.legal_moves:
+            raise DrawOfferError("Declared move is not legal")
+        board.push(move)
+    reasons = _claim_reasons(board, history_available)
+    if not reasons:
+        raise DrawOfferError("The position does not qualify for a draw claim")
+    game.status = "draw"
+    game.result = f"draw_claimed_{reasons[0]}"
+    game.finished_at = datetime.utcnow()
+    for player in game.players:
+        player.result = "draw"
+    _clear_draw_offer(game)
+    db.commit()
+    db.refresh(game)
+    return game_state_payload(game)
+
+
+def _draw_claim_position(db: Session, game_id: int, user_id: int) -> tuple[Game, chess.Board, bool]:
+    db.expire_all()
+    game = _get_game_for_user(db, game_id, user_id, lock=True)
+    player = _get_player(db, game_id, user_id)
+    if game.status != "active":
+        raise GameNotActiveError("Game is not active")
+    if player is None or player.color != game.turn_color:
+        raise NotPlayerTurnError("It is not this player's turn")
+    board = _replay_game_history(game.current_fen, game_repository.list_game_moves(db, game_id))
+    return game, board if board is not None else chess.Board(game.current_fen), board is not None
+
+
+def _claim_reasons(board: chess.Board, history_available: bool) -> list[str]:
+    reasons = []
+    if history_available and board.is_repetition(3):
+        reasons.append("threefold")
+    if board.is_fifty_moves():
+        reasons.append("fifty_move")
+    return reasons
+
+
 def respond_to_draw_offer(db: Session, game_id: int, user_id: int, accept: bool) -> dict:
     game = _get_game_for_user(db, game_id, user_id, lock=True)
     if game.status != "active":
