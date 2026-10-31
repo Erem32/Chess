@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard, defaultPieces } from "react-chessboard";
+
+import { legalMovesFrom, moveChoices } from "./boardMoves.js";
+import "./ChessBoard.css";
 
 const FIREFOX_SAFE_PIECES = Object.fromEntries(
   Object.entries(defaultPieces).map(([pieceType, renderPiece]) => [
@@ -22,29 +25,45 @@ const FIREFOX_SAFE_PIECES = Object.fromEntries(
 );
 
 export default function ChessBoard({ fen, onMove, playerColor, isInteractive = true }) {
+  const boardRef = useRef(null);
   const [selectedSquare, setSelectedSquare] = useState(null);
-  const legalMoves = resolveLegalMoves(fen, selectedSquare, playerColor, isInteractive);
+  const [promotion, setPromotion] = useState(null);
+  const isChoosingPromotion = Boolean(promotion && promotion.fen === fen && promotion.playerColor === playerColor && isInteractive);
+  const boardInteractive = isInteractive && !isChoosingPromotion;
+  const legalMoves = legalMovesFrom(fen, selectedSquare, playerColor, boardInteractive);
   const squareStyles = buildSquareStyles(fen, selectedSquare, legalMoves);
 
   useEffect(() => {
     setSelectedSquare(null);
-  }, [fen]);
+    setPromotion(null);
+  }, [fen, playerColor, isInteractive]);
 
-  function buildMove(sourceSquare, targetSquare) {
-    if (!sourceSquare || !targetSquare) return null;
+  function tryMove(sourceSquare, targetSquare) {
+    const choices = moveChoices(fen, sourceSquare, targetSquare, playerColor, boardInteractive);
+    if (choices.length === 0) return;
+    setSelectedSquare(null);
+    if (choices.length > 1) {
+      setPromotion({ fen, playerColor, choices });
+    } else {
+      onMove(choices[0]);
+    }
+  }
 
-    const board = new Chess(fen);
-    const piece = board.get(sourceSquare);
-    const isPromotion =
-      piece?.type === "p" &&
-      ((piece.color === "w" && targetSquare.endsWith("8")) ||
-        (piece.color === "b" && targetSquare.endsWith("1")));
+  function choosePromotion(piece) {
+    if (!isChoosingPromotion) return;
+    const move = promotion.choices.find((choice) => choice.endsWith(piece));
+    if (!move) return;
+    setPromotion(null);
+    onMove(move);
+  }
 
-    return `${sourceSquare}${targetSquare}${isPromotion ? "q" : ""}`;
+  function cancelPromotion() {
+    setPromotion(null);
+    boardRef.current?.focus();
   }
 
   function handleSquareSelection(square, pieceType = null) {
-    if (!square || !isInteractive || !isOwnPiece(pieceType, playerColor)) {
+    if (!square || !boardInteractive || !isOwnPiece(pieceType, playerColor)) {
       setSelectedSquare(null);
       return;
     }
@@ -53,13 +72,11 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
   }
 
   function handleSquareClick(square, pieceType = null) {
-    if (!isInteractive || !square) return;
+    if (!boardInteractive || !square) return;
 
     const matchingMove = legalMoves.find((move) => move.to === square);
     if (selectedSquare && matchingMove) {
-      const move = buildMove(selectedSquare, square);
-      if (move) onMove(move);
-      setSelectedSquare(null);
+      tryMove(selectedSquare, square);
       return;
     }
 
@@ -72,17 +89,17 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
   }
 
   return (
-    <div className="board-wrap">
+    <div className="board-wrap" ref={boardRef} tabIndex={-1}>
       <Chessboard
         options={{
           id: "game-board",
           position: fen,
           pieces: FIREFOX_SAFE_PIECES,
           boardOrientation: playerColor === "black" ? "black" : "white",
-          allowDragging: isInteractive,
+          allowDragging: boardInteractive,
           squareStyles,
           canDragPiece: ({ piece }) => {
-            if (!isInteractive || !playerColor || !piece?.pieceType) return false;
+            if (!boardInteractive || !playerColor || !piece?.pieceType) return false;
             const expectedPrefix = playerColor === "white" ? "w" : "b";
             return piece.pieceType.startsWith(expectedPrefix);
           },
@@ -100,31 +117,28 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
             handleSquareClick(square, piece?.pieceType ?? null);
           },
           onPieceDrop: ({ sourceSquare, targetSquare }) => {
-            const matchingMove = resolveLegalMoves(fen, sourceSquare, playerColor, isInteractive)
-              .find((move) => move.to === targetSquare);
-            if (!matchingMove) return false;
-            const move = buildMove(sourceSquare, targetSquare);
-            if (move) {
-              onMove(move);
-              setSelectedSquare(null);
-            }
+            tryMove(sourceSquare, targetSquare);
             return false;
           }
         }}
       />
+      {isChoosingPromotion && (
+        <section className="promotion-picker" role="group" aria-labelledby="promotion-title" onKeyDown={(event) => {
+          if (event.key === "Escape") cancelPromotion();
+        }}>
+          <h2 id="promotion-title">Choose a piece for promotion</h2>
+          <div className="promotion-picker-actions">
+            {[["q", "Queen"], ["r", "Rook"], ["b", "Bishop"], ["n", "Knight"]].map(([piece, label], index) => (
+              <button key={piece} type="button" autoFocus={index === 0} onClick={() => choosePromotion(piece)}>
+                {label}
+              </button>
+            ))}
+            <button type="button" className="secondary-button" onClick={cancelPromotion}>Cancel</button>
+          </div>
+        </section>
+      )}
     </div>
   );
-}
-
-function resolveLegalMoves(fen, square, playerColor, isInteractive) {
-  if (!fen || !square || !playerColor || !isInteractive) return [];
-
-  const board = new Chess(fen);
-  const piece = board.get(square);
-  const expectedColor = playerColor === "black" ? "b" : "w";
-
-  if (!piece || piece.color !== expectedColor) return [];
-  return board.moves({ square, verbose: true });
 }
 
 function isOwnPiece(pieceType, playerColor) {
