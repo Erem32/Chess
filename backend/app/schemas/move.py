@@ -2,6 +2,12 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.schemas.game import GameRead
+
+
+class MoveCreate(BaseModel):
+    move_uci: str
+
 
 class MoveRead(BaseModel):
     id: int
@@ -19,3 +25,11 @@ class MoveRead(BaseModel):
 class MoveListResponse(BaseModel):
     game_id: int
     moves: list[MoveRead]
+
+
+class GameMoveResponse(BaseModel):
+    game: GameRead
+    move: MoveRead
+    is_checkmate: bool
+    is_stalemate: bool
+    is_insufficient_material: bool

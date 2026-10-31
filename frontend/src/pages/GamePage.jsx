@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getGame, getGameMoves, resignGame } from "../api/games.js";
+import { getGame, getGameMoves, resignGame, submitGameMove } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
-import { createGameSocket } from "../api/websocket.js";
+import { createGameSocket, getGameSocketUrls } from "../api/websocket.js";
 import ChatBox from "../components/ChatBox.jsx";
 import ChessBoard from "../components/ChessBoard.jsx";
 import MoveHistory from "../components/MoveHistory.jsx";
@@ -26,12 +26,27 @@ export default function GamePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
+  const [socketInfo, setSocketInfo] = useState("");
+  const [moveDebug, setMoveDebug] = useState("");
+  const [moveInput, setMoveInput] = useState("");
   const isGameOver = game && game.status !== "active" && game.status !== "waiting";
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
   const playerColor = resolvePlayerColor(game, currentUserId);
   const canConnect = Boolean(socketToken);
-  const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
+  const canMove = !isGameOver && Boolean(playerColor);
+  const isUsingFallback = Boolean(playerColor) && socketStatus !== "connected" && !isGameOver;
+  const connectionLabel = socketStatus === "connected" ? "live" : "fallback";
+
+  async function refreshGameState() {
+    const [gameData, movesData] = await Promise.all([
+      getGame(gameId),
+      getGameMoves(gameId)
+    ]);
+    setGame(gameData);
+    setFen(resolveFen(gameData));
+    setMoves(resolveMoves(movesData));
+  }
 
   useEffect(() => {
     let active = true;
@@ -40,10 +55,7 @@ export default function GamePage() {
       setIsLoading(true);
       setError("");
       try {
-        const [gameData, movesData] = await Promise.all([
-          getGame(gameId),
-          getGameMoves(gameId)
-        ]);
+        const [gameData, movesData] = await Promise.all([getGame(gameId), getGameMoves(gameId)]);
         if (!active) return;
         setGame(gameData);
         setFen(resolveFen(gameData));
@@ -63,6 +75,32 @@ export default function GamePage() {
   }, [gameId]);
 
   useEffect(() => {
+    if (!playerColor || socketStatus === "connected" || isGameOver) return undefined;
+
+    let active = true;
+
+    async function pollGameState() {
+      try {
+        const [gameData, movesData] = await Promise.all([getGame(gameId), getGameMoves(gameId)]);
+        if (!active) return;
+        setGame(gameData);
+        setFen(resolveFen(gameData));
+        setMoves(resolveMoves(movesData));
+      } catch (err) {
+        if (active) setError(err.message);
+      }
+    }
+
+    pollGameState();
+    const intervalId = window.setInterval(pollGameState, 1500);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [gameId, isGameOver, playerColor, socketStatus]);
+
+  useEffect(() => {
     if (!canConnect) return undefined;
 
     let active = true;
@@ -73,96 +111,181 @@ export default function GamePage() {
     }
 
     setSocketStatus("connecting");
-    const ws = createGameSocket(gameId, socketToken);
-    socketRef.current = ws;
-    ws.onopen = () => {
-      if (active && socketRef.current === ws) {
-        setSocketStatus("connected");
-        setInfo("Connected");
-        setError("");
-      }
-    };
-    ws.onmessage = (event) => {
-      let data;
-      try {
-        data = JSON.parse(event.data);
-      } catch {
-        return;
-      }
-      const payload = data.payload ?? data;
-      if (data.type === "game_state" || data.type === "game_updated") {
-        const nextGame = payload.game ?? (payload.current_fen || payload.fen ? payload : null);
-        const nextMove = payload.move ?? nextGame?.move ?? null;
-        if (nextGame) setGame((current) => ({ ...(current ?? {}), ...nextGame }));
-        const nextFen = resolveFen(nextGame ?? payload, null);
-        if (nextFen) setFen(nextFen);
-        if (Array.isArray(payload.moves) || Array.isArray(nextGame?.moves)) {
-          setMoves(resolveMoves(payload.moves ?? nextGame.moves));
-        }
-        if (nextMove) {
-          setMoves((current) => appendMove(current, nextMove));
-        }
-        setError("");
-      }
-      if (data.type === "move" || data.type === "move_made") {
-        const move = payload.move ?? payload;
-        if (move?.fen_after_move || move?.fen) setFen(move.fen_after_move ?? move.fen);
-        setMoves((current) => appendMove(current, move));
-        setError("");
-      }
-      if (data.type === "chat") {
-        setMessages((current) => [...current, payload]);
-      }
-      if (data.type === "info") {
-        setInfo(payload.message ?? "Connected");
-      }
-      if (data.type === "error") {
-        setError(payload.message ?? "WebSocket error");
-      }
-    };
-    ws.onerror = () => {
-      if (active && socketRef.current === ws) {
-        setSocketStatus("disconnected");
-        setError("Game connection failed. Retrying...");
-      }
-    };
-    ws.onclose = (event) => {
-      if (!active || socketRef.current !== ws) return;
-      setSocketStatus("disconnected");
-      setInfo("Disconnected");
-      if (event.code === 1008) {
-        setError("This browser is not authorized for this game. Log out and sign in with the account that joined it.");
-        return;
-      }
+    const socketUrls = getGameSocketUrls(gameId, socketToken);
+    const sockets = [];
+    let resolved = false;
+    let socketIndex = 0;
+    let connectTimeoutId = null;
+
+    function scheduleReconnect() {
       reconnectTimerRef.current = window.setTimeout(() => {
         setSocketAttempt((current) => current + 1);
       }, 1200);
-    };
+    }
+
+    function clearConnectTimeout() {
+      if (connectTimeoutId) {
+        window.clearTimeout(connectTimeoutId);
+        connectTimeoutId = null;
+      }
+    }
+
+    function connectNextSocket() {
+      if (!active || resolved || socketIndex >= socketUrls.length) {
+        if (!resolved && socketIndex >= socketUrls.length) {
+          setSocketStatus("disconnected");
+          setInfo("Using fallback sync");
+          setError("");
+          scheduleReconnect();
+        }
+        return;
+      }
+
+      const socketUrl = socketUrls[socketIndex];
+      socketIndex += 1;
+      const ws = createGameSocket(socketUrl);
+      sockets.push(ws);
+      socketRef.current = ws;
+      setSocketInfo(socketUrl);
+      clearConnectTimeout();
+      connectTimeoutId = window.setTimeout(() => {
+        if (!active || resolved || socketRef.current !== ws || ws.readyState !== WebSocket.CONNECTING) return;
+        ws.close();
+      }, 1500);
+
+      ws.onopen = () => {
+        if (!active || socketRef.current !== ws) return;
+        resolved = true;
+        clearConnectTimeout();
+        setSocketStatus("connected");
+        setInfo("Connected");
+        setError("");
+      };
+
+      ws.onmessage = (event) => {
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+        const payload = data.payload ?? data;
+        if (data.type === "game_state" || data.type === "game_updated") {
+          const nextGame = payload.game ?? (payload.current_fen || payload.fen ? payload : null);
+          const nextMove = payload.move ?? nextGame?.move ?? null;
+          if (nextGame) setGame((current) => ({ ...(current ?? {}), ...nextGame }));
+          const nextFen = resolveFen(nextGame ?? payload, null);
+          if (nextFen) setFen(nextFen);
+          if (Array.isArray(payload.moves) || Array.isArray(nextGame?.moves)) {
+            setMoves(resolveMoves(payload.moves ?? nextGame.moves));
+          }
+          if (nextMove) {
+            setMoves((current) => appendMove(current, nextMove));
+          }
+          setError("");
+        }
+        if (data.type === "move" || data.type === "move_made") {
+          const move = payload.move ?? payload;
+          if (move?.fen_after_move || move?.fen) setFen(move.fen_after_move ?? move.fen);
+          setMoves((current) => appendMove(current, move));
+          setError("");
+        }
+        if (data.type === "chat") {
+          setMessages((current) => [...current, payload]);
+        }
+        if (data.type === "info") {
+          setInfo(payload.message ?? "Connected");
+        }
+        if (data.type === "error") {
+          setError(payload.message ?? "WebSocket error");
+        }
+      };
+
+      ws.onerror = () => {
+        if (!active || socketRef.current !== ws || resolved) return;
+        setSocketStatus("connecting");
+      };
+
+      ws.onclose = (event) => {
+        if (!active || socketRef.current !== ws) return;
+        clearConnectTimeout();
+        if (event.code === 1008) {
+          setSocketStatus("disconnected");
+          setInfo("Disconnected");
+          setError("This browser is not authorized for this game. Log out and sign in with the account that joined it.");
+          return;
+        }
+        if (!resolved) {
+          connectNextSocket();
+          return;
+        }
+        setSocketStatus("disconnected");
+        setInfo("Using fallback sync");
+        scheduleReconnect();
+      };
+    }
+
+    connectNextSocket();
+
     return () => {
       active = false;
       if (reconnectTimerRef.current) {
         window.clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
       }
-      if (socketRef.current === ws) {
-        socketRef.current = null;
-      }
-      ws.close();
+      clearConnectTimeout();
+      socketRef.current = null;
+      sockets.forEach((socket) => socket.close());
     };
   }, [canConnect, gameId, socketAttempt, socketToken]);
 
-  function sendMove(move) {
+  async function sendMove(move) {
+    const normalizedMove = String(move ?? "").trim().toLowerCase();
+    if (!normalizedMove) {
+      setError("Enter a move first.");
+      setMoveDebug("Move blocked: empty input");
+      return;
+    }
+    setMoveDebug(`Attempting move ${move}`);
     if (isGameOver) {
       setError("This game is over.");
+      setMoveDebug(`Blocked move ${move}: game is over`);
       return;
     }
     const activeSocket = socketRef.current;
-    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
-      setError("Game connection is still opening. Try again in a moment.");
+    if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
+      setError("");
+      setMoveDebug(`Sending move ${normalizedMove} over live socket`);
+      activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: normalizedMove } }));
+      setMoveInput("");
       return;
     }
-    setError("");
-    activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: move } }));
+
+    try {
+      setError("");
+      setMoveDebug(`Sending move ${normalizedMove} over HTTP fallback`);
+      const result = await submitGameMove(gameId, normalizedMove);
+      if (result?.game) {
+        setGame((current) => ({ ...(current ?? {}), ...result.game }));
+        setFen(resolveFen(result.game, fen));
+      }
+      if (result?.move) {
+        setMoves((current) => appendMove(current, result.move));
+      } else {
+        await refreshGameState();
+      }
+      setInfo("Move sent using HTTP fallback");
+      setMoveDebug(`Move ${normalizedMove} accepted`);
+      setMoveInput("");
+    } catch (err) {
+      setError(err.message);
+      setMoveDebug(`Move ${normalizedMove} failed: ${err.message}`);
+    }
+  }
+
+  async function handleManualMoveSubmit(event) {
+    event.preventDefault();
+    await sendMove(moveInput);
   }
 
   function sendChat(message) {
@@ -174,13 +297,7 @@ export default function GamePage() {
   async function handleReload() {
     setError("");
     try {
-      const [gameData, movesData] = await Promise.all([
-        getGame(gameId),
-        getGameMoves(gameId)
-      ]);
-      setGame(gameData);
-      setFen(resolveFen(gameData));
-      setMoves(resolveMoves(movesData));
+      await refreshGameState();
     } catch (err) {
       setError(err.message);
     }
@@ -207,7 +324,7 @@ export default function GamePage() {
             {isLoading ? "Loading..." : game?.status ?? info}
             {game?.turn_color ? `, ${game.turn_color} to move` : ""}
             {playerColor ? `, you are ${playerColor}` : ""}
-            {playerColor ? `, connection ${socketStatus}` : ""}
+            {playerColor ? `, sync ${connectionLabel}` : ""}
           </span>
           <button type="button" className="secondary-button" onClick={handleReload}>Reload</button>
           <button type="button" className="danger-button" onClick={handleResign}>Resign</button>
@@ -225,10 +342,24 @@ export default function GamePage() {
         {!playerColor && currentUserId && !isLoading && (
           <p className="error">This account is not one of the players in this game.</p>
         )}
-        {playerColor && socketStatus !== "connected" && !isGameOver && (
-          <p className="muted">Waiting for live game connection...</p>
+        {isUsingFallback && (
+          <p className="muted">Live connection is unavailable. Moves still work using fallback sync.</p>
         )}
+        {socketInfo && <p className="muted">Socket: {socketInfo}</p>}
+        {moveDebug && <p className="muted">{moveDebug}</p>}
         <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
+        {canMove && (
+          <form className="inline-form" onSubmit={handleManualMoveSubmit}>
+            <label htmlFor="move-input">Move in UCI</label>
+            <input
+              id="move-input"
+              placeholder="e2e4"
+              value={moveInput}
+              onChange={(event) => setMoveInput(event.target.value)}
+            />
+            <button type="submit">Send move</button>
+          </form>
+        )}
       </div>
       <aside className="side-stack">
         <MoveHistory moves={moves} />

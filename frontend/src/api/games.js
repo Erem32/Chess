@@ -28,6 +28,13 @@ export function getGameMoves(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/moves`);
 }
 
+export function submitGameMove(gameId, moveUci) {
+  return apiRequest(`/api/v1/games/${gameId}/moves`, {
+    method: "POST",
+    body: JSON.stringify({ move_uci: moveUci })
+  });
+}
+
 export function resignGame(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/resign`, { method: "POST" });
 }

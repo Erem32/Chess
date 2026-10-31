@@ -136,6 +136,27 @@ def test_game_reads_history_moves_and_resign(client: TestClient) -> None:
     assert resign_response.json()["result"] == "white_wins_by_resignation"
 
 
+def test_player_can_submit_move_over_http(client: TestClient) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    matched_response = client.post("/api/v1/matchmaking/join", headers=bob_headers)
+    game_id = matched_response.json()["game"]["id"]
+
+    move_response = client.post(
+        f"/api/v1/games/{game_id}/moves",
+        headers=alice_headers,
+        json={"move_uci": "e2e4"},
+    )
+    moves_response = client.get(f"/api/v1/games/{game_id}/moves", headers=bob_headers)
+
+    assert move_response.status_code == 200
+    assert move_response.json()["game"]["turn_color"] == "black"
+    assert move_response.json()["move"]["move_uci"] == "e2e4"
+    assert moves_response.status_code == 200
+    assert moves_response.json()["moves"][0]["move_uci"] == "e2e4"
+
+
 def test_user_can_abort_active_games_for_clean_dashboard(client: TestClient) -> None:
     alice_headers = _auth_headers(client, "alice")
     bob_headers = _auth_headers(client, "bob")
