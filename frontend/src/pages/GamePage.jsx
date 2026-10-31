@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { acceptDraw, declineDraw, getDrawClaimOptions, getGame, getGameChat, getGameMoves, offerDraw, resignGame, submitDrawClaim } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { mergeChatMessages } from "../api/chatMessages.js";
-import { classifyMove, fetchStableGameSnapshot, reconnectDelay } from "../api/gameSync.js";
+import { classifyMove, fetchStableGameSnapshot, mergeGameUpdate, reconnectDelay } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
@@ -127,7 +127,9 @@ export default function GamePage() {
       const request = ++refreshRequestRef.current;
       try {
         const gameData = await getGame(gameId);
-        if (active && request === refreshRequestRef.current && revision === revisionRef.current) setGame(gameData);
+        if (active && request === refreshRequestRef.current && revision === revisionRef.current) {
+          setGame((current) => mergeGameUpdate(current, gameData));
+        }
       } catch {
         // Keep current state on background refresh failures.
       }
@@ -169,7 +171,7 @@ export default function GamePage() {
       }
       lastMoveNumberRef.current = Number(nextMove.move_number);
       revisionRef.current += 1;
-      if (nextGame) setGame((current) => ({ ...(current ?? {}), ...nextGame }));
+      if (nextGame) setGame((current) => mergeGameUpdate(current, nextGame));
       const nextFen = resolveFen(nextMove, resolveFen(nextGame, null));
       if (nextFen) setFen(nextFen);
       setMoves((current) => appendMove(current, nextMove));

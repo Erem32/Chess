@@ -24,3 +24,10 @@ export function classifyMove(move, lastMoveNumber) {
   if (number <= lastMoveNumber) return "duplicate";
   return number === lastMoveNumber + 1 ? "next" : "gap";
 }
+
+export function mergeGameUpdate(current, incoming) {
+  if (!incoming) return current;
+  const isFinished = (game) => game?.status && !["active", "waiting"].includes(game.status);
+  if (isFinished(current) && !isFinished(incoming)) return current;
+  return { ...(current ?? {}), ...incoming };
+}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { classifyMove, fetchStableGameSnapshot, reconnectDelay } from "./gameSync.js";
+import { classifyMove, fetchStableGameSnapshot, mergeGameUpdate, reconnectDelay } from "./gameSync.js";
 
 const initial = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const move = { id: 1, move_number: 1, fen_after_move: "after" };
@@ -30,4 +30,12 @@ test("move sequence suppresses duplicates and detects gaps", () => {
   assert.equal(classifyMove(move, 1), "duplicate");
   assert.equal(classifyMove({ move_number: 3 }, 1), "gap");
   assert.equal(classifyMove({}, 1), "gap");
+});
+
+test("late active game events cannot overwrite a finished result", () => {
+  const finished = { id: 1, status: "resigned", result: "black_wins_by_resignation", current_fen: "final" };
+  const stale = { id: 1, status: "active", result: null, current_fen: "older" };
+  assert.deepEqual(mergeGameUpdate(finished, stale), finished);
+  assert.deepEqual(mergeGameUpdate({ id: 1, status: "active", players: [1] }, { status: "draw" }),
+    { id: 1, status: "draw", players: [1] });
 });
