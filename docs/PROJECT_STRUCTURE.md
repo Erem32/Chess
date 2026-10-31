@@ -60,6 +60,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
 | [context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx) | Authentication state and login/logout actions. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
+| [frontend/e2e/](../frontend/e2e/) | Headless two-player smoke test for a disposable environment. |
 
 ## Follow the main flows
 

@@ -618,6 +618,9 @@ function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, pla
   if (error) {
     return { message: error, tone: "error" };
   }
+  if (isLoading) {
+    return { message: "Loading game...", tone: "muted" };
+  }
   if (!playerColor && currentUserId && !isLoading) {
     return { message: "This account is not one of the players in this game.", tone: "error" };
   }
