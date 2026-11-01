@@ -139,6 +139,20 @@ def test_game_reads_history_moves_and_resign(client: TestClient) -> None:
     assert resign_response.json()["result"] == "white_wins_by_resignation"
 
 
+def test_resignation_keeps_game_access_checks_for_active_and_finished_games(client: TestClient) -> None:
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    eve = _auth_headers(client, "eve")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game_id"]
+
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=eve).status_code == 403
+    assert client.post("/api/v1/games/999999/resign", headers=eve).status_code == 404
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=bob).status_code == 200
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=eve).status_code == 403
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=bob).status_code == 409
+
+
 def test_history_pagination_is_bounded_and_scoped_to_the_player(
     client: TestClient, db_session_factory: sessionmaker[Session]
 ) -> None:
