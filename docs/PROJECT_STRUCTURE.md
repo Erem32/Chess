@@ -75,6 +75,8 @@ Moves, draw actions, resignations, and aborts lock affected game rows before cha
 
 The game page uses `useGamePolling` for background updates to HTTP-driven game actions; the refresh controller ignores responses superseded by live events, newer polls, or page cleanup.
 
+`ChessBoard` accepts an optional `onInvalidAttempt({ sourceSquare, targetSquare })` callback for practice screens. It reports locally rejected attempts without a chess-rule explanation; practice consumers must validate the move on the backend. The online game omits the callback.
+
 Game WebSockets open a database session for initial authorization and state, then a fresh session for each received message. Idle sockets do not retain a database session between messages.
 
 Automatic fivefold repetition and threefold draw claims replay persisted UCI moves from the standard starting position and are applied only if the reconstructed FEN matches the stored current position. The server detects the 75-move rule and 50-move claims from the FEN. Claim requests are rechecked under the game row lock and do not play a declared move when successful.

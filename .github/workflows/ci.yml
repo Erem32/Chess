@@ -132,3 +132,4 @@ jobs:
           npm run test:e2e
           npm run test:e2e:history
           npm run test:e2e:chat
+          npm run test:e2e:board
