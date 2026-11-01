@@ -511,6 +511,7 @@ export default function GamePage() {
           <button
             type="button"
             className={`secondary-button mobile-game-nav-button ${mobilePanel === "players" ? "is-active" : ""}`}
+            aria-pressed={mobilePanel === "players"}
             onClick={() => setMobilePanel("players")}
           >
             Players
@@ -518,6 +519,7 @@ export default function GamePage() {
           <button
             type="button"
             className={`secondary-button mobile-game-nav-button ${mobilePanel === "moves" ? "is-active" : ""}`}
+            aria-pressed={mobilePanel === "moves"}
             onClick={() => setMobilePanel("moves")}
           >
             Moves
@@ -525,6 +527,7 @@ export default function GamePage() {
           <button
             type="button"
             className={`secondary-button mobile-game-nav-button ${mobilePanel === "chat" ? "is-active" : ""}`}
+            aria-pressed={mobilePanel === "chat"}
             onClick={() => setMobilePanel("chat")}
           >
             Chat
