@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "node --test",
     "test:e2e": "node e2e/two-player.cjs",
+    "test:e2e:chat": "node e2e/chat-history.cjs",
     "lint": "biome lint src e2e"
   },
   "dependencies": {
