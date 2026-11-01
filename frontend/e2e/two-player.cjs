@@ -51,6 +51,24 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
     assert.equal(new URL(white.url()).pathname, new URL(black.url()).pathname);
+    // Mobile panel choices must expose their selected state to assistive technology.
+    await black.setViewportSize({ width: 390, height: 844 });
+    const mobileNav = black.getByRole('region', { name: 'Game panels' });
+    const playersTab = mobileNav.getByRole('button', { name: 'Players' });
+    const movesTab = mobileNav.getByRole('button', { name: 'Moves' });
+    const chatTab = mobileNav.getByRole('button', { name: 'Chat' });
+    assert.equal(await playersTab.getAttribute('aria-pressed'), 'true');
+    assert.equal(await movesTab.getAttribute('aria-pressed'), 'false');
+    await movesTab.focus();
+    await black.keyboard.press('Enter');
+    assert.equal(await movesTab.getAttribute('aria-pressed'), 'true');
+    assert.equal(await playersTab.getAttribute('aria-pressed'), 'false');
+    await chatTab.focus();
+    await black.keyboard.press('Space');
+    assert.equal(await chatTab.getAttribute('aria-pressed'), 'true');
+    assert.equal(await movesTab.getAttribute('aria-pressed'), 'false');
+    assert.equal(await black.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await black.setViewportSize({ width: 1440, height: 900 });
     await white.waitForFunction(() => document.querySelector('#game-board-square-e2 [role=button]')?.getAttribute('aria-disabled') === 'false');
     await white.locator('[data-square="e2"]').click();
     await white.locator('[data-square="e4"]').click();

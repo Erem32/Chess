@@ -68,6 +68,8 @@ async function request(path, { token, body } = {}) {
     await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 22);
     assert.deepEqual(await displayed('.history-row'), ids);
     assert.equal(await page.getByRole('button', { name: 'Load more' }).count(), 0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     console.log('History pagination passed: dashboard limit, older page, failed request and retry without losing or duplicating games.');
   } finally {
     await browser.close();
