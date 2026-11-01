@@ -61,6 +61,10 @@ export function declineDraw(gameId) {
   return apiRequest(`/api/v1/games/${gameId}/draw-offer/decline`, { method: "POST" });
 }
 
-export function getMyHistory() {
-  return apiRequest("/api/v1/games/my-history");
+export function getMyHistory({ limit, beforeId } = {}) {
+  const query = new URLSearchParams();
+  if (limit != null) query.set("limit", String(limit));
+  if (beforeId != null) query.set("before_id", String(beforeId));
+  const suffix = query.size ? `?${query}` : "";
+  return apiRequest(`/api/v1/games/my-history${suffix}`);
 }

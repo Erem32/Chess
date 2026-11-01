@@ -99,7 +99,7 @@ export default function DashboardPage() {
         }
       });
 
-    getMyHistory()
+    getMyHistory({ limit: 5 })
       .then((data) => {
         if (active) setRecentGames(data?.games ?? []);
       })
