@@ -94,6 +94,7 @@ jobs:
       CHESS_E2E_ALLOW_REGISTRATION: '1'
       CHESS_E2E_FRONTEND_URL: http://127.0.0.1:5173
       CHESS_E2E_API_URL: http://127.0.0.1:8000
+      CHESS_E2E_WS_URL: ws://127.0.0.1:8000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -130,3 +131,4 @@ jobs:
           cd frontend
           npm run test:e2e
           npm run test:e2e:history
+          npm run test:e2e:chat

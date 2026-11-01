@@ -131,6 +131,8 @@ Frontend dependencies are pinned and installed with `npm ci` in CI and Docker. R
 
 The history pagination browser test also requires `CHESS_E2E_API_URL` pointing to the disposable backend: `CHESS_E2E_ALLOW_REGISTRATION=1 CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHESS_E2E_API_URL=http://127.0.0.1:8000 CHROME_PATH=/path/to/chrome npm run test:e2e:history`. It creates two users and 22 games, and checks dashboard results, older pages, and retry after a simulated failed request.
 
+The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.1:8000`; with the other variables above, run `npm run test:e2e:chat` against disposable services. It creates users, a game and more than 200 messages to check older pages, live arrivals and retry.
+
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
 ## Database migrations
