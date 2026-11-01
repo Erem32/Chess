@@ -59,7 +59,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
 | [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, and history screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
-| [features/game/](../frontend/src/features/game/) | Shared game presentation, background state refresh, and chat acknowledgement tracking. |
+| [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization, background state refresh, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
 | [context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx) | Authentication state and login/logout actions. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
