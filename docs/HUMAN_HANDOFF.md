@@ -38,22 +38,21 @@ For a relevant stash you own, inspect it first with `git stash show --include-un
 Confirm the intended remote and access with your team. With permission to publish, push each intended branch explicitly, for example:
 
 ```bash
-git push -u origin improvement/roadmap
-git push -u origin improvement/reconnect
-git push -u origin improvement/chat-history
-git ls-remote --heads origin improvement/roadmap improvement/reconnect improvement/chat-history
+git push -u origin my-work
+git push -u origin handoff/wip
+git ls-remote --heads origin my-work handoff/wip
 ```
 
 Use the actual branch names from step 1. Compare the resulting remote hashes with `git rev-parse <branch>`. Do not force-push or replace someone else's branch. WIP branches require review and tests before integration. If authentication fails, configure your normal Git credentials and retry; do not paste access tokens into commands, documents, or chat. A local commit does not mean the work has been uploaded.
 
-If `origin` uses HTTPS but your GitHub SSH key is loaded, you can push to the same repository over SSH without changing `origin`, for example `git push git@github.com:Erem32/Chess.git improvement/roadmap`. First verify the repository address and `ssh -T git@github.com`; GitHub's successful SSH authentication message still exits with status 1 because it provides no shell. Push only the intended branch names.
+If `origin` uses HTTPS but your GitHub SSH key is loaded, you can push to the same repository over SSH without changing `origin`, for example `git push git@github.com:Erem32/Chess.git my-work`. First verify the repository address and `ssh -T git@github.com`; GitHub's successful SSH authentication message still exits with status 1 because it provides no shell. Push only the intended branch names.
 
 ## 4. Offline fallback
 
 If the remote cannot be used, create a bundle containing **only the reviewed, committed branches** intended for transfer, for example:
 
 ```bash
-git bundle create /secure/path/chess-handoff.bundle improvement/roadmap improvement/reconnect improvement/chat-history
+git bundle create /secure/path/chess-handoff.bundle my-work handoff/wip
 git bundle verify /secure/path/chess-handoff.bundle
 git bundle list-heads /secure/path/chess-handoff.bundle
 ```
@@ -65,8 +64,8 @@ Verify that the listed refs and hashes match the intended commits. A bundle incl
 On the destination, preserve any existing changes first. Verify the source remote or bundle. Fetch named remote branches normally; for a bundle, inspect it with `git bundle verify /path/to/chess-handoff.bundle` and `git bundle list-heads /path/to/chess-handoff.bundle`, then fetch the selected branch into a new local name, for example:
 
 ```bash
-git fetch /path/to/chess-handoff.bundle refs/heads/improvement/roadmap:refs/heads/received/roadmap
-git switch received/roadmap
+git fetch /path/to/chess-handoff.bundle refs/heads/my-work:refs/heads/received/work
+git switch received/work
 ```
 
 Fetch other WIP refs under separate `received/` names; review their commits and diffs before merging. Read the checkpoint, `AGENTS.md`, and [the roadmap](IMPROVEMENT_PLAN.md); compare the checkpoint with actual Git and source. Run appropriate tests, then ask the receiving AI to use `$chess-receive-handoff` and `$continue-chess-improvements`, or read those files directly from `.agents/skills/` if its AI environment does not discover skills. Do not assume the sender's local paths, credentials, or ignored files were transferred.
