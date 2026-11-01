@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { acceptDraw, declineDraw, getDrawClaimOptions, getGame, getGameChat, getGameMoves, offerDraw, resignGame, submitDrawClaim } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { mergeChatMessages } from "../api/chatMessages.js";
-import { fetchStableGameSnapshot, mergeGameUpdate, reconnectDelay } from "../api/gameSync.js";
+import { fetchStableGameSnapshot, mergeGameUpdate } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
@@ -18,6 +18,7 @@ import { boardMatchesGame, canPlayGameMove } from "../features/game/boardState.j
 import { normalizeGameEvent } from "../features/game/gameEvent.js";
 import { createGameEventBuffer } from "../features/game/gameEventBuffer.js";
 import { createPendingChat } from "../features/game/pendingChat.js";
+import { createReconnectScheduler } from "../features/game/reconnectScheduler.js";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -26,8 +27,7 @@ export default function GamePage() {
   const navigate = useNavigate();
   const { token, user } = useAuth();
   const socketRef = useRef(null);
-  const reconnectTimerRef = useRef(null);
-  const retryCountRef = useRef(0);
+  const reconnectSchedulerRef = useRef(null);
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
   const claimRequestRef = useRef(0);
@@ -49,6 +49,9 @@ export default function GamePage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
+  if (!reconnectSchedulerRef.current) {
+    reconnectSchedulerRef.current = createReconnectScheduler(() => setSocketAttempt((current) => current + 1));
+  }
   const [mobilePanel, setMobilePanel] = useState("players");
   const [claimOptions, setClaimOptions] = useState(null);
   const [claimMove, setClaimMove] = useState("");
@@ -101,7 +104,7 @@ export default function GamePage() {
       setChatError("");
       setChatSending(false);
       lastMoveNumberRef.current = 0;
-      retryCountRef.current = 0;
+      reconnectSchedulerRef.current.resetAttempts();
       revisionRef.current += 1;
       setError("");
       try {
@@ -235,20 +238,13 @@ export default function GamePage() {
         setError("This browser is not authorized for this game. Log out and sign in with the account that joined it.");
         return;
       }
-      if (stableSince && Date.now() - stableSince >= 30000) retryCountRef.current = 0;
-      const delay = reconnectDelay(retryCountRef.current++);
       setError("Game connection lost. Retrying...");
-      reconnectTimerRef.current = window.setTimeout(() => {
-        setSocketAttempt((current) => current + 1);
-      }, delay);
+      reconnectSchedulerRef.current.retry(stableSince);
     };
     return () => {
       active = false;
       pendingChatRef.current.rejectAll();
-      if (reconnectTimerRef.current) {
-        window.clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
+      reconnectSchedulerRef.current.cancelRetry();
       if (socketRef.current === ws) socketRef.current = null;
       ws.close();
     };
