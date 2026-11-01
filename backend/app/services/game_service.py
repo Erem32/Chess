@@ -75,14 +75,11 @@ class GameService:
         game = game_repository.get_game_for_update(db, game_id)
         if game is None:
             raise GameNotFoundError
-        if game_repository.get_game_player(db, game_id, user.id) is None:
-            raise GameAccessDeniedError
-        if game.finished_at is not None or game.status in {"white_win", "black_win", "draw", "resigned", "aborted"}:
-            raise GameAlreadyFinishedError
-
         resigning_player = game_repository.get_game_player(db, game_id, user.id)
         if resigning_player is None:
             raise GameAccessDeniedError
+        if game.finished_at is not None or game.status in {"white_win", "black_win", "draw", "resigned", "aborted"}:
+            raise GameAlreadyFinishedError
 
         winning_color = "black" if resigning_player.color == "white" else "white"
         game.status = "resigned"

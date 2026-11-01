@@ -72,10 +72,7 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
 
 def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) -> dict:
     db.expire_all()
-    game = _get_game_for_user(db, game_id, user_id, lock=True)
-    player = _get_player(db, game_id, user_id)
-    if player is None:
-        raise GameAccessError("User does not belong to this game")
+    game, player = _get_game_and_player_for_user(db, game_id, user_id, lock=True)
     if game.status != "active":
         raise GameNotActiveError("Game is not active")
     if player.color != game.turn_color:
@@ -220,11 +217,10 @@ def claim_draw(db: Session, game_id: int, user_id: int, move_uci: str | None = N
 
 def _draw_claim_position(db: Session, game_id: int, user_id: int) -> tuple[Game, chess.Board, bool]:
     db.expire_all()
-    game = _get_game_for_user(db, game_id, user_id, lock=True)
-    player = _get_player(db, game_id, user_id)
+    game, player = _get_game_and_player_for_user(db, game_id, user_id, lock=True)
     if game.status != "active":
         raise GameNotActiveError("Game is not active")
-    if player is None or player.color != game.turn_color:
+    if player.color != game.turn_color:
         raise NotPlayerTurnError("It is not this player's turn")
     board = _replay_game_history(game.current_fen, game_repository.list_game_moves(db, game_id))
     return game, board if board is not None else chess.Board(game.current_fen), board is not None
@@ -301,20 +297,20 @@ def chat_message_payload(chat_message: ChatMessage) -> dict:
 
 
 def _get_game_for_user(db: Session, game_id: int, user_id: int, lock: bool = False) -> Game:
-    game = game_repository.get_game_for_update(db, game_id) if lock else game_repository.get_game(db, game_id)
-    if game is None:
-        raise GameNotFoundError("Game not found")
-    if _get_player(db, game_id, user_id) is None:
-        raise GameAccessError("User does not belong to this game")
+    game, _ = _get_game_and_player_for_user(db, game_id, user_id, lock)
     return game
 
 
-def _get_player(db: Session, game_id: int, user_id: int) -> GamePlayer | None:
-    return (
-        db.query(GamePlayer)
-        .filter(GamePlayer.game_id == game_id, GamePlayer.user_id == user_id)
-        .one_or_none()
-    )
+def _get_game_and_player_for_user(
+    db: Session, game_id: int, user_id: int, lock: bool = False
+) -> tuple[Game, GamePlayer]:
+    game = game_repository.get_game_for_update(db, game_id) if lock else game_repository.get_game(db, game_id)
+    if game is None:
+        raise GameNotFoundError("Game not found")
+    player = game_repository.get_game_player(db, game_id, user_id)
+    if player is None:
+        raise GameAccessError("User does not belong to this game")
+    return game, player
 
 
 def _finished_status(next_turn_color: str, is_checkmate: bool) -> str:
