@@ -13,6 +13,7 @@ import { DrawClaimPanel, DrawOfferPanel, GameActionPanel, PlayerSummaryPanel } f
 import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useGamePolling } from "../features/game/useGamePolling.js";
+import { boardMatchesGame, canPlayGameMove } from "../features/game/boardState.js";
 import { normalizeGameEvent } from "../features/game/gameEvent.js";
 import { createGameEventBuffer } from "../features/game/gameEventBuffer.js";
 import { createPendingChat } from "../features/game/pendingChat.js";
@@ -63,7 +64,8 @@ export default function GamePage() {
   const playerSummary = buildPlayerSummary(game, currentUserId);
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && String(game?.id) === String(gameId);
-  const canMove = game?.status === "active" && Boolean(playerColor) && game.turn_color === playerColor && socketStatus === "connected";
+  const boardIsCurrent = boardMatchesGame(game, fen);
+  const canMove = canPlayGameMove(game, fen, playerColor, socketStatus);
   const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
   const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
   const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
@@ -72,6 +74,7 @@ export default function GamePage() {
   const canClaimDraw = Boolean(playerColor) && game?.status === "active" && game.turn_color === playerColor;
   const canResign = Boolean(playerColor) && game?.status === "active";
   const feedback = resolveBoardFeedback({
+    boardIsCurrent,
     currentUserId,
     error,
     isGameOver,
@@ -137,6 +140,14 @@ export default function GamePage() {
   }, [gameId, loadAttempt]);
 
   useGamePolling({ gameId, loadedGameId: game?.id, isGameOver, revisionRef, setGame });
+
+  useEffect(() => {
+    // A missing live move can leave a newer REST state paired with an older
+    // board. Reconnect to restore game, position and moves as one snapshot.
+    if (socketStatus === "connected" && game?.current_fen && fen && !boardIsCurrent) {
+      socketRef.current?.close();
+    }
+  }, [socketStatus, game?.current_fen, fen, boardIsCurrent]);
 
   useEffect(() => {
     if (!canOpenSocket) return undefined;
@@ -622,7 +633,7 @@ function buildPlayerSummary(game, currentUserId) {
   return players;
 }
 
-function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, playerColor, socketStatus, turnColor }) {
+function resolveBoardFeedback({ boardIsCurrent, currentUserId, error, isGameOver, isLoading, playerColor, socketStatus, turnColor }) {
   if (error) {
     return { message: error, tone: "error" };
   }
@@ -634,6 +645,9 @@ function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, pla
   }
   if (playerColor && socketStatus !== "connected" && !isGameOver) {
     return { message: "Waiting for live game connection...", tone: "muted" };
+  }
+  if (playerColor && !isGameOver && !boardIsCurrent) {
+    return { message: "Synchronizing game...", tone: "muted" };
   }
   if (playerColor && !isGameOver && turnColor && turnColor !== playerColor) {
     return { message: "Waiting for your opponent's move.", tone: "muted" };

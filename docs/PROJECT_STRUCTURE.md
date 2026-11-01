@@ -59,7 +59,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
 | [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, and history screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
-| [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, background state refresh, and chat acknowledgement tracking. |
+| [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, background state refresh, board consistency checks, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
 | [context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx) | Authentication state and login/logout actions. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
@@ -70,7 +70,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 1. **Login:** [LoginPage.jsx](../frontend/src/pages/LoginPage.jsx) calls the frontend auth client. The backend auth route calls `auth_service` and security helpers. The frontend stores the returned token in browser storage and loads the current user once through the authentication provider. Protected routes offer a retry on temporary session-check failures and return an invalid session to login while preserving the requested destination.
 2. **Matchmaking:** [DashboardPage.jsx](../frontend/src/pages/DashboardPage.jsx) requests a match and polls its status. The backend matchmaking service uses the database queue to return an existing game, wait for an opponent, or create a game.
 3. **A move:** [ChessBoard.jsx](../frontend/src/components/ChessBoard.jsx) and [GamePage.jsx](../frontend/src/pages/GamePage.jsx) send a UCI move over the game WebSocket. The handler in `api/websocket.py` calls `chess_service.py`, which checks the player and turn, validates the move with python-chess, stores the result, and broadcasts the new state.
-4. **Reloading a game:** The game page retrieves the current game and moves through REST, then connects to the WebSocket for live messages. After connecting or reconnecting it buffers live game events while reading a consistent game and move snapshot, then applies any newer moves. A temporary connection failure triggers retries with backoff; the board remains disabled during synchronization. The game page reloads bounded chat history and merges it with live messages by ID.
+4. **Reloading a game:** The game page retrieves the current game and moves through REST, then connects to the WebSocket for live messages. After connecting or reconnecting it buffers live game events while reading a consistent game and move snapshot, then applies any newer moves. If a background game read disagrees with the displayed board, play is disabled and the socket reconnects to obtain a consistent snapshot. A temporary connection failure triggers retries with backoff; the board remains disabled during synchronization. The game page reloads bounded chat history and merges it with live messages by ID.
 
 Moves, draw actions, resignations, and aborts lock affected game rows before changing their state. The database transaction serializes competing changes on PostgreSQL; abort locks games in ID order. Matchmaking uses a separate PostgreSQL advisory lock.
 
