@@ -24,7 +24,7 @@ const FIREFOX_SAFE_PIECES = Object.fromEntries(
   ])
 );
 
-export default function ChessBoard({ fen, onMove, playerColor, isInteractive = true }) {
+export default function ChessBoard({ fen, onMove, playerColor, isInteractive = true, onInvalidAttempt }) {
   const boardRef = useRef(null);
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [promotion, setPromotion] = useState(null);
@@ -40,7 +40,17 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
 
   function tryMove(sourceSquare, targetSquare) {
     const choices = moveChoices(fen, sourceSquare, targetSquare, playerColor, boardInteractive);
-    if (choices.length === 0) return;
+    if (choices.length === 0) {
+      if (onInvalidAttempt && boardInteractive && sourceSquare !== targetSquare &&
+          /^[a-h][1-8]$/.test(sourceSquare ?? "") && /^[a-h][1-8]$/.test(targetSquare ?? "")) {
+        const piece = new Chess(fen).get(sourceSquare);
+        const expectedColor = playerColor === "white" ? "w" : playerColor === "black" ? "b" : null;
+        if (piece && expectedColor && piece.color === expectedColor) {
+          onInvalidAttempt({ sourceSquare, targetSquare });
+        }
+      }
+      return;
+    }
     setSelectedSquare(null);
     if (choices.length > 1) {
       setPromotion({ fen, playerColor, choices });
@@ -85,6 +95,7 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
       return;
     }
 
+    if (selectedSquare) tryMove(selectedSquare, square);
     setSelectedSquare(null);
   }
 

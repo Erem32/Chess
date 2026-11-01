@@ -132,6 +132,8 @@ The history pagination browser test also requires `CHESS_E2E_API_URL` pointing t
 
 The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.1:8000`; with the other variables above, run `npm run test:e2e:chat` against disposable services. It creates users, a game and more than 200 messages to check older pages, live arrivals and retry.
 
+To test the board component without a backend, start the frontend development server and run `CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHROME_PATH=/path/to/chrome npm run test:e2e:board` from `frontend/`.
+
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
 ## Database migrations
