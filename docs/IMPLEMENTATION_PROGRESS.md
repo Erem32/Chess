@@ -61,7 +61,7 @@ Branch cleanup: the integrated `improvement/*` feature branches were deleted aft
 
 ## Next task
 
-**In progress:** Investigate and fix the reported en passant failure, with both-color regression coverage and server-authoritative move validation. Agent owns `improvement/en-passant` in `/tmp/chess-en-passant`; inspect its worktree before resuming and review, test and integrate its work. Chat acknowledgement extraction `03fc4df` on `improvement/game-message-parsing` is integrated. The local preview uses its separate database and existing accounts; rebuild affected services after the fix without resetting the preview database.
+**Next:** Continue code structure and extensibility in small, tested increments. Chat acknowledgement extraction `03fc4df` is integrated. The user withdrew the en passant concern after real browser checks showed standard legal en passant working for both colors. An interrupted, unreviewed experimental shortcut and test edit remain uncommitted on `improvement/en-passant` in `/tmp/chess-en-passant`; preserve them but do not integrate them without a new request. The local preview uses its separate database and existing accounts.
 
 **Priority decision:** The user now prioritizes code structure and extensibility, asks to defer large interface changes and disability-accessibility work, and wants ordinary usability bugs fixed. Retain existing useful features and server-side move validation. GitHub Actions passed for the previously integrated mobile panel changes at `36523ce`.
 
