@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { acceptDraw, declineDraw, getDrawClaimOptions, getGame, getGameChat, getGameMoves, offerDraw, resignGame, submitDrawClaim } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { mergeChatMessages, olderChatPage } from "../api/chatMessages.js";
-import { classifyMove, fetchStableGameSnapshot, mergeGameUpdate, reconnectDelay } from "../api/gameSync.js";
+import { fetchStableGameSnapshot, mergeGameUpdate, reconnectDelay } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
@@ -13,6 +13,7 @@ import { DrawClaimPanel, DrawOfferPanel, GameActionPanel, PlayerSummaryPanel } f
 import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useGamePolling } from "../features/game/useGamePolling.js";
+import { normalizeGameEvent } from "../features/game/gameEvent.js";
 import { createPendingChat } from "../features/game/pendingChat.js";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -149,25 +150,18 @@ export default function GamePage() {
     socketRef.current = ws;
 
     function applyGameMessage(data) {
-      const payload = data.payload ?? data;
-      const nextGame = payload.game ?? (payload.current_fen || payload.fen ? payload : null);
-      const nextMove = data.type === "move" || data.type === "move_made"
-        ? payload.move ?? payload : payload.move ?? nextGame?.move;
-      // The server's initial unversioned game_state can predate our REST snapshot.
-      if (!nextMove) return;
-      const classification = classifyMove(nextMove, lastMoveNumberRef.current);
-      if (classification === "duplicate") return;
-      if (classification === "gap") {
+      const event = normalizeGameEvent(data, lastMoveNumberRef.current);
+      if (event.kind === "snapshot" || event.kind === "duplicate") return;
+      if (event.kind === "gap") {
         setError("Game updates were missed. Reconnecting to synchronize...");
         ws.close();
         return;
       }
-      lastMoveNumberRef.current = Number(nextMove.move_number);
+      lastMoveNumberRef.current = Number(event.move.move_number);
       revisionRef.current += 1;
-      if (nextGame) setGame((current) => mergeGameUpdate(current, nextGame));
-      const nextFen = resolveFen(nextMove, resolveFen(nextGame, null));
-      if (nextFen) setFen(nextFen);
-      setMoves((current) => appendMove(current, nextMove));
+      if (event.game) setGame((current) => mergeGameUpdate(current, event.game));
+      if (event.fen) setFen(event.fen);
+      setMoves((current) => appendMove(current, event.move));
       setError("");
     }
 
