@@ -84,6 +84,7 @@ docker compose exec backend alembic upgrade head
 - Use `$chess-handoff` to preserve and transfer interrupted work, `$chess-receive-handoff` to inspect a transfer, and `$continue-chess-improvements` to resume the roadmap. For manual recovery see `docs/HUMAN_HANDOFF.md`; if skills are not discoverable, read their files under `.agents/skills/` directly.
 - User decisions for the current roadmap: allow game abort only before the first move, with no result; afterward require resignation. Support standard server-verified threefold and 50-move draw claims, including claims based on a declared legal move. For now, retain the existing behavior that checks WebSocket tokens at connection time without closing already open sockets on token expiry. Favor a modern, understated visual direction. Do not alter historical data without review and authorization.
 - Prioritize usability, scalability, and ease of adding features in the remaining improvement work. Keep existing security checks, but do not concentrate on further security work unless a concrete issue requires it.
+- Prioritize code structure and extensibility in the current phase. Do not undertake a large interface overhaul or focus work on disability accessibility for now. Fix ordinary usability issues as they arise and preserve existing useful behavior. The user requested removal of the separate “Play a move” text field; board interaction must support click-to-move, including captures, and dragging.
 
 ## Project Rules
 

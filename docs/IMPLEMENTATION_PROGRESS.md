@@ -57,7 +57,9 @@ Branch cleanup: the integrated `improvement/*` feature branches were deleted aft
 
 ## Next task
 
-**Next:** Continue the desktop/mobile and keyboard accessibility review, especially board interaction and focus visibility, using observed issues to select a small tested improvement. GitHub Actions passed for the integrated mobile panel changes at `36523ce`. Commit `1991c64` is integrated; full screen-reader testing remains outstanding.
+**In progress:** Fix click-to-move captures and remove the separate “Play a move” field. Acceptance: clicking a friendly piece then a legal destination (including an occupied enemy square) sends the same server-validated move as dragging; selection, invalid moves, both colors and promotion continue working; the text field and unused helper are removed. An independent agent owns the board fix and browser regression coverage. A second agent is extracting shared history/dashboard presentation logic without changing displayed behavior. Inspect `git worktree list` for their branches and paths, then review, test and integrate.
+
+**Priority decision:** The user now prioritizes code structure and extensibility, asks to defer large interface changes and disability-accessibility work, and wants ordinary usability bugs fixed. Retain existing useful features and server-side move validation. GitHub Actions passed for the previously integrated mobile panel changes at `36523ce`.
 
 Backend/API tests already cover game-history authorization, bounds, and insertion between page requests. Frontend history commit `a163ddf` was merged into `improvement/roadmap`.
 
