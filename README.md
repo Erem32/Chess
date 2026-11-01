@@ -143,6 +143,8 @@ Migrations are applied automatically on backend startup. To apply them manually:
 docker compose exec backend alembic upgrade head
 ~~~
 
+The chat-history index migration uses a standard PostgreSQL index build, which blocks writes to `chat_messages` while the index is built. For an existing large deployment, plan the migration and startup accordingly.
+
 After changing models, generate and review a new migration:
 
 ~~~bash
