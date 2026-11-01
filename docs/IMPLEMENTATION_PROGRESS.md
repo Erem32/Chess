@@ -1,14 +1,14 @@
 # Implementation checkpoint
 
-Objective: continue the [improvement plan](IMPROVEMENT_PLAN.md) in small, tested changes, following [project instructions](../AGENTS.md).
+Objective: prepare the [Project Helix feature plan](features/README.md) and continue the [improvement plan](IMPROVEMENT_PLAN.md), following [project instructions](../AGENTS.md).
 
 ## Next task
 
-Review the remaining game-session and dashboard responsibilities and choose a small extraction or contract improvement that makes future features easier without changing gameplay. Define acceptance criteria, add focused tests, and verify the affected two-player flow.
+Review the [feature plan](features/README.md), resolve the listed product decisions, and agree on shared contracts and ownership before implementing dependent feature slices. Implement the smallest approved foundation increment with compatibility tests.
 
 ## Working state
 
-- Current documentation work is on `docs/streamline-project-guidance`, based on `main`. Inspect `git status`, `git worktree list`, and recent commits before resuming; Git is authoritative.
+- Current feature-planning work is on `docs/helix-feature-roadmap`, based on `docs/streamline-project-guidance`. Inspect `git status`, `git worktree list`, and recent commits before resuming; Git is authoritative. An unrelated edit to `.agents/skills/continue-chess-improvements/SKILL.md` is uncommitted and must be preserved.
 - Local worktree `/tmp/chess-en-passant` contains uncommitted experimental edits. Preserve them; do not integrate them without a new request. Local stash `stash@{0}` and remote branch `handoff/stash-recovery` also contain unreviewed work.
 - The running preview has its own database and may contain user data. Avoid restarting it during a game or using it for automated tests.
 

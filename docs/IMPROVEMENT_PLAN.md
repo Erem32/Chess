@@ -2,6 +2,8 @@
 
 Prioritize maintainability, feature development, and everyday usability. Work in small increments with focused tests; keep the backend authoritative for chess rules and game state. See [project instructions](../AGENTS.md) and the [current checkpoint](IMPLEMENTATION_PROGRESS.md).
 
+For the proposed Project Helix capabilities, see the [feature plan](features/README.md) and its prerequisites.
+
 ## Code structure and contracts
 
 - Continue organizing frontend code around features as it changes. Keep pages focused on composing screens, and keep shared helpers limited to behavior used in more than one place.

@@ -23,6 +23,8 @@ The backend is responsible for game state and move legality. The project is a de
 
 For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For the proposed technical and product roadmap, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
 
+The [Project Helix feature plan](docs/features/README.md) breaks the proposed learning and play features into independently reviewable briefs and prerequisites.
+
 For the development workflow, see [Contributing](CONTRIBUTING.md). For interrupted work, see the [implementation checkpoint](docs/IMPLEMENTATION_PROGRESS.md) and [human handoff guide](docs/HUMAN_HANDOFF.md). Reusable agent workflows live in `.agents/skills/`.
 
 ## Run locally
