@@ -19,14 +19,14 @@ def get_user_stats(db: Session, user: User) -> UserStats:
     losses = 0
     draws = 0
 
-    for result in user_repository.get_user_game_results(db, user.id):
+    for result, count in user_repository.count_user_game_results(db, user.id):
         normalized = result.strip().lower()
         if normalized in WIN_RESULTS:
-            wins += 1
+            wins += count
         elif normalized in LOSS_RESULTS:
-            losses += 1
+            losses += count
         elif normalized in DRAW_RESULTS:
-            draws += 1
+            draws += count
 
     return UserStats(
         wins=wins,

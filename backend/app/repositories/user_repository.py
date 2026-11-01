@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models import Game, GamePlayer, User
@@ -31,11 +32,11 @@ def create_user(db: Session, *, username: str, email: str, hashed_password: str)
     return user
 
 
-def get_user_game_results(db: Session, user_id: int) -> list[str]:
-    rows = (
-        db.query(GamePlayer.result)
+def count_user_game_results(db: Session, user_id: int) -> list[tuple[str, int]]:
+    return (
+        db.query(GamePlayer.result, func.count(GamePlayer.id))
         .join(Game, Game.id == GamePlayer.game_id)
         .filter(GamePlayer.user_id == user_id, GamePlayer.result.is_not(None), Game.status != "aborted")
+        .group_by(GamePlayer.result)
         .all()
     )
-    return [result for (result,) in rows]
