@@ -54,7 +54,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 
 ## Next task
 
-**Next:** Check the PostgreSQL-backed GitHub Actions run for the new chat browser test. Then continue the roadmap's desktop/mobile and keyboard accessibility review, focusing on the game and history screens; record observed issues and fix a small, tested increment. Older-chat navigation and browser test are integrated from `improvement/chat-pagination` (`02aa7a7`); the history browser test from `improvement/history-browser` (`aad0389`) passed in GitHub Actions at `9bd1cce`.
+**In progress:** Check the PostgreSQL-backed GitHub Actions run for the new chat browser test at `1c9ebb4`. An agent is reviewing desktop/mobile and keyboard accessibility for game and history screens and fixing an observed issue on `improvement/game-accessibility`, worktree `/tmp/chess-game-accessibility`. Preserve, review and integrate its work when ready. Older-chat navigation and browser test are integrated from `improvement/chat-pagination` (`02aa7a7`); the history browser test from `improvement/history-browser` (`aad0389`) passed in GitHub Actions at `9bd1cce`.
 
 Backend/API tests already cover game-history authorization, bounds, and insertion between page requests. Frontend history branch `improvement/history-ui` (`a163ddf`) was merged into `improvement/roadmap`.
 
