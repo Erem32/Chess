@@ -7,7 +7,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models import User
 from app.schemas.chat import ChatHistoryResponse
-from app.schemas.game import DrawClaimOptions, DrawClaimRequest, GameDetailRead, GameHistoryResponse
+from app.schemas.game import DrawClaimOptions, DrawClaimRequest, GameDetailRead, GameHistoryPage, GameHistoryResponse
 from app.schemas.move import MoveListResponse
 from app.services.chess_service import (
     DrawOfferError,
@@ -58,13 +58,17 @@ def _draw_error_response(exc: Exception) -> HTTPException:
     return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected draw-offer error")
 
 
-@router.get("/my-history", response_model=GameHistoryResponse)
+@router.get("/my-history", response_model=GameHistoryPage)
 def my_game_history(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> GameHistoryResponse:
-    games = game_service.list_history_for_user(db, current_user)
-    return GameHistoryResponse(games=games)
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    before_id: Annotated[int | None, Query(ge=1)] = None,
+) -> GameHistoryPage:
+    games = game_service.list_history_for_user(db, current_user, limit + 1, before_id)
+    has_more = len(games) > limit
+    games = games[:limit]
+    return GameHistoryPage(games=games, next_before_id=games[-1].id if has_more else None)
 
 
 @router.get("/my-active", response_model=GameDetailRead | None)

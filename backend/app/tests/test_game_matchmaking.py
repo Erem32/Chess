@@ -9,7 +9,8 @@ from sqlalchemy.pool import StaticPool
 from app.db.session import Base, get_db
 from app.api import websocket as websocket_api
 from app.main import app
-from app.models import ChatMessage, Game, MatchmakingQueue
+from app.models import ChatMessage, Game, MatchmakingQueue, User
+from app.repositories.game_repository import create_game_with_players
 from app.services.chess_service import apply_player_move
 
 
@@ -136,6 +137,39 @@ def test_game_reads_history_moves_and_resign(client: TestClient) -> None:
     assert resign_response.status_code == 200
     assert resign_response.json()["status"] == "resigned"
     assert resign_response.json()["result"] == "white_wins_by_resignation"
+
+
+def test_history_pagination_is_bounded_and_scoped_to_the_player(
+    client: TestClient, db_session_factory: sessionmaker[Session]
+) -> None:
+    alice = _auth_headers(client, "alice")
+    _auth_headers(client, "bob")
+    charlie = _auth_headers(client, "charlie")
+    with db_session_factory() as db:
+        users = {u.username: u.id for u in db.query(User).all()}
+        ids = [
+            create_game_with_players(db, users["alice"], users["bob"], "start").id
+            for _ in range(3)
+        ]
+        other_id = create_game_with_players(db, users["bob"], users["charlie"], "start").id
+        db.commit()
+
+    first = client.get("/api/v1/games/my-history?limit=2", headers=alice).json()
+    assert [game["id"] for game in first["games"]] == ids[::-1][:2]
+    assert {p["username"] for p in first["games"][0]["players"]} == {"alice", "bob"}
+    assert first["next_before_id"] == ids[1]
+
+    # A new game between pages must not duplicate or displace older results.
+    with db_session_factory() as db:
+        create_game_with_players(db, users["alice"], users["bob"], "start")
+        db.commit()
+    second = client.get(f"/api/v1/games/my-history?limit=2&before_id={first['next_before_id']}", headers=alice).json()
+    assert [game["id"] for game in second["games"]] == [ids[0]]
+    assert second["next_before_id"] is None
+    assert [game["id"] for game in client.get("/api/v1/games/my-history", headers=charlie).json()["games"]] == [other_id]
+    assert client.get("/api/v1/games/my-history").status_code == 401
+    for query in ("limit=0", "limit=101", "before_id=0"):
+        assert client.get(f"/api/v1/games/my-history?{query}", headers=alice).status_code == 422
 
 
 def test_user_can_abort_active_games_for_clean_dashboard(client: TestClient) -> None:

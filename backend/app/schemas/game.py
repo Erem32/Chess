@@ -34,6 +34,10 @@ class GameHistoryResponse(BaseModel):
     games: list[GameDetailRead]
 
 
+class GameHistoryPage(GameHistoryResponse):
+    next_before_id: int | None = None
+
+
 class DrawClaimRequest(BaseModel):
     move_uci: str | None = Field(default=None, max_length=5)
 

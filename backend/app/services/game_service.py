@@ -45,8 +45,8 @@ class GameService:
         self.get_game_for_user(db, game_id, user)
         return game_repository.list_chat_messages(db, game_id, limit, before_id)
 
-    def list_history_for_user(self, db: Session, user: User) -> list[Game]:
-        return game_repository.list_games_for_user(db, user.id)
+    def list_history_for_user(self, db: Session, user: User, limit: int, before_id: int | None) -> list[Game]:
+        return game_repository.list_games_for_user(db, user.id, limit, before_id)
 
     def get_latest_active_game_for_user(self, db: Session, user: User) -> Game | None:
         active_games = game_repository.list_active_games_for_user(db, user.id)

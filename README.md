@@ -158,6 +158,8 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
 | Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline`, `GET` and `POST /api/v1/games/{game_id}/draw-claims` |
 
+Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
+
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
 
 The server checks the token when the socket connects; an existing connection is not automatically closed when that token later expires. A reconnect requires a valid token.

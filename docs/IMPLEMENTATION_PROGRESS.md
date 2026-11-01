@@ -52,7 +52,9 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 
 ## Next task
 
-Fetch the named branches in the handoff snapshot and review `improvement/roadmap` against the latest `main` before integrating. Then continue the pending gameplay polish, browser/accessibility review, and operational readiness work. Verify external proxy logging separately when deployment access is available.
+**In progress:** Paginate game history to keep database and browser work bounded as users play more games. Acceptance: authenticated users receive only their own games in descending ID order, bounded pages and a stable cursor; the dashboard requests five games; history can load older pages and recover from errors; tests cover boundaries, authorization and insertion between pages. Preserve the existing `games` response field. Backend work is uncommitted in `improvement/roadmap`; frontend work is committed at `a163ddf` on `improvement/history-ui` in `/tmp/chess-history-ui`. The frontend agent reports 14 tests, lint and build passed. Integrate and verify before marking complete. Docker Compose services are stopped; focused backend tests are running in an isolated container with SQLite.
+
+Afterward, review `improvement/roadmap` against the latest `main` before any integration into main. Continue gameplay polish, browser/accessibility review, and operational readiness. Verify external proxy logging separately when deployment access is available.
 
 ## Handoff snapshot (2026-10-31)
 
