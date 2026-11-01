@@ -4,7 +4,9 @@ Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementall
 
 Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The historical handoff snapshot below predates later history pagination work. Git and current remote refs are authoritative; compare against current `main` before integrating.
 
-Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b96`) and `improvement/chat-history` (now includes integration commit `20c0840`). Both were pushed and integrated into `improvement/roadmap`; their WIP commits remain in history. Original worktree paths are local to the source machine; use `git worktree list` to discover actual paths. Git history and remote refs are authoritative.
+Interrupted reconnect (`9ec0b96`) and chat (`20c0840`) work was integrated into `improvement/roadmap`; those commits remain in its history. Completed feature branch pointers were later removed locally and from the remote. Original worktree paths are local to the source machine; use `git worktree list` to discover actual paths. Git history and remote refs are authoritative.
+
+Branch cleanup: the integrated `improvement/*` feature branches were deleted after checking their tips were ancestors of `improvement/roadmap`. Existing worktree directories were kept and detached to preserve ignored local files; missing worktree registrations were pruned. `handoff/stash-recovery`, the original stash, `mvp`, `main`, and the roadmap branch were preserved. The handoff snapshot below describes the earlier state, not current remote branches.
 
 ## Priorities
 
@@ -51,13 +53,13 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - User selected a modern, understated visual direction for the later interface overhaul and prioritized usability, scalability and ease of adding features over further security work.
 - User selected standard player-initiated claims for threefold repetition and the 50-move rule, including claims based on a declared legal move; the server must verify each claim.
 - User chose to retain current WebSocket expiry behavior: token validation occurs at connection; already open sockets are not closed solely on expiry. Reconnection requires a valid token.
-- The user authorized routine pushes to project branches. GitHub HTTPS authentication failed, but the loaded SSH key works with `git@github.com:Erem32/Chess.git`; all three named branches were pushed and their hashes verified. An offline bundle at `/home/thergh/deve/Chess-handoff.bundle` is a local artifact; rebuild it after branch tips change before transferring.
+- The user authorized routine pushes to project branches. GitHub HTTPS authentication failed, but the loaded SSH key works with `git@github.com:Erem32/Chess.git`. An offline bundle at `/home/thergh/deve/Chess-handoff.bundle` is a local artifact and is stale; rebuild it after branch tips change before transferring.
 
 ## Next task
 
-**Next:** Continue the desktop/mobile and keyboard accessibility review, especially board interaction and focus visibility, using observed issues to select a small tested improvement. Check the GitHub Actions run for the integrated mobile panel changes. The accessibility fix from `improvement/game-accessibility` (`1991c64`, worktree `/tmp/chess-game-accessibility`) is integrated; full screen-reader testing remains outstanding.
+**Next:** Continue the desktop/mobile and keyboard accessibility review, especially board interaction and focus visibility, using observed issues to select a small tested improvement. GitHub Actions passed for the integrated mobile panel changes at `36523ce`. Commit `1991c64` is integrated; full screen-reader testing remains outstanding.
 
-Backend/API tests already cover game-history authorization, bounds, and insertion between page requests. Frontend history branch `improvement/history-ui` (`a163ddf`) was merged into `improvement/roadmap`.
+Backend/API tests already cover game-history authorization, bounds, and insertion between page requests. Frontend history commit `a163ddf` was merged into `improvement/roadmap`.
 
 The Compose services were stopped during this increment. A local `npm ci` in the primary checkout failed because its existing `node_modules` directory is not writable; the integrated frontend checks passed in a clean temporary checkout. The cached backend image lacks Ruff; backend lint was not run in this increment. Seven PostgreSQL-specific tests were skipped by the SQLite run.
 
@@ -65,7 +67,7 @@ Afterward, review `improvement/roadmap` against the latest `main` before any int
 
 ## Handoff snapshot (2026-10-31)
 
-The worktrees were clean, with no merge/rebase state or untracked project files. All refs below were pushed to `origin` and verified against the remote. Existing remote branches `improvement/roadmap`, `improvement/reconnect`, and `improvement/chat-history` were retained; the other refs are additional named snapshots for transfer.
+At the time of this historical snapshot, the worktrees were clean, with no merge/rebase state or untracked project files, and the refs below were pushed and verified. Completed feature branch refs have since been deleted as described above; their commits remain in the roadmap history. The unmerged recovery branch remains available.
 
 | Branch | Commit | Notes |
 |---|---|---|
