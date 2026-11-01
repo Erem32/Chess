@@ -79,6 +79,24 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.locator('[data-square="e7"]').click();
     await black.locator('[data-square="e5"]').click();
     for (const page of [white, black]) await page.getByText('e5', { exact: true }).first().waitFor();
+    // A newer REST game state can arrive before its socket event. A mismatch
+    // must trigger snapshot recovery rather than leave a stale board playable.
+    const recoveryCount = await white.evaluate(() => window.__socketCount);
+    const gamePath = new URL(white.url()).pathname;
+    let alteredPoll = false;
+    const alterPoll = async (route) => {
+      if (!alteredPoll && new URL(route.request().url()).pathname === `/api/v1${gamePath}`) {
+        alteredPoll = true;
+        const response = await route.fetch();
+        const body = await response.json();
+        body.current_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        await route.fulfill({ response, json: body });
+      } else await route.continue();
+    };
+    await white.route('**/api/v1/games/*', alterPoll);
+    await white.waitForFunction((oldCount) => window.__socketCount > oldCount, recoveryCount, { timeout: 10000 });
+    await white.unroute('**/api/v1/games/*', alterPoll);
+    await white.waitForFunction(() => document.querySelector('#game-board-square-g1 [role=button]')?.getAttribute('aria-disabled') === 'false');
     const whiteChat = white.locator('.desktop-game-sidebar .chat-panel').first();
     const blackChat = black.locator('.desktop-game-sidebar .chat-panel').first();
     await whiteChat.getByLabel('Chat message').fill('Good game');
