@@ -10,6 +10,7 @@ from app.db.session import Base
 from app.models import ChatMessage, Game, GamePlayer, Move, User
 from app.services.chess_service import (
     IllegalMoveError,
+    ChatMessageError,
     NotPlayerTurnError,
     apply_player_move,
     apply_uci_move,
@@ -56,6 +57,65 @@ def test_checkmate_detection() -> None:
     assert result["is_checkmate"] is True
 
 
+def test_checkmate_takes_precedence_over_seventyfive_move_draw() -> None:
+    board = chess.Board()
+    for move in ["f2f3", "e7e5", "g2g4"]:
+        board.push_uci(move)
+    board.halfmove_clock = 149
+    result = apply_uci_move(board.fen(), "d8h4")
+    assert result["is_checkmate"] is True
+    assert result["result"] == "0-1"
+
+
+def test_seventyfive_move_rule_ends_game_as_draw(db_session_factory: sessionmaker[Session]) -> None:
+    with db_session_factory() as db:
+        game_id, white_user_id, _ = _create_active_game(db)
+        game = db.get(Game, game_id)
+        game.current_fen = "8/8/8/8/8/8/R6r/K6k w - - 149 76"
+        db.commit()
+
+        result = apply_player_move(db, game_id, white_user_id, "a2a3")
+
+        assert result["is_seventyfive_moves"] is True
+        assert result["game"]["status"] == "draw"
+        assert result["game"]["result"] == "1/2-1/2"
+        assert {player.result for player in db.get(Game, game_id).players} == {"draw"}
+
+
+def test_fivefold_repetition_uses_persisted_move_history(db_session_factory: sessionmaker[Session]) -> None:
+    with db_session_factory() as db:
+        game_id, white_user_id, black_user_id = _create_active_game(db)
+        sequence = [(white_user_id, "g1f3"), (black_user_id, "g8f6"),
+                    (white_user_id, "f3g1"), (black_user_id, "f6g8")]
+        for user_id, move in sequence * 3:
+            assert apply_player_move(db, game_id, user_id, move)["game"]["status"] == "active"
+        for user_id, move in sequence[:-1]:
+            assert apply_player_move(db, game_id, user_id, move)["game"]["status"] == "active"
+        result = apply_player_move(db, game_id, black_user_id, "f6g8")
+        assert result["is_fivefold_repetition"] is True
+        assert result["game"]["status"] == "draw"
+        assert result["game"]["result"] == "1/2-1/2"
+        assert {player.result for player in db.get(Game, game_id).players} == {"draw"}
+
+
+def test_inconsistent_history_does_not_invent_repetition(db_session_factory: sessionmaker[Session]) -> None:
+    with db_session_factory() as db:
+        game_id, white_user_id, black_user_id = _create_active_game(db)
+        sequence = [(white_user_id, "g1f3"), (black_user_id, "g8f6"),
+                    (white_user_id, "f3g1"), (black_user_id, "f6g8")]
+        for user_id, move in sequence * 3:
+            apply_player_move(db, game_id, user_id, move)
+        game = db.get(Game, game_id)
+        board = chess.Board(game.current_fen)
+        board.halfmove_clock = 50
+        game.current_fen = board.fen()
+        db.commit()
+        for user_id, move in sequence:
+            result = apply_player_move(db, game_id, user_id, move)
+        assert result["is_fivefold_repetition"] is False
+        assert result["game"]["status"] == "active"
+
+
 def test_apply_player_move_persists_move_and_updates_game(
     db_session_factory: sessionmaker[Session],
 ) -> None:
@@ -100,6 +160,21 @@ def test_persist_chat_message_strips_and_stores_message(
         assert chat_message.message == "hello"
         assert payload["message"] == "hello"
         assert payload["game_id"] == game_id
+
+
+@pytest.mark.parametrize("text", [" ", "x" * 1001, "bad\x00message", "bad\ud800message"])
+def test_chat_rejects_empty_oversized_or_invalid_messages(db_session_factory, text):
+    with db_session_factory() as db:
+        game_id, user_id, _ = _create_active_game(db)
+        with pytest.raises(ChatMessageError):
+            persist_chat_message(db, game_id, user_id, text)
+        assert db.query(ChatMessage).count() == 0
+
+
+def test_chat_accepts_exact_maximum_unicode_length(db_session_factory):
+    with db_session_factory() as db:
+        game_id, user_id, _ = _create_active_game(db)
+        assert persist_chat_message(db, game_id, user_id, "😀" * 1000)["message"] == "😀" * 1000
 
 
 def _create_active_game(db: Session) -> tuple[int, int, int]:

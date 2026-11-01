@@ -26,7 +26,11 @@ export default function RegisterPage() {
 
   return (
     <section className="auth-page">
-      <h1>Register</h1>
+      <header className="auth-header">
+        <p className="auth-eyebrow">Online chess</p>
+        <h1>Register</h1>
+        <p>Create an account and find your next opponent.</p>
+      </header>
       <form onSubmit={handleSubmit} className="form-card" aria-busy={isSubmitting}>
         <div className="auth-field">
           <label htmlFor="register-username">Username</label>
@@ -43,7 +47,7 @@ export default function RegisterPage() {
         {error && <p className="error auth-error" role="alert">{error}</p>}
         <button type="submit" disabled={isSubmitting}>{isSubmitting ? "Creating account..." : "Register"}</button>
       </form>
-      <p><Link to="/login">Already have an account?</Link></p>
+      <p className="auth-footer">Already have an account? <Link to="/login">Login</Link></p>
     </section>
   );
 }

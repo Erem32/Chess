@@ -89,6 +89,7 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
   }
 
   return (
+    <>
     <div className="board-wrap" ref={boardRef} tabIndex={-1}>
       <Chessboard
         options={{
@@ -102,16 +103,6 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
             if (!boardInteractive || !playerColor || !piece?.pieceType) return false;
             const expectedPrefix = playerColor === "white" ? "w" : "b";
             return piece.pieceType.startsWith(expectedPrefix);
-          },
-          onPieceClick: ({ piece, square }) => {
-            handleSquareSelection(square, piece?.pieceType);
-          },
-          onPieceDrag: ({ piece, square }) => {
-            handleSquareSelection(square, piece?.pieceType);
-          },
-          onSquareMouseDown: ({ piece, square }) => {
-            if (!piece?.pieceType) return;
-            handleSquareSelection(square, piece.pieceType);
           },
           onSquareClick: ({ piece, square }) => {
             handleSquareClick(square, piece?.pieceType ?? null);
@@ -138,6 +129,7 @@ export default function ChessBoard({ fen, onMove, playerColor, isInteractive = t
         </section>
       )}
     </div>
+    </>
   );
 }
 

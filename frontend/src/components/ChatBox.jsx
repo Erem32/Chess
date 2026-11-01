@@ -1,7 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 
-export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
-  const [message, setMessage] = useState("");
+export default function ChatBox({ messages = [], onSend, getAuthorLabel, message, onMessageChange, isSending, error, onLoadOlder, onShowLatest, isOlderPage, canLoadOlder, isLoadingOlder, historyError, historyExhausted }) {
   const scrollRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -11,18 +10,24 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
       container.scrollTop = container.scrollHeight;
     });
     return () => window.cancelAnimationFrame(frameId);
-  }, [messages.length]);
+  }, [messages]);
 
   function handleSubmit(event) {
     event.preventDefault();
-    if (!message.trim()) return;
-    onSend(message.trim());
-    setMessage("");
+    if (message.trim() && !isSending) onSend(message.trim());
   }
 
   return (
     <section className="panel chat-panel">
       <h2>Chat</h2>
+      {(canLoadOlder || isOlderPage) && <div>
+        {canLoadOlder && <button type="button" className="secondary-button" onClick={onLoadOlder} disabled={isLoadingOlder}>
+          {isLoadingOlder ? "Loading..." : "Older messages"}
+        </button>}
+        {isOlderPage && <button type="button" className="secondary-button" onClick={onShowLatest}>Latest messages</button>}
+      </div>}
+      {historyError && <p className="error" role="alert">{historyError}</p>}
+      {historyExhausted && <p className="muted" role="status">No earlier messages.</p>}
       <div className="panel-scroll chat-messages" ref={scrollRef}>
         {messages.length === 0 ? (
           <p className="muted">No messages yet.</p>
@@ -36,9 +41,10 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel }) {
         )}
       </div>
       <form onSubmit={handleSubmit} className="inline-form chat-form">
-        <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message" />
-        <button type="submit">Send</button>
+        <input aria-label="Chat message" value={message} onChange={(event) => onMessageChange(event.target.value)} placeholder="Message" disabled={isSending} />
+        <button type="submit" disabled={isSending || !message.trim()}>{isSending ? "Sending..." : "Send"}</button>
       </form>
+      {error && <p className="error" role="alert">{error}</p>}
     </section>
   );
 }

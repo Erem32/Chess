@@ -1,5 +1,8 @@
 """End-to-end socket protocol checks using an isolated in-memory database."""
 
+from contextlib import contextmanager
+from threading import Event
+
 import chess
 import pytest
 from fastapi.testclient import TestClient
@@ -9,9 +12,12 @@ from sqlalchemy.pool import StaticPool
 from starlette.websockets import WebSocketDisconnect
 
 from app import main
+from app.api import websocket as websocket_api
 from app.core.security import create_access_token
 from app.db.session import Base
 from app.models import Game, GamePlayer, Move, User
+from app.schemas.game import GameRead
+from app.schemas.move import MoveRead
 from app.services.websocket_manager import WebSocketManager
 
 
@@ -38,8 +44,8 @@ def game_client(monkeypatch):
         tokens = {color: create_access_token(str(user.id)) for color, user in
                   (("white", white), ("black", black), ("outsider", outsider))}
 
-    monkeypatch.setattr(main, "SessionLocal", sessions)
-    monkeypatch.setattr(main, "websocket_manager", WebSocketManager())
+    monkeypatch.setattr(websocket_api, "SessionLocal", sessions)
+    monkeypatch.setattr(websocket_api, "websocket_manager", WebSocketManager())
     try:
         with TestClient(main.app) as client:
             yield client, sessions, game_id, tokens
@@ -87,6 +93,37 @@ def test_move_is_broadcast_to_both_players_and_persisted(game_client):
         assert state["turn_color"] == "black"
 
 
+def test_socket_game_state_contract_and_legacy_move_inputs(game_client):
+    client, _, game_id, tokens = game_client
+    with client.websocket_connect(socket_url(game_id, tokens["white"])) as white:
+        with client.websocket_connect(socket_url(game_id, tokens["black"])) as black:
+            for socket in (white, black):
+                initial = socket.receive_json()
+                assert initial["type"] == "game_state"
+                assert set(initial["payload"]) == {"game"}
+                assert GameRead.model_validate(initial["payload"]["game"]).id == game_id
+
+            for number, socket, message in (
+                (1, white, {"type": "move", "move": "e2e4"}),
+                (2, black, {"type": "move", "payload": {"move": "e7e5"}}),
+                (3, white, {"type": "move", "payload": {"move_uci": "g1f3"}}),
+            ):
+                socket.send_json(message)
+                event = white.receive_json()
+                assert black.receive_json() == event
+                assert event["type"] == "game_state"
+                payload = event["payload"]
+                game = GameRead.model_validate(payload["game"])
+                move = MoveRead.model_validate(payload["move"])
+                assert game.id == move.game_id == game_id
+                assert move.move_number == number
+                assert move.fen_after_move == game.current_fen
+                assert all(isinstance(payload[key], bool) for key in (
+                    "is_checkmate", "is_stalemate", "is_insufficient_material",
+                    "is_seventyfive_moves", "is_fivefold_repetition",
+                ))
+
+
 def test_bad_messages_and_illegal_moves_do_not_end_connection(game_client):
     client, sessions, game_id, tokens = game_client
     with client.websocket_connect(socket_url(game_id, tokens["white"])) as ws:
@@ -99,3 +136,27 @@ def test_bad_messages_and_illegal_moves_do_not_end_connection(game_client):
         assert ws.receive_json()["payload"]["move"]["move_uci"] == "e2e4"
         with sessions() as db:
             assert db.query(Move).filter_by(game_id=game_id).count() == 1
+
+
+def test_idle_socket_does_not_keep_database_session_open(game_client, monkeypatch):
+    client, sessions, game_id, tokens = game_client
+    closed = Event()
+    opened = []
+
+    @contextmanager
+    def tracked_session():
+        opened.append(True)
+        with sessions() as db:
+            yield db
+        closed.set()
+
+    monkeypatch.setattr(websocket_api, "SessionLocal", tracked_session)
+    with client.websocket_connect(socket_url(game_id, tokens["white"])) as ws:
+        assert ws.receive_json()["type"] == "game_state"
+        assert closed.wait(2)
+        assert len(opened) == 1
+        closed.clear()
+        ws.send_json({"type": "move", "payload": {"move_uci": "e2e4"}})
+        assert ws.receive_json()["type"] == "game_state"
+        assert closed.wait(2)
+        assert len(opened) == 2

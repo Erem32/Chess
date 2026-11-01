@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models import Game, Move, User
+from app.models import ChatMessage, Game, Move, User
 from app.repositories import game_repository
 
 
@@ -41,12 +41,15 @@ class GameService:
         self.get_game_for_user(db, game_id, user)
         return game_repository.list_game_moves(db, game_id)
 
-    def list_history_for_user(self, db: Session, user: User) -> list[Game]:
-        return game_repository.list_games_for_user(db, user.id)
+    def list_chat_for_user(self, db: Session, game_id: int, user: User, limit: int, before_id: int | None) -> list[ChatMessage]:
+        self.get_game_for_user(db, game_id, user)
+        return game_repository.list_chat_messages(db, game_id, limit, before_id)
+
+    def list_history_for_user(self, db: Session, user: User, limit: int, before_id: int | None) -> list[Game]:
+        return game_repository.list_games_for_user(db, user.id, limit, before_id)
 
     def get_latest_active_game_for_user(self, db: Session, user: User) -> Game | None:
-        active_games = game_repository.list_active_games_for_user(db, user.id)
-        return active_games[0] if active_games else None
+        return game_repository.get_latest_active_game_for_user(db, user.id)
 
     def abort_active_games_for_user(self, db: Session, user: User) -> list[Game]:
         active_games = game_repository.list_active_games_for_user_for_update(db, user.id)
@@ -72,14 +75,11 @@ class GameService:
         game = game_repository.get_game_for_update(db, game_id)
         if game is None:
             raise GameNotFoundError
-        if game_repository.get_game_player(db, game_id, user.id) is None:
-            raise GameAccessDeniedError
-        if game.finished_at is not None or game.status in {"white_win", "black_win", "draw", "resigned", "aborted"}:
-            raise GameAlreadyFinishedError
-
         resigning_player = game_repository.get_game_player(db, game_id, user.id)
         if resigning_player is None:
             raise GameAccessDeniedError
+        if game.finished_at is not None or game.status in {"white_win", "black_win", "draw", "resigned", "aborted"}:
+            raise GameAlreadyFinishedError
 
         winning_color = "black" if resigning_player.color == "white" else "white"
         game.status = "resigned"

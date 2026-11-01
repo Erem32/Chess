@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy import text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from app.models import Game, GamePlayer, MatchmakingQueue, Move
+from app.models import ChatMessage, Game, GamePlayer, MatchmakingQueue, Move
 
 
 MATCHMAKING_ADVISORY_LOCK_ID = 842_001
@@ -51,28 +51,23 @@ def list_game_moves(db: Session, game_id: int) -> list[Move]:
     return db.query(Move).filter(Move.game_id == game_id).order_by(Move.move_number.asc()).all()
 
 
-def list_games_for_user(db: Session, user_id: int) -> list[Game]:
-    return (
+def list_chat_messages(db: Session, game_id: int, limit: int, before_id: int | None) -> list[ChatMessage]:
+    query = db.query(ChatMessage).filter(ChatMessage.game_id == game_id)
+    if before_id is not None:
+        query = query.filter(ChatMessage.id < before_id)
+    return list(reversed(query.order_by(ChatMessage.id.desc()).limit(limit).all()))
+
+
+def list_games_for_user(db: Session, user_id: int, limit: int, before_id: int | None) -> list[Game]:
+    query = (
         db.query(Game)
         .join(GamePlayer)
         .filter(GamePlayer.user_id == user_id)
-        .order_by(Game.id.desc())
-        .all()
+        .options(selectinload(Game.players).selectinload(GamePlayer.user))
     )
-
-
-def list_active_games_for_user(db: Session, user_id: int) -> list[Game]:
-    return (
-        db.query(Game)
-        .join(GamePlayer)
-        .filter(
-            GamePlayer.user_id == user_id,
-            Game.status == "active",
-            Game.finished_at.is_(None),
-        )
-        .order_by(Game.started_at.desc().nullslast(), Game.id.desc())
-        .all()
-    )
+    if before_id is not None:
+        query = query.filter(Game.id < before_id)
+    return query.order_by(Game.id.desc()).limit(limit).all()
 
 
 def list_active_games_for_user_for_update(db: Session, user_id: int) -> list[Game]:

@@ -31,6 +31,9 @@ class ChatMessageError(ValueError):
     pass
 
 
+MAX_CHAT_MESSAGE_LENGTH = 1000
+
+
 class DrawOfferError(ValueError):
     pass
 
@@ -51,7 +54,8 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
     is_checkmate = board.is_checkmate()
     is_stalemate = board.is_stalemate()
     is_insufficient_material = board.is_insufficient_material()
-    is_finished = is_checkmate or is_stalemate or is_insufficient_material
+    is_seventyfive_moves = board.is_seventyfive_moves()
+    is_finished = is_checkmate or is_stalemate or is_insufficient_material or is_seventyfive_moves
 
     return {
         "fen": board.fen(),
@@ -59,6 +63,7 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
         "is_checkmate": is_checkmate,
         "is_stalemate": is_stalemate,
         "is_insufficient_material": is_insufficient_material,
+        "is_seventyfive_moves": is_seventyfive_moves,
         "is_finished": is_finished,
         "result": board.result() if is_finished else None,
         "san": san,
@@ -67,17 +72,23 @@ def apply_uci_move(fen: str, move_uci: str) -> dict[str, str | bool | None]:
 
 def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) -> dict:
     db.expire_all()
-    game = _get_game_for_user(db, game_id, user_id, lock=True)
-    player = _get_player(db, game_id, user_id)
-    if player is None:
-        raise GameAccessError("User does not belong to this game")
+    game, player = _get_game_and_player_for_user(db, game_id, user_id, lock=True)
     if game.status != "active":
         raise GameNotActiveError("Game is not active")
     if player.color != game.turn_color:
         raise NotPlayerTurnError("It is not this player's turn")
 
     move_result = apply_uci_move(game.current_fen, move_uci)
-    move_number = db.query(Move).filter(Move.game_id == game_id).count() + 1
+    previous_moves = game_repository.list_game_moves(db, game_id)
+    board = _replay_game_history(game.current_fen, previous_moves)
+    is_fivefold_repetition = False
+    if board is not None:
+        board.push_uci(move_uci)
+        is_fivefold_repetition = board.is_fivefold_repetition()
+        if is_fivefold_repetition and not move_result["is_checkmate"]:
+            move_result["is_finished"] = True
+            move_result["result"] = "1/2-1/2"
+    move_number = len(previous_moves) + 1
     move = Move(
         game_id=game_id,
         user_id=user_id,
@@ -107,7 +118,20 @@ def apply_player_move(db: Session, game_id: int, user_id: int, move_uci: str) ->
         "is_checkmate": move_result["is_checkmate"],
         "is_stalemate": move_result["is_stalemate"],
         "is_insufficient_material": move_result["is_insufficient_material"],
+        "is_seventyfive_moves": move_result["is_seventyfive_moves"],
+        "is_fivefold_repetition": is_fivefold_repetition,
     }
+
+
+def _replay_game_history(current_fen: str, moves: list[Move]) -> chess.Board | None:
+    """Recover repetition history only when the stored moves reproduce the game."""
+    board = chess.Board()
+    try:
+        for move in moves:
+            board.push_uci(move.move_uci)
+    except ValueError:
+        return None
+    return board if board.fen() == current_fen else None
 
 
 def persist_chat_message(db: Session, game_id: int, user_id: int, message: str) -> dict:
@@ -116,6 +140,14 @@ def persist_chat_message(db: Session, game_id: int, user_id: int, message: str) 
     text = message.strip()
     if not text:
         raise ChatMessageError("Chat message cannot be empty")
+    if len(text) > MAX_CHAT_MESSAGE_LENGTH:
+        raise ChatMessageError(f"Chat message cannot exceed {MAX_CHAT_MESSAGE_LENGTH} characters")
+    if "\x00" in text:
+        raise ChatMessageError("Chat message cannot contain null bytes")
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ChatMessageError("Chat message must contain valid Unicode") from exc
 
     chat_message = ChatMessage(game_id=game_id, user_id=user_id, message=text)
     db.add(chat_message)
@@ -143,6 +175,64 @@ def offer_draw(db: Session, game_id: int, user_id: int) -> dict:
     db.commit()
     db.refresh(game)
     return game_state_payload(game)
+
+
+def draw_claim_options(db: Session, game_id: int, user_id: int) -> dict:
+    game, board, history_available = _draw_claim_position(db, game_id, user_id)
+    current_reasons = _claim_reasons(board, history_available)
+    moves = []
+    for move in list(board.legal_moves):
+        san = board.san(move)
+        board.push(move)
+        reasons = _claim_reasons(board, history_available)
+        board.pop()
+        if reasons:
+            moves.append({"uci": move.uci(), "san": san, "reasons": reasons})
+    return {"game_id": game.id, "current_reasons": current_reasons, "moves": moves}
+
+
+def claim_draw(db: Session, game_id: int, user_id: int, move_uci: str | None = None) -> dict:
+    game, board, history_available = _draw_claim_position(db, game_id, user_id)
+    if move_uci is not None:
+        try:
+            move = chess.Move.from_uci(move_uci)
+        except ValueError as exc:
+            raise DrawOfferError("Declared move is invalid") from exc
+        if move not in board.legal_moves:
+            raise DrawOfferError("Declared move is not legal")
+        board.push(move)
+    reasons = _claim_reasons(board, history_available)
+    if not reasons:
+        raise DrawOfferError("The position does not qualify for a draw claim")
+    game.status = "draw"
+    game.result = f"draw_claimed_{reasons[0]}"
+    game.finished_at = datetime.utcnow()
+    for player in game.players:
+        player.result = "draw"
+    _clear_draw_offer(game)
+    db.commit()
+    db.refresh(game)
+    return game_state_payload(game)
+
+
+def _draw_claim_position(db: Session, game_id: int, user_id: int) -> tuple[Game, chess.Board, bool]:
+    db.expire_all()
+    game, player = _get_game_and_player_for_user(db, game_id, user_id, lock=True)
+    if game.status != "active":
+        raise GameNotActiveError("Game is not active")
+    if player.color != game.turn_color:
+        raise NotPlayerTurnError("It is not this player's turn")
+    board = _replay_game_history(game.current_fen, game_repository.list_game_moves(db, game_id))
+    return game, board if board is not None else chess.Board(game.current_fen), board is not None
+
+
+def _claim_reasons(board: chess.Board, history_available: bool) -> list[str]:
+    reasons = []
+    if history_available and board.is_repetition(3):
+        reasons.append("threefold")
+    if board.is_fifty_moves():
+        reasons.append("fifty_move")
+    return reasons
 
 
 def respond_to_draw_offer(db: Session, game_id: int, user_id: int, accept: bool) -> dict:
@@ -207,20 +297,20 @@ def chat_message_payload(chat_message: ChatMessage) -> dict:
 
 
 def _get_game_for_user(db: Session, game_id: int, user_id: int, lock: bool = False) -> Game:
-    game = game_repository.get_game_for_update(db, game_id) if lock else game_repository.get_game(db, game_id)
-    if game is None:
-        raise GameNotFoundError("Game not found")
-    if _get_player(db, game_id, user_id) is None:
-        raise GameAccessError("User does not belong to this game")
+    game, _ = _get_game_and_player_for_user(db, game_id, user_id, lock)
     return game
 
 
-def _get_player(db: Session, game_id: int, user_id: int) -> GamePlayer | None:
-    return (
-        db.query(GamePlayer)
-        .filter(GamePlayer.game_id == game_id, GamePlayer.user_id == user_id)
-        .one_or_none()
-    )
+def _get_game_and_player_for_user(
+    db: Session, game_id: int, user_id: int, lock: bool = False
+) -> tuple[Game, GamePlayer]:
+    game = game_repository.get_game_for_update(db, game_id) if lock else game_repository.get_game(db, game_id)
+    if game is None:
+        raise GameNotFoundError("Game not found")
+    player = game_repository.get_game_player(db, game_id, user_id)
+    if player is None:
+        raise GameAccessError("User does not belong to this game")
+    return game, player
 
 
 def _finished_status(next_turn_color: str, is_checkmate: bool) -> str:

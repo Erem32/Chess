@@ -12,6 +12,7 @@ from app.db.session import Base, get_db
 from app.main import app
 from app.models import Game, GamePlayer
 from app.models import chat_message, game, game_player, matchmaking, move, user  # noqa: F401
+from app.repositories.user_repository import count_user_game_results
 
 
 @pytest.fixture()
@@ -168,6 +169,20 @@ def test_login_rejects_invalid_credentials(client: TestClient) -> None:
     assert missing_user.status_code == 401
 
 
+@pytest.mark.parametrize("identity,password", [("alice", "bad\x00password"), ("alice\x00", "secret")])
+def test_login_rejects_credentials_with_null_byte(client: TestClient, identity: str, password: str) -> None:
+    client.post(
+        "/api/v1/auth/register",
+        json={"username": "alice", "email": "alice@example.com", "password": "secret"},
+    )
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"username_or_email": identity, "password": password},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid username/email or password"
+
+
 def test_get_current_user_returns_user_from_token(
     client: TestClient,
     db_session_factory: sessionmaker[Session],
@@ -264,3 +279,33 @@ def test_my_stats_counts_completed_game_results(
 
     assert response.status_code == 200
     assert response.json() == {"wins": 1, "losses": 1, "draws": 1, "games_played": 3}
+
+
+def test_stats_count_repeated_and_legacy_result_values_without_counting_aborts(
+    client: TestClient, db_session_factory: sessionmaker[Session]
+) -> None:
+    registered = client.post("/api/v1/auth/register", json={
+        "username": "alice", "email": "alice@example.com", "password": "secret"
+    }).json()
+    token = client.post("/api/v1/auth/login", json={
+        "username_or_email": "alice", "password": "secret"
+    }).json()["access_token"]
+
+    with db_session_factory() as db:
+        for result in ["win", "win", " WON ", " Lost ", "DRAWN", "unrecognized", None]:
+            game = Game(current_fen="start", status="draw")
+            db.add(game)
+            db.flush()
+            db.add(GamePlayer(game_id=game.id, user_id=registered["id"], color="white", result=result))
+        aborted = Game(current_fen="start", status="aborted")
+        db.add(aborted)
+        db.flush()
+        db.add(GamePlayer(game_id=aborted.id, user_id=registered["id"], color="white", result="win"))
+        db.commit()
+        assert dict(count_user_game_results(db, registered["id"])) == {
+            "win": 2, " WON ": 1, " Lost ": 1, "DRAWN": 1, "unrecognized": 1,
+        }
+
+    response = client.get("/api/v1/users/me/stats", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    assert response.json() == {"wins": 3, "losses": 1, "draws": 1, "games_played": 5}

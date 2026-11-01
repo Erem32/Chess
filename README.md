@@ -9,6 +9,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Registration, login, password hashing, and JWT authentication.
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
+- Board interaction by clicking or dragging pieces, including promotion choices.
 - Promotion choice for queen, rook, bishop, or knight when a pawn reaches the last rank.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
@@ -24,6 +25,8 @@ These flows are under development; see [Current limitations](#current-limitation
 | Development | Docker Compose, pytest |
 
 For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For the proposed technical and product roadmap, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
+
+For the development workflow, see [Contributing](CONTRIBUTING.md). For interrupted work, see the [implementation checkpoint](docs/IMPLEMENTATION_PROGRESS.md) and [human handoff guide](docs/HUMAN_HANDOFF.md). Reusable agent workflows live in `.agents/skills/`.
 
 ## Run locally
 
@@ -120,9 +123,15 @@ docker compose exec frontend npm test
 docker compose exec frontend npm run build
 ~~~
 
-The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. Frontend tests cover promotion choices and HTTP error handling. Protected routes retain the login and offer retry if session verification fails temporarily; rejected credentials return the user to login. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) applies migrations to a disposable PostgreSQL database, runs backend tests including PostgreSQL concurrency tests, and tests and builds the frontend using the committed npm lockfile. Browser coverage is not yet automated.
+The backend suite covers authentication, matchmaking, game operations, chess validation, chat persistence, and the health endpoint. Frontend tests cover promotion, chat merging, synchronization, and HTTP error handling. Protected routes retain the login and offer retry if session verification fails temporarily; rejected credentials return the user to login. A frontend build is not a substitute for a browser test. The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) applies migrations to a disposable PostgreSQL database, runs backend tests including PostgreSQL concurrency tests, and tests and builds the frontend using the committed npm lockfile. CI also runs a headless two-player browser smoke test against a disposable PostgreSQL database.
 
-Frontend dependencies are pinned and installed with `npm ci` in CI and Docker. Review dependency updates deliberately and run `npm audit` in `frontend/`; audit results can change as advisories are published.
+For backend linting, install `backend/requirements-dev.txt` in a Python environment and run `ruff check app alembic` from `backend/`. Run `npm run lint` from `frontend/` after `npm ci` for focused JavaScript checks. CI runs both linters; their initial rule sets are intentionally limited.
+
+Frontend dependencies are pinned and installed with `npm ci` in CI and Docker. Review dependency updates deliberately and run `npm audit` in `frontend/`; audit results can change as advisories are published. To run the browser smoke test separately, start frontend and backend services against a disposable database, then run `CHESS_E2E_ALLOW_REGISTRATION=1 CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHROME_PATH=/path/to/chrome npm run test:e2e` from `frontend/`. It registers two users and creates a game; never point it at a database whose contents must remain unchanged.
+
+The history pagination browser test also requires `CHESS_E2E_API_URL` pointing to the disposable backend: `CHESS_E2E_ALLOW_REGISTRATION=1 CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHESS_E2E_API_URL=http://127.0.0.1:8000 CHROME_PATH=/path/to/chrome npm run test:e2e:history`. It creates two users and 22 games, and checks dashboard results, older pages, and retry after a simulated failed request.
+
+The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.1:8000`; with the other variables above, run `npm run test:e2e:chat` against disposable services. It creates users, a game and more than 200 messages to check older pages, live arrivals and retry.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
@@ -133,6 +142,8 @@ Migrations are applied automatically on backend startup. To apply them manually:
 ~~~bash
 docker compose exec backend alembic upgrade head
 ~~~
+
+The chat-history index migration uses a standard PostgreSQL index build, which blocks writes to `chat_messages` while the index is built. For an existing large deployment, plan the migration and startup accordingly.
 
 After changing models, generate and review a new migration:
 
@@ -150,12 +161,18 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
 | Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
 | Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
-| Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves` |
-| Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline` |
+| Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
+| Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline`, `GET` and `POST /api/v1/games/{game_id}/draw-claims` |
 
-The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
+Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
+
+The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game.
+
+The server checks the token when the socket connects; an existing connection is not automatically closed when that token later expires. A reconnect requires a valid token.
 
 The token is currently passed in the WebSocket URL. Configure reverse proxies, hosting access logs, and other request logging to redact query strings. Review existing logs for exposure and rotate credentials where appropriate. Application log redaction does not protect logs controlled by infrastructure.
+
+Clients can send a move or chat message:
 
 ~~~json
 {"type": "move", "payload": {"move_uci": "e2e4"}}
@@ -165,14 +182,25 @@ The token is currently passed in the WebSocket URL. Configure reverse proxies, h
 {"type": "chat", "payload": {"message": "Good luck!"}}
 ~~~
 
-The server sends `game_state`, `chat`, and `error` messages. In a `game_state` message, the game is under `payload.game`, with fields including `id`, `current_fen`, `turn_color`, and `status`. After a move, the payload also includes the move and end-of-game flags. See [backend/app/main.py](backend/app/main.py) and [chess_service.py](backend/app/services/chess_service.py) for the current contract.
+Chat accepts a nonempty trimmed message of at most 1,000 Unicode characters without null bytes. A client may include a unique `client_message_id` of 1–64 ASCII letters, digits, underscores or hyphens in the chat payload; the server includes it in the corresponding successful `chat` event or validation `error`. Clients should correlate a successful event with both the ID and their own user ID. This acknowledgement does not make retries idempotent: a connection failure after persistence may leave delivery uncertain.
+
+On their turn, a player can check draw-claim options in the game interface. The API accepts `{}` for the current position or `{"move_uci":"..."}` for a declared legal move. The server checks the claim under the game lock; a declared move is not played if the claim succeeds.
+
+Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which returns `{ "game_id": ..., "messages": [...] }` in ascending message ID order. It returns the newest 100 messages by default; `limit` can be 1–100, and `before_id` requests an older page. Chat is stored without an automatic retention or deletion policy.
+
+The game screen shows the latest chat messages and offers older pages when the latest page is full. Use **Latest messages** to return to the live view; new messages continue arriving while an older page is open.
+
+The server sends `game_state`, `chat`, and `error` messages. After connection it sends `game_state` with `payload.game`; after a committed move, it broadcasts `game_state` with `payload.game`, `payload.move`, and the end-of-game flags. Each move has a per-game `move_number` and `fen_after_move` matching the accompanying game's `current_fen`. Older clients may send `move` instead of `move_uci`, either inside `payload` or at the top level; new clients should use the documented `payload.move_uci` shape. These messages are currently unversioned.
+
+Resignation, draw actions and aborts use HTTP and are not broadcast as socket events. The game page polls for those changes about every two seconds. On reconnect, the client reloads game and move history and retries if those reads describe different states. See [backend/app/api/websocket.py](backend/app/api/websocket.py) and [chess_service.py](backend/app/services/chess_service.py) for the current contract.
 
 ## Current limitations
 
-- This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification.
-- Chat messages are stored by the backend, but the frontend does not currently restore chat history when a game page is reloaded.
+- This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification. The game reconnects with backoff after temporary socket failures and reloads game and move state before allowing another move. Authentication failures require signing in again.
+- The game page restores up to the newest 100 chat messages and can page through older messages. Chat has no automatic retention policy.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
+- The server automatically ends games on checkmate, stalemate, insufficient material, the 75-move rule, or fivefold repetition when stored moves reconstruct the current position. Players can claim 50-move or threefold draws on their turn. Repetition is not inferred from incomplete or inconsistent historical move records.
 - There is no computer opponent, Stockfish integration, puzzles, tournaments, or payments.
 
 The project notes in [plan.md](plan.md) and [rules.md](rules.md) describe intended work and team conventions; check the current code when their status statements differ.

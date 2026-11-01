@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { acceptDraw, declineDraw, getGame, getGameMoves, offerDraw, resignGame } from "../api/games.js";
+import { acceptDraw, declineDraw, getGame, getGameChat, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
+import { mergeChatMessages } from "../api/chatMessages.js";
+import { fetchStableGameSnapshot, mergeGameUpdate } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
 import ChessBoard from "../components/ChessBoard.jsx";
+import { DrawClaimPanel, DrawOfferPanel, GameActionPanel, PlayerSummaryPanel } from "../components/GamePanels.jsx";
 import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useGamePolling } from "../features/game/useGamePolling.js";
+import { useChatHistory } from "../features/game/useChatHistory.js";
+import { useDrawClaims } from "../features/game/useDrawClaims.js";
+import { boardMatchesGame, canPlayGameMove } from "../features/game/boardState.js";
+import { normalizeGameEvent } from "../features/game/gameEvent.js";
+import { createGameEventBuffer } from "../features/game/gameEventBuffer.js";
+import { createPendingChat } from "../features/game/pendingChat.js";
+import { createReconnectScheduler } from "../features/game/reconnectScheduler.js";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -17,17 +28,32 @@ export default function GamePage() {
   const navigate = useNavigate();
   const { token, user } = useAuth();
   const socketRef = useRef(null);
-  const reconnectTimerRef = useRef(null);
+  const reconnectSchedulerRef = useRef(null);
+  const lastMoveNumberRef = useRef(0);
+  const revisionRef = useRef(0);
+  const pendingChatRef = useRef(null);
+  if (!pendingChatRef.current) pendingChatRef.current = createPendingChat();
+  const currentGameRef = useRef(gameId);
+  currentGameRef.current = gameId;
   const [fen, setFen] = useState(STARTING_FEN);
   const [game, setGame] = useState(null);
   const [moves, setMoves] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatError, setChatError] = useState("");
+  const [chatSending, setChatSending] = useState(false);
+  const { olderMessages, olderAvailable, loadingOlder, historyError, loadOlder, showLatest } = useChatHistory(gameId, messages);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [socketStatus, setSocketStatus] = useState("idle");
   const [socketAttempt, setSocketAttempt] = useState(0);
+  if (!reconnectSchedulerRef.current) {
+    reconnectSchedulerRef.current = createReconnectScheduler(() => setSocketAttempt((current) => current + 1));
+  }
   const [mobilePanel, setMobilePanel] = useState("players");
+  const { options: claimOptions, selectedMove: claimMove, setSelectedMove: setClaimMove, busy: claimBusy, checkClaim: handleCheckClaim, claimDraw: handleClaimDraw, closeClaim } = useDrawClaims({ gameId, fen, gameStatus: game?.status, revisionRef, setGame, setError, setInfo });
   const isGameOver = game && game.status !== "active" && game.status !== "waiting";
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
@@ -35,20 +61,25 @@ export default function GamePage() {
   const playerNamesById = buildPlayerNamesById(game);
   const playerSummary = buildPlayerSummary(game, currentUserId);
   const canConnect = Boolean(socketToken);
-  const canOpenSocket = canConnect && Boolean(game?.id);
-  const canMove = !isGameOver && Boolean(playerColor) && socketStatus === "connected";
+  const canOpenSocket = canConnect && String(game?.id) === String(gameId);
+  const boardIsCurrent = boardMatchesGame(game, fen);
+  const canMove = canPlayGameMove(game, fen, playerColor, socketStatus);
   const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
   const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
   const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
   const canOfferDraw = Boolean(playerColor) && !isGameOver && !hasPendingDrawOffer;
   const canRespondToDraw = hasPendingDrawOffer && !isOwnDrawOffer;
+  const canClaimDraw = Boolean(playerColor) && game?.status === "active" && game.turn_color === playerColor;
+  const canResign = Boolean(playerColor) && game?.status === "active";
   const feedback = resolveBoardFeedback({
+    boardIsCurrent,
     currentUserId,
     error,
     isGameOver,
     isLoading,
     playerColor,
-    socketStatus
+    socketStatus,
+    turnColor: game?.turn_color
   });
 
   useEffect(() => {
@@ -56,6 +87,17 @@ export default function GamePage() {
 
     async function loadGame() {
       setIsLoading(true);
+      setGame(null);
+      setFen(STARTING_FEN);
+      setMoves([]);
+      setMessages([]);
+      showLatest();
+      setChatDraft("");
+      setChatError("");
+      setChatSending(false);
+      lastMoveNumberRef.current = 0;
+      reconnectSchedulerRef.current.resetAttempts();
+      revisionRef.current += 1;
       setError("");
       try {
         const [gameData, movesData] = await Promise.all([
@@ -78,57 +120,84 @@ export default function GamePage() {
     return () => {
       active = false;
     };
-  }, [gameId]);
+  }, [gameId, loadAttempt]);
+
+  useGamePolling({ gameId, loadedGameId: game?.id, isGameOver, revisionRef, setGame });
 
   useEffect(() => {
-    if (!game?.id || isGameOver) return undefined;
-
-    let active = true;
-
-    async function refreshGameOnly() {
-      try {
-        const gameData = await getGame(gameId);
-        if (active) setGame(gameData);
-      } catch {
-        // Keep current state on background refresh failures.
-      }
+    // A missing live move can leave a newer REST state paired with an older
+    // board. Reconnect to restore game, position and moves as one snapshot.
+    if (socketStatus === "connected" && game?.current_fen && fen && !boardIsCurrent) {
+      socketRef.current?.close();
     }
-
-    const intervalId = window.setInterval(refreshGameOnly, 2000);
-
-    return () => {
-      active = false;
-      window.clearInterval(intervalId);
-    };
-  }, [game?.id, gameId, isGameOver]);
+  }, [socketStatus, game?.current_fen, fen, boardIsCurrent]);
 
   useEffect(() => {
     if (!canOpenSocket) return undefined;
 
     let active = true;
-    let opened = false;
-    if (!socketToken) {
-      setSocketStatus("disconnected");
-      setError("No active login session. Log in again before opening the game.");
-      return undefined;
-    }
-
-    if (socketRef.current && socketRef.current.readyState !== WebSocket.CLOSED && socketRef.current.readyState !== WebSocket.CLOSING) {
-      return undefined;
-    }
-
+    let authorized = true;
+    let stableSince = 0;
     setSocketStatus("connecting");
     const ws = createGameSocket(gameId, socketToken);
     socketRef.current = ws;
-    ws.onopen = () => {
-      opened = true;
-      if (active && socketRef.current === ws) {
+
+    function applyGameMessage(data) {
+      const event = normalizeGameEvent(data, lastMoveNumberRef.current);
+      if (event.kind === "snapshot" || event.kind === "duplicate") return;
+      if (event.kind === "gap") {
+        setError("Game updates were missed. Reconnecting to synchronize...");
+        ws.close();
+        return;
+      }
+      lastMoveNumberRef.current = Number(event.move.move_number);
+      revisionRef.current += 1;
+      if (event.game) setGame((current) => mergeGameUpdate(current, event.game));
+      if (event.fen) setFen(event.fen);
+      setMoves((current) => appendMove(current, event.move));
+      setError("");
+    }
+
+    const gameEvents = createGameEventBuffer(applyGameMessage, () => ws.readyState === WebSocket.OPEN);
+
+    ws.onopen = async () => {
+      if (!active || socketRef.current !== ws) return;
+      setSocketStatus("syncing");
+      setInfo("Synchronizing game...");
+      getGameChat(gameId).then((data) => {
+        if (active && socketRef.current === ws) {
+          setMessages((current) => mergeChatMessages(current, data.messages ?? []));
+        }
+      }).catch(() => {
+        if (active && socketRef.current === ws) setChatError("Could not load chat history. Reconnect to try again.");
+      });
+      try {
+        const snapshot = await fetchStableGameSnapshot(gameId, getGame, getGameMoves);
+        if (!active || socketRef.current !== ws || ws.readyState !== WebSocket.OPEN) return;
+        lastMoveNumberRef.current = snapshot.moves.length
+          ? Number(snapshot.moves[snapshot.moves.length - 1].move_number) : 0;
+        revisionRef.current += 1;
+        setGame(snapshot.game);
+        setFen(resolveFen(snapshot.game));
+        setMoves(snapshot.moves);
+        if (!gameEvents.synchronize()) return;
+        stableSince = Date.now();
         setSocketStatus("connected");
         setInfo("Connected");
         setError("");
+      } catch (err) {
+        if (!active || socketRef.current !== ws) return;
+        if (err.status === 401 || err.status === 403) {
+          authorized = false;
+          setError("Your session is not authorized for this game. Sign in again.");
+        } else {
+          setError("Could not synchronize game. Retrying...");
+        }
+        ws.close();
       }
     };
     ws.onmessage = (event) => {
+      if (!active || socketRef.current !== ws) return;
       let data;
       try {
         data = JSON.parse(event.data);
@@ -136,65 +205,39 @@ export default function GamePage() {
         return;
       }
       const payload = data.payload ?? data;
-      if (data.type === "game_state" || data.type === "game_updated") {
-        const nextGame = payload.game ?? (payload.current_fen || payload.fen ? payload : null);
-        const nextMove = payload.move ?? nextGame?.move ?? null;
-        if (nextGame) setGame((current) => ({ ...(current ?? {}), ...nextGame }));
-        const nextFen = resolveFen(nextGame ?? payload, null);
-        if (nextFen) setFen(nextFen);
-        if (Array.isArray(payload.moves) || Array.isArray(nextGame?.moves)) {
-          setMoves(resolveMoves(payload.moves ?? nextGame.moves));
-        }
-        if (nextMove) {
-          setMoves((current) => appendMove(current, nextMove));
-        }
-        setError("");
-      }
-      if (data.type === "move" || data.type === "move_made") {
-        const move = payload.move ?? payload;
-        if (move?.fen_after_move || move?.fen) setFen(move.fen_after_move ?? move.fen);
-        setMoves((current) => appendMove(current, move));
-        setError("");
-      }
-      if (data.type === "chat") {
-        setMessages((current) => [...current, payload]);
-      }
-      if (data.type === "info") {
+      if (["game_state", "game_updated", "move", "move_made"].includes(data.type)) {
+        gameEvents.receive(data);
+      } else if (data.type === "chat") {
+        setMessages((current) => mergeChatMessages(current, [payload]));
+        if (Number(payload.user_id) === Number(currentUserId)) pendingChatRef.current.settle(payload.client_message_id, null);
+      } else if (data.type === "info") {
         setInfo(payload.message ?? "Connected");
-      }
-      if (data.type === "error") {
-        setError(payload.message ?? "WebSocket error");
+      } else if (data.type === "error") {
+        if (!pendingChatRef.current.settle(payload.client_message_id, payload.message ?? "Message rejected")) {
+          setError(payload.message ?? "WebSocket error");
+        }
       }
     };
     ws.onerror = () => {
-      if (active && socketRef.current === ws) {
-        setSocketStatus("disconnected");
-        setError("Game connection failed. Retrying...");
-      }
+      if (active && socketRef.current === ws) setSocketStatus("disconnected");
     };
     ws.onclose = (event) => {
       if (!active || socketRef.current !== ws) return;
+      pendingChatRef.current.rejectAll();
       setSocketStatus("disconnected");
       setInfo("Disconnected");
-      if (event.code === 1008) {
+      if (event.code === 1008 || !authorized) {
         setError("This browser is not authorized for this game. Log out and sign in with the account that joined it.");
         return;
       }
-      if (opened) {
-        reconnectTimerRef.current = window.setTimeout(() => {
-          setSocketAttempt((current) => current + 1);
-        }, 1200);
-      }
+      setError("Game connection lost. Retrying...");
+      reconnectSchedulerRef.current.retry(stableSince);
     };
     return () => {
       active = false;
-      if (reconnectTimerRef.current) {
-        window.clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
-      if (socketRef.current === ws) {
-        socketRef.current = null;
-      }
+      pendingChatRef.current.rejectAll();
+      reconnectSchedulerRef.current.cancelRetry();
+      if (socketRef.current === ws) socketRef.current = null;
       ws.close();
     };
   }, [canOpenSocket, gameId, socketAttempt, socketToken]);
@@ -205,7 +248,7 @@ export default function GamePage() {
       return;
     }
     const activeSocket = socketRef.current;
-    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
+    if (socketStatus !== "connected" || !activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
       setError("Game connection is still opening. Try again in a moment.");
       return;
     }
@@ -213,13 +256,35 @@ export default function GamePage() {
     activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: move } }));
   }
 
-  function sendChat(message) {
+  async function sendChat(message) {
+    if (chatSending) return;
+    if (Array.from(message).length > 1000 || message.includes("\0")) {
+      setChatError("Messages must be at most 1000 characters and cannot contain null bytes.");
+      return;
+    }
     const activeSocket = socketRef.current;
-    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) return;
-    activeSocket.send(JSON.stringify({ type: "chat", payload: { message } }));
+    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
+      setChatError("Chat is disconnected. Your message has been kept.");
+      return;
+    }
+    const gameAtSend = gameId;
+    const id = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setChatError("");
+    setChatSending(true);
+    try {
+      await pendingChatRef.current.send(id, () => {
+        activeSocket.send(JSON.stringify({ type: "chat", payload: { message, client_message_id: id } }));
+      });
+      if (currentGameRef.current === gameAtSend) setChatDraft("");
+    } catch (err) {
+      if (currentGameRef.current === gameAtSend) setChatError(err.message);
+    } finally {
+      if (currentGameRef.current === gameAtSend) setChatSending(false);
+    }
   }
 
   async function handleResign() {
+    if (!window.confirm("Resign this game? Your opponent will win.")) return;
     setError("");
     try {
       const data = await resignGame(gameId);
@@ -269,8 +334,19 @@ export default function GamePage() {
       <aside className="game-side-column desktop-game-sidebar">
         <PlayerSummaryPanel playerSummary={playerSummary} />
         <ChatBox
-          messages={messages}
+          messages={olderMessages ?? messages}
+          onLoadOlder={loadOlder}
+          onShowLatest={showLatest}
+          isOlderPage={olderMessages !== null}
+          canLoadOlder={olderAvailable && (olderMessages !== null || messages.length === 100)}
+          isLoadingOlder={loadingOlder}
+          historyError={historyError}
+          historyExhausted={!olderAvailable}
           onSend={sendChat}
+          message={chatDraft}
+          onMessageChange={setChatDraft}
+          isSending={chatSending}
+          error={chatError}
           getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
         />
       </aside>
@@ -292,11 +368,15 @@ export default function GamePage() {
           ) : (
             <p className="muted">Status ready.</p>
           )}
+          {!isLoading && !game && error && (
+            <button type="button" onClick={() => setLoadAttempt((current) => current + 1)}>Retry loading game</button>
+          )}
         </section>
         <section className="mobile-game-nav" aria-label="Game panels">
           <button
             type="button"
             className={`secondary-button mobile-game-nav-button ${mobilePanel === "players" ? "is-active" : ""}`}
+            aria-pressed={mobilePanel === "players"}
             onClick={() => setMobilePanel("players")}
           >
             Players
@@ -304,6 +384,7 @@ export default function GamePage() {
           <button
             type="button"
             className={`secondary-button mobile-game-nav-button ${mobilePanel === "moves" ? "is-active" : ""}`}
+            aria-pressed={mobilePanel === "moves"}
             onClick={() => setMobilePanel("moves")}
           >
             Moves
@@ -311,6 +392,7 @@ export default function GamePage() {
           <button
             type="button"
             className={`secondary-button mobile-game-nav-button ${mobilePanel === "chat" ? "is-active" : ""}`}
+            aria-pressed={mobilePanel === "chat"}
             onClick={() => setMobilePanel("chat")}
           >
             Chat
@@ -321,6 +403,10 @@ export default function GamePage() {
             <>
               <PlayerSummaryPanel playerSummary={playerSummary} />
               <GameActionPanel
+                canResign={canResign}
+                canClaimDraw={canClaimDraw}
+                claimBusy={claimBusy}
+                onCheckClaim={handleCheckClaim}
                 canOfferDraw={canOfferDraw}
                 canRespondToDraw={canRespondToDraw}
                 onAcceptDraw={handleAcceptDraw}
@@ -328,6 +414,7 @@ export default function GamePage() {
                 onOfferDraw={handleOfferDraw}
                 onResign={handleResign}
               />
+              {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={closeClaim} busy={claimBusy} />}
               <DrawOfferPanel
                 drawOfferByUserId={drawOfferByUserId}
                 hasPendingDrawOffer={hasPendingDrawOffer}
@@ -339,8 +426,19 @@ export default function GamePage() {
           {mobilePanel === "moves" && <MoveHistory moves={moves} />}
           {mobilePanel === "chat" && (
             <ChatBox
-              messages={messages}
+              messages={olderMessages ?? messages}
+              onLoadOlder={loadOlder}
+              onShowLatest={showLatest}
+              isOlderPage={olderMessages !== null}
+              canLoadOlder={olderAvailable && (olderMessages !== null || messages.length === 100)}
+              isLoadingOlder={loadingOlder}
+              historyError={historyError}
+              historyExhausted={!olderAvailable}
               onSend={sendChat}
+              message={chatDraft}
+              onMessageChange={setChatDraft}
+              isSending={chatSending}
+              error={chatError}
               getAuthorLabel={(message) => playerNamesById[message.user_id] ?? resolvePlayerChatLabel(game, message.user_id)}
             />
           )}
@@ -349,6 +447,10 @@ export default function GamePage() {
       <aside className="game-side-column desktop-game-sidebar">
         <MoveHistory moves={moves} />
         <GameActionPanel
+          canResign={canResign}
+          canClaimDraw={canClaimDraw}
+          claimBusy={claimBusy}
+          onCheckClaim={handleCheckClaim}
           canOfferDraw={canOfferDraw}
           canRespondToDraw={canRespondToDraw}
           onAcceptDraw={handleAcceptDraw}
@@ -356,6 +458,7 @@ export default function GamePage() {
           onOfferDraw={handleOfferDraw}
           onResign={handleResign}
         />
+        {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={closeClaim} busy={claimBusy} />}
         <DrawOfferPanel
           drawOfferByUserId={drawOfferByUserId}
           hasPendingDrawOffer={hasPendingDrawOffer}
@@ -363,69 +466,6 @@ export default function GamePage() {
           playerNamesById={playerNamesById}
         />
       </aside>
-    </section>
-  );
-}
-
-function PlayerSummaryPanel({ playerSummary }) {
-  return (
-    <section className="panel player-summary-panel">
-      <h2>Players</h2>
-      {playerSummary.length === 0 ? (
-        <p className="muted">Player names unavailable.</p>
-      ) : (
-        <div className="player-summary-list">
-          {playerSummary.map((player) => (
-            <p key={player.user_id} className="player-summary-row">
-              <span className="player-summary-name">{player.name}</span>
-            </p>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function GameActionPanel({
-  canOfferDraw,
-  canRespondToDraw,
-  onAcceptDraw,
-  onDeclineDraw,
-  onOfferDraw,
-  onResign
-}) {
-  return (
-    <div className="panel button-panel">
-      <div className="actions">
-        <button type="button" className="danger-button" onClick={onResign}>
-          <span aria-hidden="true">🏁</span> Resign
-        </button>
-      </div>
-      <div className="actions">
-        {canOfferDraw && (
-          <button type="button" className="secondary-button" onClick={onOfferDraw}>½ Offer draw</button>
-        )}
-        {canRespondToDraw && (
-          <>
-            <button type="button" className="secondary-button" onClick={onAcceptDraw}>½ Accept draw</button>
-            <button type="button" className="danger-button" onClick={onDeclineDraw}>Decline</button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DrawOfferPanel({ drawOfferByUserId, hasPendingDrawOffer, isOwnDrawOffer, playerNamesById }) {
-  if (!hasPendingDrawOffer) return null;
-
-  return (
-    <section className="panel draw-offer-panel">
-      <p className="muted draw-offer-copy">
-        {isOwnDrawOffer
-          ? "½ Draw offered. Waiting for opponent response."
-          : `½ ${playerNamesById[drawOfferByUserId] ?? "Opponent"} offered a draw.`}
-      </p>
     </section>
   );
 }
@@ -461,7 +501,11 @@ function formatGameResult(game) {
   }
   if (game?.status === "white_win") return "White wins.";
   if (game?.status === "black_win") return "Black wins.";
-  if (game?.status === "draw") return "Draw.";
+  if (game?.status === "draw") {
+    if (game.result === "draw_claimed_threefold") return "Draw claimed by threefold repetition.";
+    if (game.result === "draw_claimed_fifty_move") return "Draw claimed under the 50-move rule.";
+    return "Draw.";
+  }
   return game?.result ?? "Game finished.";
 }
 
@@ -500,15 +544,24 @@ function buildPlayerSummary(game, currentUserId) {
   return players;
 }
 
-function resolveBoardFeedback({ currentUserId, error, isGameOver, isLoading, playerColor, socketStatus }) {
+function resolveBoardFeedback({ boardIsCurrent, currentUserId, error, isGameOver, isLoading, playerColor, socketStatus, turnColor }) {
   if (error) {
     return { message: error, tone: "error" };
+  }
+  if (isLoading) {
+    return { message: "Loading game...", tone: "muted" };
   }
   if (!playerColor && currentUserId && !isLoading) {
     return { message: "This account is not one of the players in this game.", tone: "error" };
   }
   if (playerColor && socketStatus !== "connected" && !isGameOver) {
     return { message: "Waiting for live game connection...", tone: "muted" };
+  }
+  if (playerColor && !isGameOver && !boardIsCurrent) {
+    return { message: "Synchronizing game...", tone: "muted" };
+  }
+  if (playerColor && !isGameOver && turnColor && turnColor !== playerColor) {
+    return { message: "Waiting for your opponent's move.", tone: "muted" };
   }
   return null;
 }

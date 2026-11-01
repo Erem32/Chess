@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.db.session import Base, get_db
+from app.api import websocket as websocket_api
 from app.main import app
-from app.models import Game, MatchmakingQueue
-from app.models import chat_message, game, game_player, matchmaking, move, user  # noqa: F401
+from app.models import ChatMessage, Game, MatchmakingQueue, User
+from app.repositories.game_repository import create_game_with_players
 from app.services.chess_service import apply_player_move
 
 
@@ -138,6 +139,73 @@ def test_game_reads_history_moves_and_resign(client: TestClient) -> None:
     assert resign_response.json()["result"] == "white_wins_by_resignation"
 
 
+def test_resignation_keeps_game_access_checks_for_active_and_finished_games(client: TestClient) -> None:
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    eve = _auth_headers(client, "eve")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game_id"]
+
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=eve).status_code == 403
+    assert client.post("/api/v1/games/999999/resign", headers=eve).status_code == 404
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=bob).status_code == 200
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=eve).status_code == 403
+    assert client.post(f"/api/v1/games/{game_id}/resign", headers=bob).status_code == 409
+
+
+def test_game_endpoints_consistently_report_missing_and_forbidden_games(client: TestClient) -> None:
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    eve = _auth_headers(client, "eve")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game_id"]
+
+    for method, suffix in (
+        ("GET", ""), ("GET", "/moves"), ("GET", "/chat"), ("POST", "/resign"),
+        ("POST", "/draw-offer"), ("GET", "/draw-claims"), ("POST", "/draw-claims"),
+        ("POST", "/draw-offer/accept"), ("POST", "/draw-offer/decline"),
+    ):
+        for target_id, expected_status, expected_detail in (
+            (game_id, 403, "Not a player in this game"), (999999, 404, "Game not found"),
+        ):
+            response = client.request(method, f"/api/v1/games/{target_id}{suffix}", headers=eve, json={})
+            assert response.status_code == expected_status, (method, suffix, response.text)
+            assert response.json()["detail"] == expected_detail
+
+
+def test_history_pagination_is_bounded_and_scoped_to_the_player(
+    client: TestClient, db_session_factory: sessionmaker[Session]
+) -> None:
+    alice = _auth_headers(client, "alice")
+    _auth_headers(client, "bob")
+    charlie = _auth_headers(client, "charlie")
+    with db_session_factory() as db:
+        users = {u.username: u.id for u in db.query(User).all()}
+        ids = [
+            create_game_with_players(db, users["alice"], users["bob"], "start").id
+            for _ in range(3)
+        ]
+        other_id = create_game_with_players(db, users["bob"], users["charlie"], "start").id
+        db.commit()
+
+    first = client.get("/api/v1/games/my-history?limit=2", headers=alice).json()
+    assert [game["id"] for game in first["games"]] == ids[::-1][:2]
+    assert {p["username"] for p in first["games"][0]["players"]} == {"alice", "bob"}
+    assert first["next_before_id"] == ids[1]
+
+    # A new game between pages must not duplicate or displace older results.
+    with db_session_factory() as db:
+        create_game_with_players(db, users["alice"], users["bob"], "start")
+        db.commit()
+    second = client.get(f"/api/v1/games/my-history?limit=2&before_id={first['next_before_id']}", headers=alice).json()
+    assert [game["id"] for game in second["games"]] == [ids[0]]
+    assert second["next_before_id"] is None
+    assert [game["id"] for game in client.get("/api/v1/games/my-history", headers=charlie).json()["games"]] == [other_id]
+    assert client.get("/api/v1/games/my-history").status_code == 401
+    for query in ("limit=0", "limit=101", "before_id=0"):
+        assert client.get(f"/api/v1/games/my-history?{query}", headers=alice).status_code == 422
+
+
 def test_user_can_abort_active_games_for_clean_dashboard(client: TestClient) -> None:
     alice_headers = _auth_headers(client, "alice")
     bob_headers = _auth_headers(client, "bob")
@@ -172,6 +240,120 @@ def test_cannot_abort_after_first_move(client: TestClient, db_session_factory: s
     assert response.status_code == 409
     assert "resign" in response.json()["detail"]
     assert client.get("/api/v1/games/my-active", headers=alice_headers).json()["status"] == "active"
+
+
+def test_claim_threefold_with_declared_move(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    white = next(player["user_id"] for player in game["players"] if player["color"] == "white")
+    black = next(player["user_id"] for player in game["players"] if player["color"] == "black")
+    sequence = [(white, "g1f3"), (black, "g8f6"), (white, "f3g1"), (black, "f6g8")]
+    with db_session_factory() as db:
+        for user_id, move in sequence + sequence[:-1]:
+            apply_player_move(db, game["id"], user_id, move)
+
+    options = client.get(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers)
+    assert options.status_code == 200
+    assert any(move["uci"] == "f6g8" and "threefold" in move["reasons"] for move in options.json()["moves"])
+    rejected = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers, json={"move_uci": "f6e4"})
+    assert rejected.status_code == 409
+    response = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers, json={"move_uci": "f6g8"})
+    assert response.status_code == 200
+    assert response.json()["status"] == "draw"
+    assert response.json()["result"] == "draw_claimed_threefold"
+    assert len(client.get(f'/api/v1/games/{game["id"]}/moves', headers=bob_headers).json()["moves"]) == 7
+
+
+def test_claim_threefold_on_current_position_and_deny_nonplayer(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    outsider_headers = _auth_headers(client, "outsider")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    white = next(player["user_id"] for player in game["players"] if player["color"] == "white")
+    black = next(player["user_id"] for player in game["players"] if player["color"] == "black")
+    sequence = [(white, "g1f3"), (black, "g8f6"), (white, "f3g1"), (black, "f6g8")]
+    with db_session_factory() as db:
+        for user_id, move in sequence * 2:
+            apply_player_move(db, game["id"], user_id, move)
+
+    denied = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=outsider_headers, json={})
+    assert denied.status_code == 403
+    options = client.get(f'/api/v1/games/{game["id"]}/draw-claims', headers=alice_headers)
+    assert "threefold" in options.json()["current_reasons"]
+    response = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=alice_headers, json={})
+    assert response.status_code == 200
+    assert response.json()["result"] == "draw_claimed_threefold"
+
+
+def test_claim_fifty_move_rule_and_reject_wrong_turn(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice_headers = _auth_headers(client, "alice")
+    bob_headers = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice_headers)
+    game = client.post("/api/v1/matchmaking/join", headers=bob_headers).json()["game"]
+    with db_session_factory() as db:
+        stored = db.get(Game, game["id"])
+        stored.current_fen = "8/8/8/8/8/8/R6r/K6k w - - 99 51"
+        db.commit()
+    wrong_turn = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=bob_headers, json={"move_uci": "a2a3"})
+    assert wrong_turn.status_code == 409
+    response = client.post(f'/api/v1/games/{game["id"]}/draw-claims', headers=alice_headers, json={"move_uci": "a2a3"})
+    assert response.status_code == 200
+    assert response.json()["result"] == "draw_claimed_fifty_move"
+
+
+def test_chat_history_is_authorized_bounded_and_paginated(client: TestClient, db_session_factory: sessionmaker[Session]) -> None:
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    eve = _auth_headers(client, "eve")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game = client.post("/api/v1/matchmaking/join", headers=bob).json()["game"]
+    game_id = game["id"]
+    sender = game["players"][0]["user_id"]
+    with db_session_factory() as db:
+        db.add_all([ChatMessage(game_id=game_id, user_id=sender, message=f"message {i}") for i in range(105)])
+        db.commit()
+
+    assert client.get(f"/api/v1/games/{game_id}/chat").status_code == 401
+    assert client.get(f"/api/v1/games/{game_id}/chat", headers=eve).status_code == 403
+    assert client.get("/api/v1/games/999999/chat", headers=alice).status_code == 404
+    assert client.get(f"/api/v1/games/{game_id}/chat?limit=101", headers=alice).status_code == 422
+    assert client.get(f"/api/v1/games/{game_id}/chat?limit=0", headers=alice).status_code == 422
+    assert client.get(f"/api/v1/games/{game_id}/chat?before_id=0", headers=alice).status_code == 422
+    latest = client.get(f"/api/v1/games/{game_id}/chat", headers=alice).json()["messages"]
+    assert len(latest) == 100
+    assert latest[0]["message"] == "message 5"
+    assert latest[-1]["message"] == "message 104"
+    older = client.get(f"/api/v1/games/{game_id}/chat?before_id={latest[0]['id']}&limit=10", headers=bob).json()["messages"]
+    assert [item["message"] for item in older] == [f"message {i}" for i in range(5)]
+
+
+def test_chat_socket_acknowledges_success_and_rejection(client: TestClient, db_session_factory, monkeypatch):
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game"]["id"]
+    monkeypatch.setattr(websocket_api, "SessionLocal", db_session_factory)
+    token = alice["Authorization"].split(" ", 1)[1]
+    with client.websocket_connect(f"/ws/games/{game_id}?token={token}") as socket:
+        assert socket.receive_json()["type"] == "game_state"
+        socket.send_json({"type": "chat", "payload": {"message": "hello", "client_message_id": "test-1"}})
+        event = socket.receive_json()
+        assert event["type"] == "chat"
+        assert event["payload"]["client_message_id"] == "test-1"
+        assert event["payload"]["message"] == "hello"
+        socket.send_json({"type": "chat", "payload": {"message": " ", "client_message_id": "test-2"}})
+        rejection = socket.receive_json()
+        assert rejection["type"] == "error"
+        assert rejection["payload"]["client_message_id"] == "test-2"
+        socket.send_json({"type": "chat", "payload": {"message": "hello", "client_message_id": "x" * 65}})
+        assert socket.receive_json()["type"] == "error"
+        socket.send_json({"type": "chat", "payload": {"message": "legacy"}})
+        assert socket.receive_json()["payload"]["message"] == "legacy"
+    with db_session_factory() as db:
+        assert db.query(ChatMessage).count() == 2
 
 
 def test_player_can_offer_draw_and_opponent_can_accept(client: TestClient) -> None:

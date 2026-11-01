@@ -75,6 +75,17 @@ docker compose exec backend alembic upgrade head
 - Use `$maintain-chess-docs` when available. If it is not available, perform the documentation check above directly.
 - Verify relevant links and examples. If no documentation needs changing, say so when reporting the work.
 
+## Long-running improvement work
+
+- For the improvement project, follow `docs/IMPROVEMENT_PLAN.md` and keep `docs/IMPLEMENTATION_PROGRESS.md` current. Work in small increments with clear outcomes, focused tests, reviewed diffs, affected documentation, and descriptive commits. Checkpoint often; an interruption can occur without warning.
+- On resumption, inspect Git status, branches, worktrees, incomplete merges, recent commits, and relevant remote refs before editing. Reconcile the checkpoint with actual code and tests. Preserve uncommitted or unmerged work and never reset, clean, or force-push it away.
+- Use separate worktrees and branches for independent agent work when practical. Assign explicit ownership, review and test changes before integration, and record unfinished WIP branches and verification limitations. Continue unblocked work while a decision or external access is pending.
+- The project owner authorized regular pushes of reviewed project work and clearly marked WIP recovery branches to the intended remote. Inspect changes for secrets, use normal non-force pushes, verify remote refs, and report failures. Do not push to `main`, deploy, publish a release, or modify external services without separate authorization. Never upload secrets, local databases, or ignored files blindly.
+- Use `$chess-handoff` to preserve and transfer interrupted work, `$chess-receive-handoff` to inspect a transfer, and `$continue-chess-improvements` to resume the roadmap. For manual recovery see `docs/HUMAN_HANDOFF.md`; if skills are not discoverable, read their files under `.agents/skills/` directly.
+- User decisions for the current roadmap: allow game abort only before the first move, with no result; afterward require resignation. Support standard server-verified threefold and 50-move draw claims, including claims based on a declared legal move. For now, retain the existing behavior that checks WebSocket tokens at connection time without closing already open sockets on token expiry. Favor a modern, understated visual direction. Do not alter historical data without review and authorization.
+- Prioritize usability, maintainability, and ease of adding features in the remaining improvement work. The application is expected to have few users; do not focus on scalability or performance tuning unless a concrete problem requires it. Keep existing security checks, but do not concentrate on further security work unless a concrete issue requires it.
+- Prioritize code structure and extensibility in the current phase. Do not undertake a large interface overhaul or focus work on disability accessibility for now. Fix ordinary usability issues as they arise and preserve existing useful behavior. The user requested removal of the separate “Play a move” text field; board interaction must support click-to-move, including captures, and dragging.
+
 ## Project Rules
 
 - Do not bypass backend chess validation. The frontend may help the user choose moves, but the backend is always the source of truth.

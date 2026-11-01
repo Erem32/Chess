@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getMyStats } from "../api/auth.js";
@@ -11,6 +11,7 @@ import {
   leaveMatchmaking
 } from "../api/games.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { formatGameDuration, formatPlayerColor, humanizeGameValue, resolveGameStatusClass, resolvePlayerResult } from "../features/game/gamePresentation.js";
 
 const EMPTY_STATS = {
   wins: 0,
@@ -49,6 +50,7 @@ export default function DashboardPage() {
   const [activeGame, setActiveGame] = useState(null);
   const [recentGames, setRecentGames] = useState(null);
   const [historyError, setHistoryError] = useState("");
+  const matchmakingRevision = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -75,9 +77,10 @@ export default function DashboardPage() {
         if (active) setError(`Could not check your active game: ${err.message}`);
       });
 
+    const initialMatchmakingRevision = matchmakingRevision.current;
     getMatchmakingStatus()
       .then((data) => {
-        if (!active) return;
+        if (!active || initialMatchmakingRevision !== matchmakingRevision.current) return;
         const gameId = resolveGameId(data);
         if (gameId && isMatchmakingPending()) {
           setMatchmakingPending(false);
@@ -85,16 +88,19 @@ export default function DashboardPage() {
           navigate(`/games/${gameId}`);
           return;
         }
-        if (data?.status === "waiting" && isMatchmakingPending()) {
+        if (data?.status === "waiting") {
+          setMatchmakingPending(true);
           setIsWaiting(true);
           setStatus("Waiting for another player");
         }
       })
       .catch((err) => {
-        if (active) setError(`Could not check matchmaking: ${err.message}`);
+        if (active && initialMatchmakingRevision === matchmakingRevision.current) {
+          setError(`Could not check matchmaking: ${err.message}`);
+        }
       });
 
-    getMyHistory()
+    getMyHistory({ limit: 5 })
       .then((data) => {
         if (active) setRecentGames(data?.games ?? []);
       })
@@ -113,9 +119,10 @@ export default function DashboardPage() {
     let active = true;
 
     async function checkMatchmakingStatus() {
+      const revision = matchmakingRevision.current;
       try {
         const data = await getMatchmakingStatus();
-        if (!active) return;
+        if (!active || revision !== matchmakingRevision.current) return;
         const gameId = resolveGameId(data);
         if (gameId) {
           setMatchmakingPending(false);
@@ -132,7 +139,7 @@ export default function DashboardPage() {
         }
         setStatus(data?.message ?? "Waiting for another player");
       } catch (err) {
-        if (active) setError(err.message);
+        if (active && revision === matchmakingRevision.current) setError(err.message);
       }
     }
 
@@ -146,6 +153,7 @@ export default function DashboardPage() {
   }, [isWaiting, navigate]);
 
   async function handleJoinQueue() {
+    matchmakingRevision.current += 1;
     setIsJoining(true);
     setStatus("");
     setError("");
@@ -177,6 +185,7 @@ export default function DashboardPage() {
   }
 
   async function handleCheckStatus() {
+    matchmakingRevision.current += 1;
     setError("");
     try {
       const active = await getMyActiveGame();
@@ -209,6 +218,7 @@ export default function DashboardPage() {
   }
 
   async function handleLeaveQueue() {
+    matchmakingRevision.current += 1;
     setError("");
     try {
       const data = await leaveMatchmaking();
@@ -343,12 +353,12 @@ export default function DashboardPage() {
                     <div className="latest-game-copy">
                       <div className="latest-game-title">
                         <strong>Game #{game.id}</strong>
-                        <span className={resolveLatestGameStatusClass(game, user?.id)}>
+                        <span className={resolveGameStatusClass(game, user?.id)}>
                           {formatLatestGameStatus(game, user?.id)}
                         </span>
                       </div>
                       <p className="muted latest-game-meta">
-                        <span>{formatPlayerColor(game, user?.id)}</span>
+                        <span>{formatPlayerColor(game, user?.id, "Unknown color")}</span>
                         <span>{formatGameDuration(game)}</span>
                         {game.started_at && <span>{formatGameDate(game.started_at)}</span>}
                       </p>
@@ -403,51 +413,7 @@ function formatLatestGameStatus(game, userId) {
   if (playerResult === "loss") return "Lost";
   if (playerResult === "draw") return "Draw";
 
-  return humanizeDashboardValue(game?.result || status || "Unknown");
-}
-
-function resolveLatestGameStatusClass(game, userId) {
-  if (game?.status === "aborted") return "history-status";
-  const playerResult = resolvePlayerResult(game, userId);
-
-  if (playerResult === "win") return "history-status history-status--win";
-  if (playerResult === "loss") return "history-status history-status--loss";
-  if (playerResult === "draw") return "history-status history-status--draw";
-  if (game?.status === "active" || game?.status === "waiting") {
-    return "history-status history-status--active";
-  }
-  return "history-status";
-}
-
-function resolvePlayerResult(game, userId) {
-  if (!game?.players || !userId) return null;
-  return game.players.find((player) => Number(player.user_id) === Number(userId))?.result ?? null;
-}
-
-function formatPlayerColor(game, userId) {
-  if (!game?.players || !userId) return "Unknown color";
-  const color = game.players.find((player) => Number(player.user_id) === Number(userId))?.color;
-  if (color === "white") return "White";
-  if (color === "black") return "Black";
-  return humanizeDashboardValue(color || "Unknown color");
-}
-
-function formatGameDuration(game) {
-  if (!game?.started_at) return "Unknown duration";
-
-  const startedAt = new Date(game.started_at);
-  const endedAt = game.finished_at ? new Date(game.finished_at) : null;
-  if (Number.isNaN(startedAt.getTime())) return "Unknown duration";
-  if (!endedAt || Number.isNaN(endedAt.getTime())) return "In progress";
-
-  const totalSeconds = Math.max(0, Math.round((endedAt.getTime() - startedAt.getTime()) / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
+  return humanizeGameValue(game?.result || status || "Unknown");
 }
 
 function formatGameDate(value) {
@@ -459,10 +425,4 @@ function formatGameDate(value) {
     minute: "2-digit",
     month: "short"
   });
-}
-
-function humanizeDashboardValue(value) {
-  return String(value)
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (match) => match.toUpperCase());
 }

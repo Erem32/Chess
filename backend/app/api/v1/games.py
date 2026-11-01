@@ -1,18 +1,22 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models import User
-from app.schemas.game import GameDetailRead, GameHistoryResponse
+from app.schemas.chat import ChatHistoryResponse
+from app.schemas.game import DrawClaimOptions, DrawClaimRequest, GameDetailRead, GameHistoryPage, GameHistoryResponse
 from app.schemas.move import MoveListResponse
 from app.services.chess_service import (
     DrawOfferError,
     GameAccessError,
     GameNotActiveError,
     GameNotFoundError as ChessGameNotFoundError,
+    NotPlayerTurnError,
+    claim_draw,
+    draw_claim_options,
     offer_draw,
     respond_to_draw_offer,
 )
@@ -28,11 +32,18 @@ router = APIRouter()
 game_service = GameService()
 
 
-def _game_error_response(exc: Exception) -> HTTPException:
-    if isinstance(exc, GameNotFoundError):
+def _game_access_error_response(exc: Exception) -> HTTPException | None:
+    if isinstance(exc, (GameNotFoundError, ChessGameNotFoundError)):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
-    if isinstance(exc, GameAccessDeniedError):
+    if isinstance(exc, (GameAccessDeniedError, GameAccessError)):
         return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a player in this game")
+    return None
+
+
+def _game_error_response(exc: Exception) -> HTTPException:
+    access_error = _game_access_error_response(exc)
+    if access_error is not None:
+        return access_error
     if isinstance(exc, GameAlreadyFinishedError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Game is already finished")
     if isinstance(exc, GameCannotBeAbortedError):
@@ -41,24 +52,29 @@ def _game_error_response(exc: Exception) -> HTTPException:
 
 
 def _draw_error_response(exc: Exception) -> HTTPException:
-    if isinstance(exc, ChessGameNotFoundError):
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
-    if isinstance(exc, GameAccessError):
-        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a player in this game")
+    access_error = _game_access_error_response(exc)
+    if access_error is not None:
+        return access_error
     if isinstance(exc, GameNotActiveError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Game is not active")
     if isinstance(exc, DrawOfferError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    if isinstance(exc, NotPlayerTurnError):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected draw-offer error")
 
 
-@router.get("/my-history", response_model=GameHistoryResponse)
+@router.get("/my-history", response_model=GameHistoryPage)
 def my_game_history(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> GameHistoryResponse:
-    games = game_service.list_history_for_user(db, current_user)
-    return GameHistoryResponse(games=games)
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    before_id: Annotated[int | None, Query(ge=1)] = None,
+) -> GameHistoryPage:
+    games = game_service.list_history_for_user(db, current_user, limit + 1, before_id)
+    has_more = len(games) > limit
+    games = games[:limit]
+    return GameHistoryPage(games=games, next_before_id=games[-1].id if has_more else None)
 
 
 @router.get("/my-active", response_model=GameDetailRead | None)
@@ -108,6 +124,21 @@ def get_game_moves(
     return MoveListResponse(game_id=game_id, moves=moves)
 
 
+@router.get("/{game_id}/chat", response_model=ChatHistoryResponse)
+def get_game_chat(
+    game_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    before_id: Annotated[int | None, Query(ge=1)] = None,
+) -> ChatHistoryResponse:
+    try:
+        messages = game_service.list_chat_for_user(db, game_id, current_user, limit, before_id)
+    except (GameAccessDeniedError, GameNotFoundError) as exc:
+        raise _game_error_response(exc) from exc
+    return ChatHistoryResponse(game_id=game_id, messages=messages)
+
+
 @router.post("/{game_id}/resign", response_model=GameDetailRead)
 def resign_game(
     game_id: int,
@@ -133,6 +164,32 @@ def create_draw_offer(
     except (ChessGameNotFoundError, GameAccessError, GameNotActiveError, DrawOfferError) as exc:
         raise _draw_error_response(exc) from exc
     return GameDetailRead.model_validate(game)
+
+
+@router.get("/{game_id}/draw-claims", response_model=DrawClaimOptions)
+def get_draw_claim_options(
+    game_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> DrawClaimOptions:
+    try:
+        return DrawClaimOptions.model_validate(draw_claim_options(db, game_id, current_user.id))
+    except (ChessGameNotFoundError, GameAccessError, GameNotActiveError, NotPlayerTurnError) as exc:
+        raise _draw_error_response(exc) from exc
+
+
+@router.post("/{game_id}/draw-claims", response_model=GameDetailRead)
+def submit_draw_claim(
+    game_id: int,
+    payload: DrawClaimRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> GameDetailRead:
+    try:
+        claim_draw(db, game_id, current_user.id, payload.move_uci)
+        return GameDetailRead.model_validate(game_service.get_game_for_user(db, game_id, current_user))
+    except (ChessGameNotFoundError, GameAccessError, GameNotActiveError, NotPlayerTurnError, DrawOfferError) as exc:
+        raise _draw_error_response(exc) from exc
 
 
 @router.post("/{game_id}/draw-offer/accept", response_model=GameDetailRead)

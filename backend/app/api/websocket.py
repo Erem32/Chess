@@ -1,0 +1,161 @@
+import re
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from jose import JWTError
+from sqlalchemy.orm import Session
+
+from app.core.security import decode_access_token
+from app.db.session import SessionLocal
+from app.models import User
+from app.repositories import user_repository
+from app.services.chess_service import (
+    ChatMessageError,
+    GameAccessError,
+    GameNotActiveError,
+    GameNotFoundError,
+    IllegalMoveError,
+    NotPlayerTurnError,
+    apply_player_move,
+    get_game_state_for_user,
+    persist_chat_message,
+)
+from app.services.websocket_manager import websocket_manager
+
+router = APIRouter()
+
+
+@router.websocket("/ws/games/{game_id}")
+async def game_websocket(websocket: WebSocket, game_id: int) -> None:
+    token = websocket.query_params.get("token")
+    # Uvicorn logs the ASGI scope's query string when accepting a socket.
+    # The token has already been read; remove it before the handshake is logged.
+    websocket.scope["query_string"] = b""
+    with SessionLocal() as db:
+        user = _authenticate_websocket_user(token, db)
+        if user is None:
+            print(f"WebSocket auth failed game_id={game_id} token_present={bool(token)}")
+            await _close_unauthorized(websocket, "Could not validate credentials")
+            return
+
+        user_id = user.id
+        print(f"WebSocket auth success game_id={game_id} user_id={user_id}")
+        try:
+            initial_state = get_game_state_for_user(db, game_id, user_id)
+        except (GameAccessError, GameNotFoundError) as exc:
+            print(f"WebSocket game access denied game_id={game_id} user_id={user_id} error={exc}")
+            await _close_unauthorized(websocket, str(exc))
+            return
+
+    await websocket_manager.connect(game_id, websocket)
+    print(f"WebSocket connected game_id={game_id} user_id={user_id}")
+    initial_state_sent = await websocket_manager.send(
+        websocket,
+        {"type": "game_state", "payload": {"game": initial_state}},
+    )
+    if not initial_state_sent:
+        websocket_manager.disconnect(game_id, websocket)
+        return
+
+    try:
+        while True:
+            try:
+                message = await websocket.receive_json()
+            except ValueError:
+                await _send_websocket_error(websocket, "WebSocket message must be valid JSON")
+                continue
+            with SessionLocal() as db:
+                await _handle_game_websocket_message(db, websocket, game_id, user_id, message)
+    except WebSocketDisconnect:
+        pass
+    finally:
+        websocket_manager.disconnect(game_id, websocket)
+
+
+async def _handle_game_websocket_message(
+    db: Session,
+    websocket: WebSocket,
+    game_id: int,
+    user_id: int,
+    message: dict,
+) -> None:
+    if not isinstance(message, dict):
+        await _send_websocket_error(websocket, "WebSocket message must be a JSON object")
+        return
+
+    message_type = message.get("type")
+    payload = message.get("payload") if isinstance(message.get("payload"), dict) else {}
+
+    if message_type == "move":
+        move_uci = payload.get("move_uci") or payload.get("move") or message.get("move_uci") or message.get("move")
+        if not isinstance(move_uci, str):
+            await _send_websocket_error(websocket, "Move payload must include move_uci")
+            return
+
+        try:
+            result = apply_player_move(db, game_id, user_id, move_uci)
+        except (GameAccessError, GameNotActiveError, GameNotFoundError, IllegalMoveError, NotPlayerTurnError) as exc:
+            db.rollback()
+            await _send_websocket_error(websocket, str(exc))
+            return
+
+        await websocket_manager.broadcast(game_id, {"type": "game_state", "payload": result})
+        return
+
+    if message_type == "chat":
+        client_message_id = payload.get("client_message_id")
+        if client_message_id is not None and (
+            not isinstance(client_message_id, str)
+            or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", client_message_id)
+        ):
+            await _send_websocket_error(websocket, "Invalid chat client_message_id")
+            return
+        chat_text = payload.get("message") if "message" in payload else message.get("message")
+        if not isinstance(chat_text, str):
+            await _send_websocket_error(websocket, "Chat payload must include message", client_message_id)
+            return
+
+        try:
+            chat_message = persist_chat_message(db, game_id, user_id, chat_text)
+        except (ChatMessageError, GameAccessError, GameNotFoundError) as exc:
+            db.rollback()
+            await _send_websocket_error(websocket, str(exc), client_message_id)
+            return
+
+        if client_message_id is not None:
+            chat_message["client_message_id"] = client_message_id
+        await websocket_manager.broadcast(game_id, {"type": "chat", "payload": chat_message})
+        return
+
+    await _send_websocket_error(websocket, "Unsupported message type")
+
+
+def _authenticate_websocket_user(token: str | None, db: Session) -> User | None:
+    if not token:
+        return None
+
+    try:
+        payload = decode_access_token(token)
+        subject = payload.get("sub")
+        if subject is None:
+            return None
+        user_id = int(subject)
+    except (JWTError, ValueError):
+        return None
+
+    user = user_repository.get_user(db, user_id)
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
+async def _send_websocket_error(websocket: WebSocket, message: str, client_message_id: str | None = None) -> None:
+    payload = {"message": message}
+    if client_message_id is not None:
+        payload["client_message_id"] = client_message_id
+    await websocket_manager.send(websocket, {"type": "error", "payload": payload})
+
+
+async def _close_unauthorized(websocket: WebSocket, message: str) -> None:
+    await websocket.accept()
+    await _send_websocket_error(websocket, message)
+    await websocket.close(code=1008)
