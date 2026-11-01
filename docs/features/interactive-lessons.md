@@ -1,21 +1,16 @@
-# Interactive chess lessons
+# Piece lessons
 
-Let a player choose a piece, read a short explanation, try moves, and receive feedback. Hints are optional. A lesson can be repeated or exited.
+## Outcome
 
-## Small first version
-
-Add one authored piece-movement lesson, then add the other pieces as content. Store the positions, instructions and expected moves in a small file in the repository. Do not store progress or use an engine. A lesson is separate from an online game and must not affect game history or statistics.
+Provide six short authored lessons, one for each chess piece. A learner reads an explanation, tries moves on a prepared board, receives feedback on an invalid attempt, and can retry, repeat or leave. Legal-move guidance follows the user's setting.
 
 ## Implementation
 
-1. Agree a minimal board interface with the shared-board owner; a developer can build the lesson page with a fixture in parallel.
-2. Add a small backend endpoint using the existing chess rules library to validate moves for the authored position. Return a useful explanation for invalid moves and distinguish a legal move from the lesson's expected move.
-3. Show the instructions, board, optional authored hint, feedback, retry and exit. Expand the checked-in content after the first lesson works.
+- Store a small set of reviewed positions, instructions, expected moves and predetermined feedback in repository files. Keep lessons separate from online games and statistics.
+- Reuse the existing board after the small adaptation in [shared preparation](00-foundations.md). Its current interaction filters illegal moves before calling `onMove`, so add a practice-only way to report an invalid attempt without changing live-game behavior.
+- Validate submitted practice moves on the backend using the existing chess library. Distinguish an illegal move from a legal move that does not satisfy the lesson; show authored feedback and keep the position available for retry.
+- Build one lesson first, then supply the other five as content. Display guidance only when enabled in [settings](experience-settings.md).
 
-## Done when
+## Dependencies and checks
 
-- The learner can make an attempt, understand the feedback, retry, finish, repeat and leave.
-- Legal and illegal moves are handled correctly on the server; the lesson does not change a real game.
-- Focused tests cover content, valid/invalid moves and retry; a browser check covers the lesson flow.
-
-The lesson screen and content/validation can be developed on separate branches once the board and response shapes are agreed. [Hints](guidance-hints.md) and [settings](experience-settings.md) are optional integrations, not prerequisites.
+The content and page can be developed in parallel against an agreed example response; integrate after the reusable board and settings interfaces are available. Test all six lesson fixtures, valid and invalid attempts, retry and exit, guidance on/off, and that no online game or statistic is changed. Run a browser check for completing one lesson.

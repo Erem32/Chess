@@ -1,13 +1,22 @@
-# Game setup and board feedback
+# Online game and queue feedback
 
-## Minimum feature
+## Outcome
 
-Keep the existing game flow and make it clear that a player is joining an untimed game against another person. Show the matched opponent after matching, plus turn, move and connection feedback during play. Avoid a new setup system until another opponent or pace is implemented.
+Keep the existing online queue and game flow clear: the user can join, see when they are waiting, leave the queue and understand connection and move status during a game. The interface should distinguish online play from the learning area.
 
 ## Implementation
 
-Make small changes to the dashboard and game screen. The backend remains authoritative: show a move as complete only when the server confirms it. Preserve existing click, drag, promotion and reconnect behavior. Apply board/text settings where available; the game must work without them.
+- Review the existing dashboard and game feedback, then make small targeted changes where the queue, cancellation, connection or move status is unclear. Keep the current matchmaking API and game flow.
+- Show waiting and leave-queue controls while searching. After matching, show the other player and whose turn it is.
+- Make pending, confirmed and rejected moves understandable. Do not show a move as confirmed before the backend confirms it. Show disconnection and reconnecting states while preventing moves until synchronization is complete.
+- Keep the board responsive to the screen and preserve click, drag, promotion, resignation and draw behavior. Use the existing board and session components rather than introducing a new game setup system.
 
-## Dependencies and tests
+## Dependencies and parallel work
 
-Independent branch using the existing queue. Coordinate shared board and dashboard files with other developers. When computer practice, invitations or timed play are ready, add their choices in those feature branches. Test queue errors, both players making moves and reconnecting, and the matched opponent display.
+This feature can be developed on its own branch against the existing queue and game APIs. Coordinate edits to the dashboard, game page and shared board with the settings and learning-feature owners. It does not depend on learning content or settings being completed.
+
+## Acceptance and checks
+
+- A signed-in user can join the queue, identify the waiting state and leave it before a match.
+- With two users, both enter the same game, see the other player and receive clear turn and move feedback. Connection loss is visible and play resumes from the server state after reconnecting.
+- Queue and move failures are visible and recoverable. Verify the flow with focused tests and a two-browser smoke test against disposable data.

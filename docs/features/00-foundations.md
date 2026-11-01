@@ -1,21 +1,19 @@
-# Minimal preparation
+# Shared preparation
 
-Do only the preparation needed by the next feature. The current React/FastAPI application and database are sufficient for a university project; do not introduce a platform, job queue, new infrastructure or a large redesign.
+Keep preparation limited to what the selected features need. The existing React/FastAPI application, chess libraries and PostgreSQL setup are the starting point; no new infrastructure or broad rewrite is necessary.
 
-## Board for learning and review
+## Reuse the board
 
-The existing `ChessBoard` already receives a FEN and move callback. Make the smallest changes needed to use it for a read-only review or a practice position, while keeping live-game networking in the game page. Preserve click, drag and promotion. Lessons, puzzles, opening guides and replay can start from small files in the repository; they do not need a shared content service or database.
+`ChessBoard` already accepts a FEN, player color and move callback. Make the smallest changes needed to display prepared positions, support read-only examples, and turn legal-move markers on or off. Preserve click, drag and promotion in online games.
 
-Keep backend validation authoritative for chess moves. A lesson or puzzle must not modify an online game or its statistics. Existing live-game snapshot and repetition code assumes a standard starting position; keep practice positions separate rather than changing existing games.
+The current board filters illegal attempts before calling `onMove`. Lessons and puzzles therefore need a practice-only attempt/rejection callback or adapter so they can show feedback. Keep this behavior separate from the live-game interaction.
 
-## Private practice and invitations
+## Practice content and validation
 
-The existing game creation assumes two registered users, and matchmaking resumes an active game. For private computer practice, use a separate backend endpoint that validates and replays the supplied moves; keep this unsaved activity out of the live-game model and statistics. Reuse existing game creation for two human players where appropriate. Do not fabricate a user or redesign the game model just to add practice.
+Keep a small set of reviewed lesson, puzzle, opening and example positions in repository files. Agree a simple fixture shape between screen and content owners. Reuse `python-chess` and the existing backend move-validation logic for interactive attempts; the server remains authoritative. Distinguish an illegal move from a legal move that does not solve the exercise. Author positions compatible with the validation rules and test each supplied sequence.
 
-For invitations, use a simple authenticated direct challenge and keep the existing matchmaking path. Agree what happens when either user already has an active game. Add only the data and migrations needed for the implemented slice, preserving existing records.
+Prepared activities are separate from online games and must not alter their state, history or statistics. Read-only examples need no live socket. Existing game replay and repetition logic assumes a standard starting position; do not change that contract merely to display a prepared position.
 
-## Coordination
+## Integration
 
-- Agree a few example positions, move responses and settings fields before parallel work. Keep changes in feature-specific files; coordinate shared board, routes and migrations with one integrator.
-- Keep existing online games working. Use focused tests and the existing two-player smoke test for shared-game changes; use disposable data.
-- Product approval is still required before implementing major new capabilities under [project instructions](../../AGENTS.md). This plan does not authorize changing historical data.
+Coordinate shared board props, app navigation and any practice endpoint with one owner. Feature pages and content can be built in parallel against example fixtures. Merge the shared board contract first, then test each feature separately and run the existing two-player smoke test when shared game behavior changes. Use disposable test data.

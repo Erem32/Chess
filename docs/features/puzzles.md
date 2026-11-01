@@ -1,21 +1,15 @@
-# Chess puzzles
+# Puzzles
 
-Let a player choose a difficulty, attempt a puzzle, retry and read a short explanation. Hints are optional; there is no streak requirement.
+## Outcome
 
-## Small first version
-
-Ship a handful of reviewed, single-move puzzles stored in a repository file. Each has a position, difficulty, accepted move(s), optional hint and explanation. No engine, rating, puzzle scheduler or saved attempts are needed. Verify that content is reusable and attributed where needed.
+Provide a handful of authored puzzles. A player can attempt a move, retry or reveal the prepared solution and its explanation. Practice is untimed and has no opponent.
 
 ## Implementation
 
-1. Agree the practice-board interface and a simple puzzle fixture with the shared-board owner. Build the screen and puzzle checking independently against that fixture.
-2. Add a small backend check using the existing chess rules library and the authored solution. Distinguish an illegal move from a legal move that is not an accepted answer. Keep puzzle attempts separate from online games and statistics.
-3. Provide difficulty selection, retry, optional hint and explanation. Keep all difficulties available regardless of experience mode.
+- Keep a few reviewed puzzle positions, accepted moves, solutions and short explanations in repository files. Start with single-move puzzles and check that the content and legal solutions are correct.
+- Reuse the practice board and backend move checking described in [shared preparation](00-foundations.md). The current board filters illegal moves before `onMove`, so the practice adapter must also report rejected attempts for feedback without changing live-game behavior. Distinguish an illegal move from a legal but incorrect answer; neither should change an online game or player statistics.
+- Provide a simple selection, retry and reveal flow. Legal-move guidance follows [settings](experience-settings.md); prepared explanations are available without a separate hints service or engine.
 
-## Done when
+## Dependencies and checks
 
-- A player can select a puzzle, try a move, retry and see the explanation.
-- The server checks legality and the accepted answer. Every supplied puzzle has a valid position and legal solution.
-- Focused tests cover correct, incorrect and illegal moves; a browser check covers a complete attempt and retry.
-
-[Hints](guidance-hints.md) and [settings](experience-settings.md) can be integrated later. Multiple-move puzzles and saved progress are optional extensions.
+The puzzle content and screen can be developed separately against example positions and responses; the shared board and settings interfaces are needed for integration. Test correct, incorrect and illegal attempts, retry and reveal, content validity, and one complete browser journey.

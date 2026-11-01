@@ -1,19 +1,15 @@
-# Opening study
+# Opening guide
 
-Let a player choose an opening, read its main idea and step through example moves. Written guidance works without a video; a link can be added when available.
+## Outcome
 
-## Small first version
-
-Add one reviewed opening guide as a repository file with short text and a legal move sequence. Display it on a read-only board with previous/next controls. More guides and detail levels can be added as content. No engine, backend endpoint or saved progress is required for this read-only version.
+Provide one short written opening guide with board examples and an optional video link. Written material must work when no video is available.
 
 ## Implementation
 
-1. Agree a read-only board interface with the shared-board owner. A developer can write content while another builds the screen against a fixture.
-2. Store the opening name, explanation, moves and optional video link in a simple file. Check that the moves are legal and content is permitted to be reused.
-3. Let the player navigate the sequence and return to the guide list. Never change a saved game while studying.
+- Put reviewed text and a legal illustrative move sequence in a small repository file; confirm permission to reuse any external material.
+- Use the read-only board adaptation in [shared preparation](00-foundations.md) with previous/next controls. Keep the guide separate from saved games and their results.
+- Offer a normal link to a video only if one is supplied; it is not needed to use the guide.
 
-## Done when
+## Dependencies and checks
 
-- The player can open a guide, read it and step forward/back through the moves.
-- The written guide is usable without a video, and its sequence produces the expected board positions.
-- A focused move-sequence check and browser navigation check pass.
+Guide content and the screen can be built in parallel using the same example sequence. Integrate after the read-only board interface is available. Test that the sequence is legal and board navigation reaches the expected positions, plus a browser check that the written guide works without video.
