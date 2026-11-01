@@ -59,7 +59,7 @@ Branch cleanup: the integrated `improvement/*` feature branches were deleted aft
 
 ## Next task
 
-**Next:** Continue code structure and extensibility improvements in small increments: inspect the game page's session/reconnect responsibilities and identify a cohesive extraction with unchanged behavior, focused tests and integrated browser verification. The click-capture fix and extra browser tests (`e1acfb3`) and shared history/dashboard formatting (`5daffbc`) are integrated. The local preview frontend was rebuilt; its separate database and existing accounts were retained.
+**In progress:** An agent is extracting a cohesive part of game page session/reconnect behavior on `improvement/game-socket-hook` in `/tmp/chess-game-socket-hook`, with unchanged behavior and focused verification. Inspect its worktree and branch before resuming, and review and test before integrating. The click-capture fix and extra browser tests (`e1acfb3`) and shared history/dashboard formatting (`5daffbc`) are integrated. The local preview frontend was rebuilt; its separate database and existing accounts were retained. GitHub Actions passed at `8c1e197`; later runs should be checked separately.
 
 **Priority decision:** The user now prioritizes code structure and extensibility, asks to defer large interface changes and disability-accessibility work, and wants ordinary usability bugs fixed. Retain existing useful features and server-side move validation. GitHub Actions passed for the previously integrated mobile panel changes at `36523ce`.
 
