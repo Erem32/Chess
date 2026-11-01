@@ -153,6 +153,26 @@ def test_resignation_keeps_game_access_checks_for_active_and_finished_games(clie
     assert client.post(f"/api/v1/games/{game_id}/resign", headers=bob).status_code == 409
 
 
+def test_game_endpoints_consistently_report_missing_and_forbidden_games(client: TestClient) -> None:
+    alice = _auth_headers(client, "alice")
+    bob = _auth_headers(client, "bob")
+    eve = _auth_headers(client, "eve")
+    client.post("/api/v1/matchmaking/join", headers=alice)
+    game_id = client.post("/api/v1/matchmaking/join", headers=bob).json()["game_id"]
+
+    for method, suffix in (
+        ("GET", ""), ("GET", "/moves"), ("GET", "/chat"), ("POST", "/resign"),
+        ("POST", "/draw-offer"), ("GET", "/draw-claims"), ("POST", "/draw-claims"),
+        ("POST", "/draw-offer/accept"), ("POST", "/draw-offer/decline"),
+    ):
+        for target_id, expected_status, expected_detail in (
+            (game_id, 403, "Not a player in this game"), (999999, 404, "Game not found"),
+        ):
+            response = client.request(method, f"/api/v1/games/{target_id}{suffix}", headers=eve, json={})
+            assert response.status_code == expected_status, (method, suffix, response.text)
+            assert response.json()["detail"] == expected_detail
+
+
 def test_history_pagination_is_bounded_and_scoped_to_the_player(
     client: TestClient, db_session_factory: sessionmaker[Session]
 ) -> None:

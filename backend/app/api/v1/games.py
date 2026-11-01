@@ -32,11 +32,18 @@ router = APIRouter()
 game_service = GameService()
 
 
-def _game_error_response(exc: Exception) -> HTTPException:
-    if isinstance(exc, GameNotFoundError):
+def _game_access_error_response(exc: Exception) -> HTTPException | None:
+    if isinstance(exc, (GameNotFoundError, ChessGameNotFoundError)):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
-    if isinstance(exc, GameAccessDeniedError):
+    if isinstance(exc, (GameAccessDeniedError, GameAccessError)):
         return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a player in this game")
+    return None
+
+
+def _game_error_response(exc: Exception) -> HTTPException:
+    access_error = _game_access_error_response(exc)
+    if access_error is not None:
+        return access_error
     if isinstance(exc, GameAlreadyFinishedError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Game is already finished")
     if isinstance(exc, GameCannotBeAbortedError):
@@ -45,10 +52,9 @@ def _game_error_response(exc: Exception) -> HTTPException:
 
 
 def _draw_error_response(exc: Exception) -> HTTPException:
-    if isinstance(exc, ChessGameNotFoundError):
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
-    if isinstance(exc, GameAccessError):
-        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a player in this game")
+    access_error = _game_access_error_response(exc)
+    if access_error is not None:
+        return access_error
     if isinstance(exc, GameNotActiveError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Game is not active")
     if isinstance(exc, DrawOfferError):
