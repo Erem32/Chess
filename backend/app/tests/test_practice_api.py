@@ -123,3 +123,34 @@ def test_practice_does_not_change_online_games_or_moves(client):
     finally:
         app.dependency_overrides.pop(get_db, None)
         engine.dispose()
+
+
+@pytest.mark.parametrize("overrides", [
+    {"fen": "not a FEN"},
+    {"fen": "8/8/8/8/8/8/8/8 w - - 0 1"},
+    {"accepted_moves": ["not-uci"]},
+    {"accepted_moves": ["e2e5"]},
+    {"accepted_moves": ["e2e4", "e2e4"]},
+])
+def test_catalog_rejects_invalid_authored_positions_and_solutions(catalog, overrides):
+    exercises = json.loads(catalog.read_text())
+    exercises[0].update(overrides)
+    catalog.write_text(json.dumps(exercises))
+    with pytest.raises(ValueError):
+        practice_service.load_exercises()
+
+
+def test_catalog_rejects_duplicate_exercise_ids(catalog):
+    exercises = json.loads(catalog.read_text())
+    exercises[1]["id"] = exercises[0]["id"]
+    catalog.write_text(json.dumps(exercises))
+    with pytest.raises(ValueError):
+        practice_service.load_exercises()
+
+
+def test_attempt_rejects_client_supplied_answer_or_position(client):
+    response = client.post(
+        "/api/v1/practice/exercises/opening/attempt",
+        json={"move_uci": "d2d4", "accepted_moves": ["d2d4"], "fen": chess.STARTING_FEN},
+    )
+    assert response.status_code == 422
