@@ -84,7 +84,34 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !frontend || !api || !ws
     await chat.getByRole('button', { name: 'Latest messages' }).click();
     await chatMessage(206).waitFor();
     assert.equal(await chat.locator('.chat-messages p').count(), 100);
-    console.log('Chat history smoke passed: older pages, live arrival, retry, end of history and return to latest.');
+
+    // A late older-page response must not replace the latest view after navigation.
+    await chat.getByRole('button', { name: 'Older messages' }).click();
+    await chatMessage(7).waitFor();
+    let releasePage;
+    let requestStarted;
+    const blocked = new Promise((resolve) => { releasePage = resolve; });
+    const started = new Promise((resolve) => { requestStarted = resolve; });
+    const delayPage = async (route) => {
+      if (new URL(route.request().url()).searchParams.has('before_id')) {
+        requestStarted();
+        await blocked;
+      }
+      await route.continue();
+    };
+    await page.route('**/api/v1/games/*/chat?*', delayPage);
+    await chat.getByRole('button', { name: 'Older messages' }).click();
+    await started;
+    await chat.getByRole('button', { name: 'Latest messages' }).click();
+    await chatMessage(206).waitFor();
+    const olderResponse = page.waitForResponse((response) => new URL(response.url()).searchParams.has('before_id'));
+    releasePage();
+    await olderResponse;
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await chatMessage(206).count(), 1);
+    assert.equal(await chatMessage(1).count(), 0);
+    await page.unroute('**/api/v1/games/*/chat?*', delayPage);
+    console.log('Chat history smoke passed: older pages, live arrival, retry, end of history, return to latest and stale response.');
   } finally {
     await context.close();
     await browser.close();
