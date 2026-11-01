@@ -1,6 +1,6 @@
 # Implementation progress
 
-Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementally, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative.
+Objective: prepare completed [roadmap](IMPROVEMENT_PLAN.md) increments for review against `main`, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative. The roadmap is not complete.
 
 Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The historical handoff snapshot below predates later history pagination work. Git and current remote refs are authoritative; compare against current `main` before integrating.
 
@@ -72,11 +72,13 @@ Branch cleanup: the integrated `improvement/*` feature branches were deleted aft
 
 ## Next task
 
-**Next:** Continue maintainability and extensibility without prioritizing scale; review game session boundaries and make another small tested improvement. Draw-claim hook `849e5ab` and game error mapping `34f3f8e` are integrated. Reconnect scheduler `a202d8b` and socket contract tests `e2c0819` are integrated; the prior integrated frontend passed 29 tests, lint and build, and five socket tests passed on isolated SQLite. The user withdrew the en passant concern after real browser checks showed standard legal en passant working for both colors. An interrupted, unreviewed experimental shortcut and test edit remain uncommitted on `improvement/en-passant` in `/tmp/chess-en-passant`; preserve them but do not integrate them without a new request. The local preview uses its separate database and existing accounts; its running images predate the latest integrated changes and should not be restarted during a user's game without need.
+**In progress:** Prepare a pull request from `improvement/roadmap` to `main`; latest `main` at `0755235` was merged into the working branch without conflict. Local validation on the integrated source: Alembic upgraded a disposable PostgreSQL database; backend suite 81 passed with seven PostgreSQL-only tests skipped, followed by those seven PostgreSQL concurrency tests passing against a separate disposable database; Ruff passed. Frontend clean install, 29 tests, lint and build passed. All three Chrome smoke tests passed against isolated SQLite/HTTP/WebSocket services; that browser setup used SQLAlchemy metadata rather than migrations. `git diff --check origin/main...HEAD` passed. GitHub API authentication is unavailable in this environment, so PR creation remains pending; the user has been asked for authenticated access. Check remote refs and CI status before completing the PR.
+
+The user withdrew the en passant concern after real browser checks showed standard legal en passant working for both colors. An interrupted, unreviewed experimental shortcut and test edit remain uncommitted on `improvement/en-passant` in `/tmp/chess-en-passant`; preserve them but do not integrate them without a new request. The local preview uses its separate database and existing accounts; its running images predate the latest integrated changes and should not be restarted during a user's game without need.
 
 **Priority decision:** The user now prioritizes code structure and extensibility, asks to defer large interface changes and disability-accessibility work, and wants ordinary usability bugs fixed. Retain existing useful features and server-side move validation. GitHub Actions passed for the previously integrated mobile panel changes at `36523ce`.
 
-The primary worktree has a pre-existing uncommitted edit to `.agents/skills/continue-chess-improvements/SKILL.md`; preserve it separately from agent changes.
+The previously uncommitted continuation-skill edit was preserved verbatim in commit `d0bfb1f` as part of preparing the requested changes for review.
 
 Backend/API tests already cover game-history authorization, bounds, and insertion between page requests. Frontend history commit `a163ddf` was merged into `improvement/roadmap`.
 
