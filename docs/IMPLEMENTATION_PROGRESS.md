@@ -2,7 +2,7 @@
 
 Objective: implement the [improvement roadmap](IMPROVEMENT_PLAN.md) incrementally, following [project instructions](../AGENTS.md) and keeping server-side chess validation authoritative.
 
-Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The latest implementation snapshot is `d1c23f8`; this handoff adds checkpoint-only documentation commits. `origin/main` is now `0755235`. See the handoff snapshot below before integrating.
+Integration branch: `improvement/roadmap`, originally based on `main` at `07a8cf9`. The historical handoff snapshot below predates later history pagination work. Git and current remote refs are authoritative; compare against current `main` before integrating.
 
 Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b96`) and `improvement/chat-history` (now includes integration commit `20c0840`). Both were pushed and integrated into `improvement/roadmap`; their WIP commits remain in history. Original worktree paths are local to the source machine; use `git worktree list` to discover actual paths. Git history and remote refs are authoritative.
 
@@ -32,6 +32,7 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 - **Completed:** CI includes focused Biome frontend checks for undeclared variables and unreachable code; lint, 11 frontend tests, build and audit passed locally.
 - **Completed:** Game WebSocket transport was extracted to `backend/app/api/websocket.py`. Database sessions now close after initial authorization and each message, rather than remaining open while sockets are idle. Focused backend tests, Ruff, and the real two-player browser smoke passed.
 - **Completed:** Extracted game presentation and action panels from the game page. Frontend lint/tests/build and the two-player browser smoke passed.
+- **Completed:** The active-game endpoint uses the existing newest-game query with a database limit rather than fetching every active game. The SQLite matchmaking/game endpoint suite passed (15 tests).
 - **Completed (browser verification pending):** Game history uses bounded cursor pagination with eager-loaded players; the dashboard requests five games and the history screen can load older pages and retry errors. Backend SQLite suite: 77 passed, 7 PostgreSQL-specific tests skipped; frontend clean install, 14 tests, lint and build passed in a temporary checkout. The history controls have not yet been exercised in a browser against the integrated backend.
 - **Completed:** Added `CONTRIBUTING.md` with setup, checks, test-data safety, and review workflow.
 - **Pending:** Broader browser/accessibility coverage, automated formatting, and remaining incremental structure improvements.
@@ -53,7 +54,9 @@ Interrupted agent work was preserved on branches `improvement/reconnect` (`9ec0b
 
 ## Next task
 
-**Next:** Verify paginated history in a browser against the integrated backend: create more than 20 games in an isolated database, check the dashboard's five most recent games, load all older pages without duplicates, and verify a failed page request can be retried without losing loaded entries. Add focused automated coverage if practical. Backend/API tests already cover authorization, bounds, and insertion between page requests. The frontend work on `improvement/history-ui` (`a163ddf`, local worktree `/tmp/chess-history-ui`) was merged into `improvement/roadmap`.
+**In progress:** Browser verification of paginated history with more than 20 games, checking dashboard limits, complete pagination and failed-page retry. Agent branch `improvement/history-browser`, worktree `/tmp/chess-history-browser`, owns this verification. A second agent owns earlier chat message loading on `improvement/chat-pagination`, worktree `/tmp/chess-chat-pagination`; review and integrate both before marking their work complete.
+
+Backend/API tests already cover game-history authorization, bounds, and insertion between page requests. Frontend history branch `improvement/history-ui` (`a163ddf`) was merged into `improvement/roadmap`.
 
 The Compose services were stopped during this increment. A local `npm ci` in the primary checkout failed because its existing `node_modules` directory is not writable; the integrated frontend checks passed in a clean temporary checkout. The cached backend image lacks Ruff; backend lint was not run in this increment. Seven PostgreSQL-specific tests were skipped by the SQLite run.
 

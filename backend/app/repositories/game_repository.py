@@ -70,20 +70,6 @@ def list_games_for_user(db: Session, user_id: int, limit: int, before_id: int | 
     return query.order_by(Game.id.desc()).limit(limit).all()
 
 
-def list_active_games_for_user(db: Session, user_id: int) -> list[Game]:
-    return (
-        db.query(Game)
-        .join(GamePlayer)
-        .filter(
-            GamePlayer.user_id == user_id,
-            Game.status == "active",
-            Game.finished_at.is_(None),
-        )
-        .order_by(Game.started_at.desc().nullslast(), Game.id.desc())
-        .all()
-    )
-
-
 def list_active_games_for_user_for_update(db: Session, user_id: int) -> list[Game]:
     player_games = db.query(GamePlayer.game_id).filter(GamePlayer.user_id == user_id)
     return (

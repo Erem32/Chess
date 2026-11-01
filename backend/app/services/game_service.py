@@ -49,8 +49,7 @@ class GameService:
         return game_repository.list_games_for_user(db, user.id, limit, before_id)
 
     def get_latest_active_game_for_user(self, db: Session, user: User) -> Game | None:
-        active_games = game_repository.list_active_games_for_user(db, user.id)
-        return active_games[0] if active_games else None
+        return game_repository.get_latest_active_game_for_user(db, user.id)
 
     def abort_active_games_for_user(self, db: Session, user: User) -> list[Game]:
         active_games = game_repository.list_active_games_for_user_for_update(db, user.id)
