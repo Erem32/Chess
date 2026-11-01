@@ -51,6 +51,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
     assert.equal(new URL(white.url()).pathname, new URL(black.url()).pathname);
+    assert.equal(await white.getByLabel('Play a move').count(), 0);
     // Mobile panel choices must expose their selected state to assistive technology.
     await black.setViewportSize({ width: 390, height: 844 });
     const mobileNav = black.getByRole('region', { name: 'Game panels' });
@@ -129,6 +130,8 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     for (const page of [white, black]) await page.getByText('d5', { exact: true }).first().waitFor();
     await move(white, 'e4', 'd5', 3);
     for (const page of [white, black]) await page.getByText('exd5', { exact: true }).first().waitFor();
+    await move(black, 'd8', 'd5', 4);
+    for (const page of [white, black]) await page.getByText('Qxd5', { exact: true }).first().waitFor();
     black.once('dialog', (dialog) => dialog.dismiss());
     await black.getByRole('button', { name: 'Resign' }).first().click();
     assert.equal(await black.getByRole('heading', { name: 'Game over' }).count(), 0);
