@@ -166,11 +166,13 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 
 Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
 
-The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game. A client can send:
+The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game.
 
 The server checks the token when the socket connects; an existing connection is not automatically closed when that token later expires. A reconnect requires a valid token.
 
 The token is currently passed in the WebSocket URL. Configure reverse proxies, hosting access logs, and other request logging to redact query strings. Review existing logs for exposure and rotate credentials where appropriate. Application log redaction does not protect logs controlled by infrastructure.
+
+Clients can send a move or chat message:
 
 ~~~json
 {"type": "move", "payload": {"move_uci": "e2e4"}}
@@ -188,12 +190,14 @@ Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which
 
 The game screen shows the latest chat messages and offers older pages when the latest page is full. Use **Latest messages** to return to the live view; new messages continue arriving while an older page is open.
 
-The server sends `game_state`, `chat`, and `error` messages. In a `game_state` message, the game is under `payload.game`, with fields including `id`, `current_fen`, `turn_color`, and `status`. After a move, the payload also includes the move and end-of-game flags. See [backend/app/api/websocket.py](backend/app/api/websocket.py) and [chess_service.py](backend/app/services/chess_service.py) for the current contract.
+The server sends `game_state`, `chat`, and `error` messages. After connection it sends `game_state` with `payload.game`; after a committed move, it broadcasts `game_state` with `payload.game`, `payload.move`, and the end-of-game flags. Each move has a per-game `move_number` and `fen_after_move` matching the accompanying game's `current_fen`. Older clients may send `move` instead of `move_uci`, either inside `payload` or at the top level; new clients should use the documented `payload.move_uci` shape. These messages are currently unversioned.
+
+Resignation, draw actions and aborts use HTTP and are not broadcast as socket events. The game page polls for those changes about every two seconds. On reconnect, the client reloads game and move history and retries if those reads describe different states. See [backend/app/api/websocket.py](backend/app/api/websocket.py) and [chess_service.py](backend/app/services/chess_service.py) for the current contract.
 
 ## Current limitations
 
 - This is an MVP: two-browser gameplay, reconnection, and end-of-game flows need ongoing manual verification. The game reconnects with backoff after temporary socket failures and reloads game and move state before allowing another move. Authentication failures require signing in again.
-- The game page restores up to the newest 100 chat messages. Older messages can be retrieved through the paginated API; there is no older-message control in the interface yet.
+- The game page restores up to the newest 100 chat messages and can page through older messages. Chat has no automatic retention policy.
 - The WebSocket connection manager keeps connected clients in process memory; multi-instance operation is not implemented.
 - A game may be aborted only before its first move; afterward a player can resign. Aborted games do not count as wins, losses, draws, or games played, including historical aborted games recorded with player draws.
 - The server automatically ends games on checkmate, stalemate, insufficient material, the 75-move rule, or fivefold repetition when stored moves reconstruct the current position. Players can claim 50-move or threefold draws on their turn. Repetition is not inferred from incomplete or inconsistent historical move records.

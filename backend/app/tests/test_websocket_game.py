@@ -16,6 +16,8 @@ from app.api import websocket as websocket_api
 from app.core.security import create_access_token
 from app.db.session import Base
 from app.models import Game, GamePlayer, Move, User
+from app.schemas.game import GameRead
+from app.schemas.move import MoveRead
 from app.services.websocket_manager import WebSocketManager
 
 
@@ -89,6 +91,37 @@ def test_move_is_broadcast_to_both_players_and_persisted(game_client):
         state = reconnected.receive_json()["payload"]["game"]
         assert state["current_fen"] == white_update["payload"]["game"]["current_fen"]
         assert state["turn_color"] == "black"
+
+
+def test_socket_game_state_contract_and_legacy_move_inputs(game_client):
+    client, _, game_id, tokens = game_client
+    with client.websocket_connect(socket_url(game_id, tokens["white"])) as white:
+        with client.websocket_connect(socket_url(game_id, tokens["black"])) as black:
+            for socket in (white, black):
+                initial = socket.receive_json()
+                assert initial["type"] == "game_state"
+                assert set(initial["payload"]) == {"game"}
+                assert GameRead.model_validate(initial["payload"]["game"]).id == game_id
+
+            for number, socket, message in (
+                (1, white, {"type": "move", "move": "e2e4"}),
+                (2, black, {"type": "move", "payload": {"move": "e7e5"}}),
+                (3, white, {"type": "move", "payload": {"move_uci": "g1f3"}}),
+            ):
+                socket.send_json(message)
+                event = white.receive_json()
+                assert black.receive_json() == event
+                assert event["type"] == "game_state"
+                payload = event["payload"]
+                game = GameRead.model_validate(payload["game"])
+                move = MoveRead.model_validate(payload["move"])
+                assert game.id == move.game_id == game_id
+                assert move.move_number == number
+                assert move.fen_after_move == game.current_fen
+                assert all(isinstance(payload[key], bool) for key in (
+                    "is_checkmate", "is_stalemate", "is_insufficient_material",
+                    "is_seventyfive_moves", "is_fivefold_repetition",
+                ))
 
 
 def test_bad_messages_and_illegal_moves_do_not_end_connection(game_client):
