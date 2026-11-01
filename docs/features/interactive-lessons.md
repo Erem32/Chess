@@ -1,32 +1,21 @@
-# Interactive chess rules lessons
+# Interactive chess lessons
 
-**Goal:** Let a learner choose a piece, read a short explanation, try moves, receive helpful feedback, and repeat or leave the lesson. Guidance varies by experience mode, but the learner can choose whether to see hints. This is a proposed feature, not current functionality.
+Let a player choose a piece, read a short explanation, try moves, and receive feedback. Hints are optional. A lesson can be repeated or exited.
 
-## Independent first slice
+## Small first version
 
-Ship one authored, repeatable piece-movement lesson with an isolated practice board and clear success and invalid-attempt feedback. It must be usable without automatic mode selection, an engine, puzzles, or a live game. Later add lessons for the remaining pieces, captures, special rules and mode-dependent presentation.
-
-## Prerequisites and boundaries
-
-- Agree the shared practice-board interface and a versioned lesson content format (position/FEN, learner side, instruction, allowed outcomes, feedback and next step). A frontend mock can be developed against that fixture before the shared adapter is merged.
-- A lesson is not a `Game`: the current game endpoints expect authenticated game participants and persisted live-game state. Do not create synthetic opponents or reuse a live game's WebSocket for training.
-- Use the backend chess rules service to validate submitted moves and lesson progress. Local legal-move highlights are hints, not authority. Keep arbitrary training positions and attempts separate from player match statistics.
-- Author and review lesson content, including how invalid but legal moves are explained. Do not claim a chess engine can generate reliable natural-language instruction without verification.
+Add one authored piece-movement lesson, then add the other pieces as content. Store the positions, instructions and expected moves in a small file in the repository. Do not store progress or use an engine. A lesson is separate from an online game and must not affect game history or statistics.
 
 ## Implementation
 
-1. Define a stable content ID and schema, validation errors, progress response and versioning; provide reviewed fixtures with one clear success path. Decide if accounts or persisted progress are needed for the first release.
-2. Add lesson-specific backend schema/service and repository only for the approved persistence needs; add a migration if storing progress. Keep routes thin and server responses explicit about accepted moves, retry and completion.
-3. Build a lesson page and board adapter in a feature-owned frontend folder. Display the current step and feedback, allow repeat and exit, and preserve voluntary hint choices. Do not modify shared game-session logic on the lesson branch.
-4. Add more authored lessons and preference-aware defaults only after the base lesson is tested; mode changes must not silently overwrite individual hint preferences.
+1. Agree a minimal board interface with the shared-board owner; a developer can build the lesson page with a fixture in parallel.
+2. Add a small backend endpoint using the existing chess rules library to validate moves for the authored position. Return a useful explanation for invalid moves and distinguish a legal move from the lesson's expected move.
+3. Show the instructions, board, optional authored hint, feedback, retry and exit. Expand the checked-in content after the first lesson works.
 
-## Acceptance and checks
+## Done when
 
-- From the lesson list, a player can complete, repeat and leave a lesson. A rejected attempt keeps the current step and gives relevant feedback; retry works.
-- The server rejects illegal and out-of-sequence attempts even if the client is modified; legal alternatives follow the authored lesson rules rather than being reported as illegal chess moves.
-- Practice leaves live games, results and statistics unchanged. Reload/resume behavior matches the selected persistence decision.
-- Test content validation, legal/illegal and alternative moves, completion/retry, authorization where applicable, and a browser journey on mouse and touch-sized viewports. Use disposable data.
+- The learner can make an attempt, understand the feedback, retry, finish, repeat and leave.
+- Legal and illegal moves are handled correctly on the server; the lesson does not change a real game.
+- Focused tests cover content, valid/invalid moves and retry; a browser check covers the lesson flow.
 
-## Parallel ownership and decisions
-
-One developer owns lesson content/API and another the lesson screen using agreed fixtures. Shared board changes belong to the foundation owner and merge first; the lesson branch supplies an adapter. Decide lesson coverage, guest access, progress retention and content ownership before committing to a data migration. Source: [Project Helix specification, sections 2.3 and 3.3](https://docs.google.com/document/d/16WxbylyCP4k2OvAuh3xz5v-DbWU0wTTaF9Sy9nGcxjQ/edit).
+The lesson screen and content/validation can be developed on separate branches once the board and response shapes are agreed. [Hints](guidance-hints.md) and [settings](experience-settings.md) are optional integrations, not prerequisites.

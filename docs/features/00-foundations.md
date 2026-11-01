@@ -1,30 +1,21 @@
-# Shared preparation
+# Minimal preparation
 
-This work creates stable seams for the feature branches; it is not a rewrite or a prerequisite to drafting independent feature code and tests. Agree on the contracts first, then deliver the smallest compatible slices. One integration owner coordinates shared files and migrations.
+Do only the preparation needed by the next feature. The current React/FastAPI application and database are sufficient for a university project; do not introduce a platform, job queue, new infrastructure or a large redesign.
 
-## Game creation and participants
+## Board for learning and review
 
-Current code assumes two registered users: `GamePlayer.user_id` is required, `create_game_with_players` takes two users, and matchmaking returns an existing active game before creating another. Define a game-creation service independent of the queue, with explicit participant, opponent and game-configuration contracts. Decide how a computer participant is represented, whether a user can have more than one active game, and how practice games affect history and statistics. Do not use a shared fake account or change existing game results by default.
+The existing `ChessBoard` already receives a FEN and move callback. Make the smallest changes needed to use it for a read-only review or a practice position, while keeping live-game networking in the game page. Preserve click, drag and promotion. Lessons, puzzles, opening guides and replay can start from small files in the repository; they do not need a shared content service or database.
 
-Deliver the contract and compatibility tests first; add only the fields and paths required by the first approved game feature. Migrations must be additive, specify how existing games are interpreted, and be tested against a copy of existing data. Audit duplicate participant/color and move-number records before considering uniqueness constraints; any data correction needs separate approval. Keep moves and lifecycle transitions server validated and transactional. Preserve current HTTP/socket clients during migration.
+Keep backend validation authoritative for chess moves. A lesson or puzzle must not modify an online game or its statistics. Existing live-game snapshot and repetition code assumes a standard starting position; keep practice positions separate rather than changing existing games.
 
-## Board and game-session boundary
+## Private practice and invitations
 
-Separate reusable board rendering and interaction from live-game networking so a lesson, puzzle, opening or replay can supply a position, orientation, interaction policy and move callback. A practice or replay board is not a live game: allow feature-specific move constraints without giving the client authority over a real game's result. Preserve clicking, dragging, promotion and the existing live-game flow. Coordinate `ChessBoard.jsx`, `GamePage.jsx`, routing and global styles with a single integration owner.
+The existing game creation assumes two registered users, and matchmaking resumes an active game. For private computer practice, use a separate backend endpoint that validates and replays the supplied moves; keep this unsaved activity out of the live-game model and statistics. Reuse existing game creation for two human players where appropriate. Do not fabricate a user or redesign the game model just to add practice.
 
-Existing snapshot/repetition logic assumes a standard initial position and compares stored FENs. Specify starting-position and replay semantics before supporting custom live-game positions; do not silently reuse a normal game as a puzzle. Keep existing games readable.
+For invitations, use a simple authenticated direct challenge and keep the existing matchmaking path. Agree what happens when either user already has an active game. Add only the data and migrations needed for the implemented slice, preserving existing records.
 
-## Independent activity and content contracts
+## Coordination
 
-Agree on a minimal versioned content format for lessons, puzzles and opening guides: stable IDs, position/move representation, authored explanation/hint, difficulty metadata and content provenance/license. Model attempts and optional progress separately from games and user statistics. Features may prototype with isolated fixtures and their own modules; a shared content engine is not required before the first lesson. Validate published positions and moves; define solution ownership, content updates and offline/unavailable-content behavior.
-
-## Preferences and events
-
-Define a small preference API and feature-consumption boundary in [experience settings](experience-settings.md); keep defaults, user overrides and any automatic recommendation separate. Define additive, documented game events/snapshots with ordering and a recovery path before changing live game lifecycles; current moves use WebSocket messages while HTTP actions are reflected by polling. Avoid infrastructure changes unrelated to the feature.
-
-## Integration gates
-
-- Existing migrations upgrade without resetting a database; no historical records are rewritten without review and authorization.
-- Existing two-player matchmaking, legal moves, promotion, reconnect, draw and resignation behavior remain covered by backend, PostgreSQL contention and browser smoke tests.
-- Test each new boundary with one real integration path as well as focused domain tests. Define feature-specific ownership and merge migrations in dependency order.
-- Content, engine/provider, clock rules, personalisation thresholds and social policies remain explicit decisions in their feature briefs. Implementing major new capabilities requires product approval under [AGENTS.md](../../AGENTS.md).
+- Agree a few example positions, move responses and settings fields before parallel work. Keep changes in feature-specific files; coordinate shared board, routes and migrations with one integrator.
+- Keep existing online games working. Use focused tests and the existing two-player smoke test for shared-game changes; use disposable data.
+- Product approval is still required before implementing major new capabilities under [project instructions](../../AGENTS.md). This plan does not authorize changing historical data.

@@ -1,24 +1,17 @@
-# Contact and participation controls
+# Contact preferences
 
-## Outcome and first slice
+**Goal:** Let users control invitations and social participation. Preferences remain unchanged when the experience mode changes.
 
-Give a player clear control over social participation and who can contact or invite them. Private practice remains available, and personal contact preferences survive experience-mode changes. The first slice defines and persists contact preferences; it does not introduce a public directory, strangers' messages, or groups.
+## Small first version
 
-## Prerequisites and ownership
+Add a simple setting that allows or blocks new invitations. Store it on the server so it can be enforced even when the recipient is offline or using another device. The user can still play ordinary games or practise privately; decide separately whether the setting should also affect the existing random queue and game chat.
 
-- Coordinate preference storage and override precedence with [experience settings](experience-settings.md). Until that contract is ready, develop the policy and frontend against fixtures.
-- [Friend invitations](friend-invitations.md), [similar-skill matchmaking](skill-matching.md) and [moderated community](moderated-community.md) must each apply the approved policy at their own server-side boundaries; settings alone do not enforce contact behavior.
-- Decide who may contact whom, how known people are identified, defaults and settings for children, and the treatment of existing game chat and random matchmaking. The existing queue pairs players without a contact preference; the policy must say whether and how it applies. The source requires child-appropriate controls but does not define age verification or guardian workflows. Product and policy approval is required before enabling new contact channels.
+## Implementation
 
-## Implementation guidelines
+- Store this one preference on the user's account using a small migration and API field; [other settings](experience-settings.md) can remain in browser storage. A mode change must not reset it.
+- When an invitation is sent, check the recipient's preference on the server and give a clear unavailable response. Do not build a friends graph, age-verification system or group platform as part of this slice.
+- Before enabling new stranger contact or community groups, agree on an appropriate policy for children and other users. The source document asks for controls but does not specify that policy.
 
-1. Model explicit contact preferences and separate them from automatic mode selection. Validate changes and retain explicit choices across mode changes and sessions.
-2. Define a small policy interface consumed by invitations and future social features; reject disallowed contact server-side and provide appropriate feedback without revealing unnecessary account information.
-3. Add a focused settings view and explain the consequences of choices. Keep private activities usable when social participation is disabled; apply the agreed policy to human matchmaking and game chat.
-4. Review how the policy affects minors and known-person play with suitable participants before release; make assumptions and unresolved decisions visible.
+## Dependencies and checks
 
-## Acceptance and tests
-
-- Users can view, change and retain approved contact preferences without joining social features; mode changes do not reset them.
-- Server-side tests cover allowed and disallowed invitations/contact, preference changes and existing game-chat policy. Browser tests cover controls, persisted choices and understandable rejection.
-- Test the policy with representative users, including child-appropriate scenarios, before enabling any new stranger contact.
+The settings and invitations developers should agree on the field and response first; each can build against fixtures in parallel. Test preference persistence, blocked and allowed invitations, and unchanged ordinary play according to the agreed policy. Community groups remain independent and optional.

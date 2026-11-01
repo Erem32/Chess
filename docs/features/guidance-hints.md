@@ -1,23 +1,16 @@
-# Optional guidance and hints
+# Optional hints
 
-## Outcome and first slice
+Offer optional help in lessons, puzzles and computer practice without interrupting the player. The first version is simply an authored hint shown when requested; it does not require an engine or a separate hint service.
 
-Offer optional, understandable help during lessons, puzzles and computer practice, without interrupting a player or making claims that cannot be supported. The first independent slice displays authored, position-specific guidance in one lesson; no chess engine is required.
+## Implementation
 
-## Prerequisites and ownership
+- Store short hint text alongside the relevant lesson or puzzle content. Each activity decides when to offer it and keeps it optional.
+- A developer can write and review hints while another builds the activity screen against example content. Agree only the small content field and display behavior.
+- For computer practice, decide separately how to provide a useful hint. Do not present an engine score as an explanation or enable hints in online games without a decision.
 
-- Coordinate a small guidance presentation contract with [interactive lessons](interactive-lessons.md), [puzzles](puzzles.md) and [computer practice](computer-practice.md). Each feature owns its content and legality checks; authored hints can be developed with local fixtures before a shared provider exists.
-- [Experience settings](experience-settings.md) can supply a default but the player can override it within each activity. Hints must not reveal a puzzle solution before the user requests the relevant help level.
-- Product decision: whether hints are allowed in online games, what counts as a hint signal for adaptation, and the source/licensing and accuracy standard for computer-generated explanations. Do not enable online hints or imply that engine output itself explains a move.
+## Done when
 
-## Implementation guidelines
+- The user can request or skip a hint, and it matches the current position or activity step.
+- Missing hint content does not block the activity. Tests cover showing a hint, skipping it and moving to another position.
 
-1. Represent guidance as optional, contextual and attributable to an authored content version or an approved provider; include an unavailable state.
-2. Let the activity decide when to offer, reveal or dismiss help. Separate hint use from score/rating and automatic mode changes until policies are agreed.
-3. For engine-backed practice, use the approved analysis/opponent provider only after its limits and explanation method are defined. Never send hidden opponent information to a client.
-
-## Acceptance and tests
-
-- A player can complete or leave an activity without requesting hints; requests show appropriate guidance and remain reversible.
-- Hints match the current position and cannot leak into another game or activity. Missing or stale content is handled clearly.
-- Test hint availability, explicit overrides, position changes, absence of guidance and any feature-specific solution-reveal policy.
+[Lessons](interactive-lessons.md), [puzzles](puzzles.md) and [computer practice](computer-practice.md) can each add hints independently. [Settings](experience-settings.md) may provide defaults later; the player can always choose whether to use them.

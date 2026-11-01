@@ -1,31 +1,19 @@
-# Optional similar-skill matchmaking
+# Similar-experience matchmaking
 
-**Source:** Project Helix, §2.3 and §3.3, playing with others. **Status:** optional proposal; any rating or competitive ranking system needs separate approval before implementation.
+**Goal:** Offer an optional way to look for someone with similar experience. The source proposes this alongside ordinary matchmaking; it does not require an Elo system or rankings.
 
-## Outcome
+## Small first version
 
-A player who wants an opponent near their experience can request one, while retaining the existing option to play friends or practise privately. Experience modes can suggest a choice but do not prevent users selecting another. Avoid representing an estimate as an established chess rating unless that is actually true.
+Allow a player to choose a broad experience level before entering the queue. Match opted-in users only according to the agreed preference. Explain that a small user base can mean waiting; allow the player to cancel or choose ordinary matching. Never widen the preference without asking.
 
-## Prerequisites and decisions
+## Implementation
 
-- Agree the signal and its semantics: self-selected experience, opt-in rating or another reviewed indicator. Decide new-player treatment, fairness, visibility, privacy and whether a player can decline or widen criteria. A small user base may mean no match is available; the source does not mandate a ranking algorithm, rating points or a waiting-time threshold.
-- Agree pace compatibility with the game-pace feature, the active-game policy and game-creation contract. The current database queue accepts one entry per user and picks the oldest waiting opponent without skill or pace metadata.
-- Child-appropriate [contact controls](privacy-contact.md) and any restrictions on who can be matched require an explicit policy; do not use age to select experience mode.
+1. Agree on simple labels and the behavior when only one player has a preference. Store the selected option with the queue entry and compare it in the existing matchmaking service.
+2. Keep the choice separate from an automatic experience mode: it is a player-selected preference, not a measured chess rating. Preserve existing queue behavior when the option is not used.
+3. Add a small optional selector and a clear waiting state. Do not build ratings, leaderboards, or a matching service for the first version.
 
-## Implementation guidelines
+## Dependencies and checks
 
-1. Implement matching preferences as an explicit optional request rather than changing the meaning of every existing queue entry. Validate allowed options on the server and persist the preference if the user can leave and return.
-2. Separate candidate selection policy from queue persistence and game creation. Preserve backend authority, queue serialization and the existing active-game checks; deterministic tie breaking and an explicit no-match response make behavior understandable.
-3. Keep actual user settings and private practice independent from an estimated level. If an estimated level is later approved, introduce its own documented model, provisional state and result update rules; do not reuse experience mode as a rating.
-4. Extend the matchmaking interface with a clear optional setting and a waiting/cancel path. Agree any expansion of criteria with the user before broadening the search.
-5. Use a migration with compatible defaults for existing queue behavior; coordinate changes to shared matchmaking and creation contracts with their owner.
-
-## First independent slice and parallel work
-
-After the preference and contact policy are agreed, a branch can introduce an opt-in broad experience preference and deterministic matching tests against fixture users. A separate branch can build the waiting and choice UI against fixtures. Existing unfiltered matching and friend invitations remain independent. Competitive ratings or leaderboards are outside this slice and require explicit approval.
-
-## Acceptance checks
-
-- An opted-in user is matched only within the agreed criteria and pace, or sees a cancellable waiting state. No-match remains a normal outcome; criteria do not silently widen.
-- Existing queue users retain compatible behavior, and one request cannot create duplicate games or bypass active-game checks.
-- Test new players, mismatched preferences, cancellation, refresh, concurrent joins and matching-versus-invitation races using isolated PostgreSQL where locking matters. Verify both players see the same match in a browser smoke test.
+- Coordinate the queue field with the invitation/game-creation changes and the [contact preference](privacy-contact.md). This feature is separate from practice and friend invitations.
+- Test compatible and incompatible choices, ordinary matching, cancellation and concurrent joins. Make sure each match creates only one game.
+- A future rating-based system requires a separate product decision.

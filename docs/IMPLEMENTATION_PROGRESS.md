@@ -1,10 +1,10 @@
 # Implementation checkpoint
 
-Objective: prepare the [Project Helix feature plan](features/README.md) and continue the [improvement plan](IMPROVEMENT_PLAN.md), following [project instructions](../AGENTS.md).
+Objective: prepare a small university-project version of the [Project Helix feature plan](features/README.md), following [project instructions](../AGENTS.md).
 
 ## Next task
 
-Review the [feature plan](features/README.md), resolve the listed product decisions, and agree on shared contracts and ownership before implementing dependent feature slices. Implement the smallest approved foundation increment with compatibility tests.
+Review the [simplified feature plan](features/README.md), then agree on the minimal board interface and choose a first approved feature slice. Preserve existing online play and add focused tests.
 
 ## Working state
 

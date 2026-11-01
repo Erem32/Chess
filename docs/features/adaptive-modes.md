@@ -1,24 +1,15 @@
 # Automatic experience modes
 
-## Outcome and first slice
+## Minimum feature
 
-When enabled, recommend or select Beginner, Casual or Advanced using relevant choices and activity. Show the active mode and a plain explanation; allow reversal and a manual choice at any time. Manual selection pauses automatic changes until the player re-enables them. With insufficient information use Beginner. Never use age as a selection signal.
+Use a simple, explainable rule based on the difficulty the user explicitly chooses for a lesson or activity: introductory maps to Beginner, standard to Casual and advanced to Advanced. Use Beginner if there is no choice. Show the active mode and a short reason. Let the user select a different mode; that manual choice stays until automatic mode is turned back on. Never infer a mode from age.
 
-## Prerequisites and ownership
+## Implementation
 
-- Requires the manual [experience settings](experience-settings.md) contract and persisted override precedence. Develop the decision function with deterministic fixtures in parallel; integrate only when that contract exists.
-- Coordinate event names with lessons, hints and practice owners. An empty-signal state must work without those features. Do not make feature functionality depend on the recommendation service.
-- Product decision before automatic changes: approve the signals, thresholds, collection/retention, reason wording, review cadence, and how to prevent unwanted changes. The research document describes these as proposals, not validated thresholds. No decision may change an active game's pace or opponent mid-game.
+- Keep one small decision function alongside [experience settings](experience-settings.md). Reuse explicit choices already available in the browser; do not build telemetry, analytics, a background service or a scoring model.
+- A mode changes suggested defaults only. The user can still choose any available lesson, opponent, pace or hint setting. Preserve individual choices and do not change an active game.
+- Keep the mapping and reason text in one small helper. Hint-use or completed-activity signals are later options, not required for the first version.
 
-## Implementation guidelines
+## Dependencies and tests
 
-1. Define a small, versioned, deterministic recommendation policy over explicitly available signals. Start with opt-in or rollout policy approved by the owner; do not treat interview observations as validated rules.
-2. Keep recommendation, active mode, explanation and manual/automatic selection state separate from individual preference overrides. Explain changes, let the player reverse them, and retain manual choices until automatic selection is re-enabled.
-3. Avoid collecting extra behaviour simply to infer a mode. Record only the minimum approved signals and reason data, with clear deletion/retention behavior. Do not use age or protected characteristics as inputs.
-4. Test the proposal with representative users before expanding signals or applying automatic changes broadly.
-
-## Acceptance and tests
-
-- No signals produces Beginner; approved signals produce predictable explanations and mode choices. Empty or unavailable signals never block access.
-- Manual mode and individual preferences survive activity and mode changes; re-enabling automatic mode is explicit. Changes can be reversed.
-- Unit-test policy boundaries, insufficient data, override precedence and reversal; integration-test persistence and feature consumption. Record user testing as research, not as an assumed outcome.
+Requires the settings object and at least one activity with an explicit difficulty choice; the decision function can be developed with fixtures in parallel. Test no choice, all three mappings, visible reason, manual override, re-enabling automatic mode and preserved individual settings.
