@@ -13,6 +13,7 @@ import { DrawClaimPanel, DrawOfferPanel, GameActionPanel, PlayerSummaryPanel } f
 import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useGamePolling } from "../features/game/useGamePolling.js";
+import { createPendingChat } from "../features/game/pendingChat.js";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -26,7 +27,8 @@ export default function GamePage() {
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
   const claimRequestRef = useRef(0);
-  const pendingChatRef = useRef(new Map());
+  const pendingChatRef = useRef(null);
+  if (!pendingChatRef.current) pendingChatRef.current = createPendingChat();
   const chatHistoryRequestRef = useRef(0);
   const currentGameRef = useRef(gameId);
   currentGameRef.current = gameId;
@@ -224,11 +226,11 @@ export default function GamePage() {
         else queuedGameMessages.push(data);
       } else if (data.type === "chat") {
         setMessages((current) => mergeChatMessages(current, [payload]));
-        if (Number(payload.user_id) === Number(currentUserId)) settleChat(payload.client_message_id, null);
+        if (Number(payload.user_id) === Number(currentUserId)) pendingChatRef.current.settle(payload.client_message_id, null);
       } else if (data.type === "info") {
         setInfo(payload.message ?? "Connected");
       } else if (data.type === "error") {
-        if (!settleChat(payload.client_message_id, payload.message ?? "Message rejected")) {
+        if (!pendingChatRef.current.settle(payload.client_message_id, payload.message ?? "Message rejected")) {
           setError(payload.message ?? "WebSocket error");
         }
       }
@@ -238,7 +240,7 @@ export default function GamePage() {
     };
     ws.onclose = (event) => {
       if (!active || socketRef.current !== ws) return;
-      rejectPendingChat();
+      pendingChatRef.current.rejectAll();
       setSocketStatus("disconnected");
       setInfo("Disconnected");
       if (event.code === 1008 || !authorized) {
@@ -254,7 +256,7 @@ export default function GamePage() {
     };
     return () => {
       active = false;
-      rejectPendingChat();
+      pendingChatRef.current.rejectAll();
       if (reconnectTimerRef.current) {
         window.clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
@@ -278,22 +280,6 @@ export default function GamePage() {
     activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: move } }));
   }
 
-  function settleChat(id, error) {
-    const pending = pendingChatRef.current.get(id);
-    if (!pending) return false;
-    pendingChatRef.current.delete(id);
-    window.clearTimeout(pending.timer);
-    if (error) pending.reject(new Error(error));
-    else pending.resolve();
-    return true;
-  }
-
-  function rejectPendingChat() {
-    for (const id of pendingChatRef.current.keys()) {
-      settleChat(id, "Connection lost before confirmation. The message may have been delivered; check history before retrying.");
-    }
-  }
-
   async function sendChat(message) {
     if (chatSending) return;
     if (Array.from(message).length > 1000 || message.includes("\0")) {
@@ -310,16 +296,8 @@ export default function GamePage() {
     setChatError("");
     setChatSending(true);
     try {
-      await new Promise((resolve, reject) => {
-        const timer = window.setTimeout(() => {
-          settleChat(id, "Message was not confirmed. It may have been delivered; check history before retrying.");
-        }, 10000);
-        pendingChatRef.current.set(id, { resolve, reject, timer });
-        try {
-          activeSocket.send(JSON.stringify({ type: "chat", payload: { message, client_message_id: id } }));
-        } catch {
-          settleChat(id, "Could not send message. Your draft has been kept.");
-        }
+      await pendingChatRef.current.send(id, () => {
+        activeSocket.send(JSON.stringify({ type: "chat", payload: { message, client_message_id: id } }));
       });
       if (currentGameRef.current === gameAtSend) setChatDraft("");
     } catch (err) {
