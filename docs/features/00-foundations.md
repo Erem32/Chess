@@ -4,8 +4,6 @@ Keep preparation limited to what the selected features need. The existing React/
 
 ## Reuse the board
 
-`ChessBoard` already accepts a FEN, player color and move callback. Make the smallest changes needed to display prepared positions, support read-only examples, and turn legal-move markers on or off. Preserve click, drag and promotion in online games.
-
 The current board filters illegal attempts before calling `onMove`. Lessons and puzzles therefore need a practice-only attempt/rejection callback or adapter so they can show feedback. Keep this behavior separate from the live-game interaction.
 
 ## Practice content and validation
