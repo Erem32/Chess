@@ -13,4 +13,4 @@ When available and authorized, delegate independent scopes to agents in separate
 
 Keep `docs/IMPLEMENTATION_PROGRESS.md` current with the objective, actual branch/worktree mapping, status, tests, risks, decisions and the exact next task. Git and actual behavior override stale notes. Continue safe independent work if a product decision, external credential or deployment action is blocked. Do not claim completion or test success without evidence.
 
-Commit local increments; push only when the user has authorized publishing and the correct remote and branches are known. Never force-push or deploy without explicit authorization. For transfer, use `.agents/skills/chess-handoff/SKILL.md` and `docs/HUMAN_HANDOFF.md`.
+Commit local increments. Push to feature branches. When a merge to main is ready to be done, prepare it, tell the user and ask for aproval. Never force-push or deploy without explicit authorization. For transfer, use `.agents/skills/chess-handoff/SKILL.md` and `docs/HUMAN_HANDOFF.md`.
