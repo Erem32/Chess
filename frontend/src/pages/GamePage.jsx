@@ -12,6 +12,7 @@ import ChessBoard from "../components/ChessBoard.jsx";
 import { DrawClaimPanel, DrawOfferPanel, GameActionPanel, PlayerSummaryPanel } from "../components/GamePanels.jsx";
 import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useGamePolling } from "../features/game/useGamePolling.js";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -24,7 +25,6 @@ export default function GamePage() {
   const retryCountRef = useRef(0);
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
-  const refreshRequestRef = useRef(0);
   const claimRequestRef = useRef(0);
   const pendingChatRef = useRef(new Map());
   const chatHistoryRequestRef = useRef(0);
@@ -132,31 +132,7 @@ export default function GamePage() {
     };
   }, [gameId, loadAttempt]);
 
-  useEffect(() => {
-    if (!game?.id || isGameOver) return undefined;
-
-    let active = true;
-
-    async function refreshGameOnly() {
-      const revision = revisionRef.current;
-      const request = ++refreshRequestRef.current;
-      try {
-        const gameData = await getGame(gameId);
-        if (active && request === refreshRequestRef.current && revision === revisionRef.current) {
-          setGame((current) => mergeGameUpdate(current, gameData));
-        }
-      } catch {
-        // Keep current state on background refresh failures.
-      }
-    }
-
-    const intervalId = window.setInterval(refreshGameOnly, 2000);
-
-    return () => {
-      active = false;
-      window.clearInterval(intervalId);
-    };
-  }, [game?.id, gameId, isGameOver]);
+  useGamePolling({ gameId, loadedGameId: game?.id, isGameOver, revisionRef, setGame });
 
   useEffect(() => {
     if (!canOpenSocket) return undefined;
