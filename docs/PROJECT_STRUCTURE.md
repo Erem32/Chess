@@ -31,6 +31,7 @@ The Python application lives in [backend/app/](../backend/app/).
 | [repositories/](../backend/app/repositories/) | Database helpers for users, games, and matchmaking. |
 | [models/](../backend/app/models/) | SQLAlchemy models for users, games, players, moves, queue entries, and chat messages. |
 | [schemas/](../backend/app/schemas/) | Pydantic request and response types. |
+| [data/](../backend/app/data/) | Server-owned practice exercise catalog and its format. |
 | [db/](../backend/app/db/) | Database engine and sessions, model metadata, and development-user seeding. |
 | [tests/](../backend/app/tests/) | Backend pytest suite. |
 | [alembic/](../backend/alembic/) | Database migration configuration and versioned migrations. |
@@ -44,6 +45,7 @@ A typical HTTP request enters a route, calls a service, and reads or changes dat
 | Change login or registration | [auth.py](../backend/app/api/v1/auth.py), [auth_service.py](../backend/app/services/auth_service.py), [security.py](../backend/app/core/security.py) |
 | Change player matching | [matchmaking.py](../backend/app/api/v1/matchmaking.py), [matchmaking_service.py](../backend/app/services/matchmaking_service.py), [game_repository.py](../backend/app/repositories/game_repository.py) |
 | Change move validation or game state | [chess_service.py](../backend/app/services/chess_service.py) and the WebSocket handler in [websocket.py](../backend/app/api/websocket.py) |
+| Add practice positions or change attempt validation | [practice data](../backend/app/data/README.md), [practice_service.py](../backend/app/services/practice_service.py), and [practice.py](../backend/app/api/v1/practice.py) |
 | Change resign, draw, history, or active-game endpoints | [games.py](../backend/app/api/v1/games.py), [game_service.py](../backend/app/services/game_service.py), and [chess_service.py](../backend/app/services/chess_service.py) |
 | Change database tables | The relevant file in [models/](../backend/app/models/) and a new migration in [alembic/versions/](../backend/alembic/versions/) |
 | Change settings or seeded users | [config.py](../backend/app/core/config.py), [seed.py](../backend/app/db/seed.py), and [.env.example](../.env.example) |
