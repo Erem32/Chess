@@ -162,10 +162,13 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
 | Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
 | Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
+| Practice | `GET /api/v1/practice/exercises`, `POST /api/v1/practice/exercises/{exercise_id}/attempt` |
 | Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
 | Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline`, `GET` and `POST /api/v1/games/{game_id}/draw-claims` |
 
 Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
+
+The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog starts empty. See the [practice data format](backend/app/data/README.md) when adding exercises.
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game.
 
