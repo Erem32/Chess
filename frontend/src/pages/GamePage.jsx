@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { acceptDraw, declineDraw, getDrawClaimOptions, getGame, getGameChat, getGameMoves, offerDraw, resignGame, submitDrawClaim } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
-import { mergeChatMessages } from "../api/chatMessages.js";
+import { mergeChatMessages, olderChatPage } from "../api/chatMessages.js";
 import { classifyMove, fetchStableGameSnapshot, mergeGameUpdate, reconnectDelay } from "../api/gameSync.js";
 import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
@@ -27,6 +27,7 @@ export default function GamePage() {
   const refreshRequestRef = useRef(0);
   const claimRequestRef = useRef(0);
   const pendingChatRef = useRef(new Map());
+  const chatHistoryRequestRef = useRef(0);
   const currentGameRef = useRef(gameId);
   currentGameRef.current = gameId;
   const [fen, setFen] = useState(STARTING_FEN);
@@ -36,6 +37,10 @@ export default function GamePage() {
   const [chatDraft, setChatDraft] = useState("");
   const [chatError, setChatError] = useState("");
   const [chatSending, setChatSending] = useState(false);
+  const [olderMessages, setOlderMessages] = useState(null);
+  const [olderAvailable, setOlderAvailable] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +84,11 @@ export default function GamePage() {
   }, [gameId, fen, game?.status]);
 
   useEffect(() => {
+    // A new live message may have pushed an older message out of the latest window.
+    if (olderMessages === null) setOlderAvailable(true);
+  }, [messages[0]?.id, olderMessages]);
+
+  useEffect(() => {
     let active = true;
 
     async function loadGame() {
@@ -87,6 +97,11 @@ export default function GamePage() {
       setFen(STARTING_FEN);
       setMoves([]);
       setMessages([]);
+      chatHistoryRequestRef.current += 1;
+      setOlderMessages(null);
+      setOlderAvailable(true);
+      setLoadingOlder(false);
+      setHistoryError("");
       setChatDraft("");
       setChatError("");
       setChatSending(false);
@@ -338,6 +353,36 @@ export default function GamePage() {
     }
   }
 
+  async function loadOlderChat() {
+    const displayed = olderMessages ?? messages;
+    if (loadingOlder || !displayed.length || !olderAvailable) return;
+    const gameAtRequest = gameId;
+    const request = ++chatHistoryRequestRef.current;
+    setLoadingOlder(true);
+    setHistoryError("");
+    try {
+      const data = await getGameChat(gameId, { beforeId: displayed[0].id });
+      if (currentGameRef.current !== gameAtRequest || request !== chatHistoryRequestRef.current) return;
+      const result = olderChatPage(olderMessages, data.messages ?? []);
+      setOlderMessages(result.page);
+      setOlderAvailable(result.hasOlder);
+    } catch {
+      if (currentGameRef.current === gameAtRequest && request === chatHistoryRequestRef.current) {
+        setHistoryError("Could not load older messages. Try again.");
+      }
+    } finally {
+      if (currentGameRef.current === gameAtRequest && request === chatHistoryRequestRef.current) setLoadingOlder(false);
+    }
+  }
+
+  function showLatestChat() {
+    chatHistoryRequestRef.current += 1;
+    setOlderMessages(null);
+    setOlderAvailable(true);
+    setLoadingOlder(false);
+    setHistoryError("");
+  }
+
   async function handleResign() {
     if (!window.confirm("Resign this game? Your opponent will win.")) return;
     setError("");
@@ -424,7 +469,14 @@ export default function GamePage() {
       <aside className="game-side-column desktop-game-sidebar">
         <PlayerSummaryPanel playerSummary={playerSummary} />
         <ChatBox
-          messages={messages}
+          messages={olderMessages ?? messages}
+          onLoadOlder={loadOlderChat}
+          onShowLatest={showLatestChat}
+          isOlderPage={olderMessages !== null}
+          canLoadOlder={olderAvailable && (olderMessages !== null || messages.length === 100)}
+          isLoadingOlder={loadingOlder}
+          historyError={historyError}
+          historyExhausted={!olderAvailable}
           onSend={sendChat}
           message={chatDraft}
           onMessageChange={setChatDraft}
@@ -506,7 +558,14 @@ export default function GamePage() {
           {mobilePanel === "moves" && <MoveHistory moves={moves} />}
           {mobilePanel === "chat" && (
             <ChatBox
-              messages={messages}
+              messages={olderMessages ?? messages}
+              onLoadOlder={loadOlderChat}
+              onShowLatest={showLatestChat}
+              isOlderPage={olderMessages !== null}
+              canLoadOlder={olderAvailable && (olderMessages !== null || messages.length === 100)}
+              isLoadingOlder={loadingOlder}
+              historyError={historyError}
+              historyExhausted={!olderAvailable}
               onSend={sendChat}
               message={chatDraft}
               onMessageChange={setChatDraft}
