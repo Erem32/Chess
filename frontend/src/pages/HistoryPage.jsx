@@ -7,22 +7,52 @@ export default function HistoryPage() {
   const { user } = useAuth();
   const [games, setGames] = useState(null);
   const [error, setError] = useState("");
+  const [nextBeforeId, setNextBeforeId] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
     getMyHistory()
-      .then((data) => setGames(data?.games ?? []))
+      .then((data) => {
+        if (!active) return;
+        setGames(data?.games ?? []);
+        setNextBeforeId(data?.next_before_id ?? null);
+      })
       .catch((err) => {
-        setError(err.message);
+        if (active) setError(err.message);
       });
-  }, []);
+    return () => { active = false; };
+  }, [attempt]);
+
+  async function loadMore() {
+    if (loadingMore || nextBeforeId == null) return;
+    setLoadingMore(true);
+    setError("");
+    try {
+      const data = await getMyHistory({ beforeId: nextBeforeId });
+      setGames((current) => [...current, ...(data?.games ?? [])]);
+      setNextBeforeId(data?.next_before_id ?? null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <section>
       <h1>Game History</h1>
       <div className="panel history-panel">
-        {error ? <p className="error" role="alert">Could not load game history: {error}</p> : games === null ? (
+        {error && <p className="error" role="alert">Could not load game history: {error}</p>}
+        {error && games === null && (
+          <button type="button" className="secondary-button" onClick={() => { setError(""); setAttempt((value) => value + 1); }}>
+            Retry
+          </button>
+        )}
+        {games === null && !error ? (
           <p className="muted" role="status">Loading game history...</p>
-        ) : games.length === 0 ? (
+        ) : games === null ? null : games.length === 0 ? (
           <p className="muted">No games yet.</p>
         ) : (
           <div className="history-list panel-scroll">
@@ -38,6 +68,11 @@ export default function HistoryPage() {
               </article>
             ))}
           </div>
+        )}
+        {games !== null && nextBeforeId != null && (
+          <button type="button" className="secondary-button" disabled={loadingMore} onClick={loadMore}>
+            {loadingMore ? "Loading..." : error ? "Retry loading more" : "Load more"}
+          </button>
         )}
       </div>
     </section>
