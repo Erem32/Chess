@@ -1,24 +1,23 @@
-# Experience settings
+# Display and move guidance settings
 
-## Outcome and first slice
+## Outcome
 
-Let a player choose and retain Beginner, Casual or Advanced, plus individual text size, board size, guidance, pace and social-participation preferences. These are starting preferences, not restrictions on which features or difficulty the player may use. Start with explicit manual selection and persistence; default to Beginner when no choice exists. Do not apply a mode change to an active game without the player's choice.
+Let a user change text size and turn legal-move guidance on or off. The board adapts to the available screen; the settings must remain easy to find and change back.
 
-## Prerequisites and ownership
+## Implementation
 
-- Can be developed independently with a small preferences contract agreed with the adaptive-mode and game-setup owners; no engine, content, clocks or social system is required.
-- Own a feature-scoped settings UI/API, validation and persistence. An integration owner coordinates route registration, common styling and the user/profile migration. Keep the existing theme preference working; define whether settings are account-wide or device-specific before implementation.
-- [Adaptive modes](adaptive-modes.md) are a separate later capability and must not be required for manual settings.
+- Add a small settings control for text size and move guidance. Use a few fixed text sizes rather than a complex editor.
+- Store choices in browser `localStorage`, following the existing theme setting. Use the current text size and enabled move guidance as defaults so existing users retain the current experience. Handle missing or invalid stored values with those defaults.
+- Apply the text setting consistently across the app. Pass the guidance setting to the shared board so it controls visible legal-move markers in online games, lessons and puzzles. It must not change which moves are legal or prevent a player from making a legal move.
+- Preserve the existing theme setting and the board's click, drag and promotion behavior. Chess move validation remains on the backend.
 
-## Implementation guidelines
+## Dependencies and parallel work
 
-1. Model selected mode and separately stored explicit overrides. Define precedence: explicit per-setting choice beats mode defaults; a manual mode selection remains until the player re-enables automatic selection.
-2. Store only necessary choices, with additive migrations and defaults for existing accounts; do not infer age. Validate values server-side. Define how unavailable settings are described rather than silently overriding them.
-3. Expose a stable read/update contract to features. Features adopt settings incrementally; preserve explicitly chosen text, board, guidance and privacy settings when mode changes.
-4. Provide a focused settings view and explain which mode is active. Avoid a large redesign of existing screens.
+The settings UI can be developed independently using a local board fixture. Agree the small board option and default values with the shared-board and lesson owners before integrating their branches. This feature needs no backend changes or database migration.
 
-## Acceptance and tests
+## Acceptance and checks
 
-- Settings persist across reload and sessions according to the agreed storage scope; existing users and accounts without preferences work.
-- Users can manually choose each mode and individual settings; changing modes does not reset explicit overrides. Manual mode choice is not replaced by automatic recommendations.
-- Invalid values are rejected without losing existing choices. Test API migration/defaults, update/restore flows, precedence, and consumers with missing or unsupported preferences.
+- A user can increase and restore text size and switch move guidance on and off; the controls show the current choices.
+- Choices persist after reload in the same browser. Missing or invalid saved settings use the defaults.
+- Guidance changes only the markers, not server-side move validation. The board remains usable at phone, tablet and desktop widths.
+- Test preference defaults and persistence, both guidance states and a legal move with guidance disabled. Check the settings and board in a browser at narrow and wide widths.

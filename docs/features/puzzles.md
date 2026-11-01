@@ -1,31 +1,15 @@
-# Chess puzzles
+# Puzzles
 
-**Goal:** Let a player choose a suitable puzzle, attempt moves, retry, and view optional hints and an explanation, without a daily-streak requirement. Difficulty and help remain selectable regardless of mode. This feature is proposed.
+## Outcome
 
-## Independent first slice
-
-Deliver a small, reviewed collection of single-move puzzles with explicit solution and explanation, difficulty filter, retry and reveal. No rating system, engine, daily schedule, or automatic personalization is required. Multimove lines and progress history can follow after the authored content and grading contract work.
-
-## Prerequisites and boundaries
-
-- Agree a practice-board adapter and a puzzle format: stable ID, initial FEN, side to move, difficulty, accepted UCI solution line(s), hints and explanation. Backend and UI can work against the same fixtures in parallel.
-- Puzzles are separate from live `Game`/`Move` records and must not change match results or statistics. The backend validates legality and decides whether a submitted line matches accepted content; client-side highlighting is advisory.
-- Curated content must come from an approved, reusable source with licensing and attribution recorded. Validate positions, legal solutions and explanation consistency before publishing; avoid fabricated analysis.
-- Decide whether this first slice requires authentication or stored attempts. Persisted attempts require a reviewed migration, data-retention rules and content-version references.
+Provide a handful of authored puzzles. A player can attempt a move, retry or reveal the prepared solution and its explanation. Practice is untimed and has no opponent.
 
 ## Implementation
 
-1. Establish content loading and validation, including valid FEN, side to move, legal solution transitions, explicitly accepted alternatives, and bounded text. A static, versioned catalog is sufficient initially.
-2. Add feature-specific list/detail and attempt services and request/response schemas; keep solution/hint disclosure deliberate. Define deterministic feedback for illegal, incorrect, correct, retry and reveal.
-3. Implement the puzzle selection and board session in a feature-owned frontend folder. Support leaving, retrying, optional hints and explanation after an attempt without forcing a streak or mode.
-4. Expand to authored multiple-move lines only when opponent replies, alternative valid solutions, progress storage and interruption behavior are defined and tested. Integrate mode defaults as a separate optional step.
+- Keep a few reviewed puzzle positions, accepted moves, solutions and short explanations in repository files. Start with single-move puzzles and check that the content and legal solutions are correct.
+- Reuse the practice board and backend move checking described in [shared preparation](00-foundations.md). The current board filters illegal moves before `onMove`, so the practice adapter must also report rejected attempts for feedback without changing live-game behavior. Distinguish an illegal move from a legal but incorrect answer; neither should change an online game or player statistics.
+- Provide a simple selection, retry and reveal flow. Legal-move guidance follows [settings](experience-settings.md); prepared explanations are available without a separate hints service or engine.
 
-## Acceptance and checks
+## Dependencies and checks
 
-- A player can pick difficulty, attempt a move, understand incorrect feedback, retry, see a correct result and read an explanation.
-- Server grading resists incorrect or illegal submissions and does not treat an unlisted but legal move as illegal chess. Every published line replays legally and accepted alternatives are handled as specified.
-- Puzzle interaction cannot mutate an online match. Tests cover invalid content, both colors, promotion, permitted alternatives, retry/reveal, authorization where applicable, and a browser session with a disposable dataset.
-
-## Parallel ownership and decisions
-
-One branch owns catalog and grading; another owns the screen using contract fixtures. Coordinate the practice-board contract before merging. Agree initial difficulty labels, allowed alternatives, the licensed content source, hint policy and progress retention. Source: [Project Helix specification, sections 2.3 and 3.3](https://docs.google.com/document/d/16WxbylyCP4k2OvAuh3xz5v-DbWU0wTTaF9Sy9nGcxjQ/edit).
+The puzzle content and screen can be developed separately against example positions and responses; the shared board and settings interfaces are needed for integration. Test correct, incorrect and illegal attempts, retry and reveal, content validity, and one complete browser journey.
