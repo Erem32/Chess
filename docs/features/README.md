@@ -2,6 +2,8 @@
 
 This is a university-project interpretation of [Project Helix Shared](https://docs.google.com/document/d/16WxbylyCP4k2OvAuh3xz5v-DbWU0wTTaF9Sy9nGcxjQ/edit). Build on the existing chess app and use small, understandable solutions. The document proposes several features; the table separates a useful first version from work that can follow. Nothing here authorizes implementing a large feature without the approval required by [project instructions](../../AGENTS.md).
 
+The [recommended scope cuts](REQUIREMENT_CHANGES.md) identify source requirements that could be removed or simplified. They are suggestions for the owner to decide, not approved changes.
+
 ## What to build
 
 | Feature | Small first version | Later, if wanted |

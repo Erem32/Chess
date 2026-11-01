@@ -4,7 +4,7 @@ Objective: prepare a small university-project version of the [Project Helix feat
 
 ## Next task
 
-Review the [simplified feature plan](features/README.md), then agree on the minimal board interface and choose a first approved feature slice. Preserve existing online play and add focused tests.
+Review the [recommended scope cuts](features/REQUIREMENT_CHANGES.md) and [feature plan](features/README.md), then agree on the minimal board interface and choose a first approved feature slice. Preserve existing online play and add focused tests.
 
 ## Working state
 
