@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { acceptDraw, declineDraw, getDrawClaimOptions, getGame, getGameChat, getGameMoves, offerDraw, resignGame, submitDrawClaim } from "../api/games.js";
+import { acceptDraw, declineDraw, getGame, getGameChat, getGameMoves, offerDraw, resignGame } from "../api/games.js";
 import { getAuthToken } from "../api/session.js";
 import { mergeChatMessages } from "../api/chatMessages.js";
 import { fetchStableGameSnapshot, mergeGameUpdate } from "../api/gameSync.js";
@@ -14,6 +14,7 @@ import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useGamePolling } from "../features/game/useGamePolling.js";
 import { useChatHistory } from "../features/game/useChatHistory.js";
+import { useDrawClaims } from "../features/game/useDrawClaims.js";
 import { boardMatchesGame, canPlayGameMove } from "../features/game/boardState.js";
 import { normalizeGameEvent } from "../features/game/gameEvent.js";
 import { createGameEventBuffer } from "../features/game/gameEventBuffer.js";
@@ -30,7 +31,6 @@ export default function GamePage() {
   const reconnectSchedulerRef = useRef(null);
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
-  const claimRequestRef = useRef(0);
   const pendingChatRef = useRef(null);
   if (!pendingChatRef.current) pendingChatRef.current = createPendingChat();
   const currentGameRef = useRef(gameId);
@@ -53,9 +53,7 @@ export default function GamePage() {
     reconnectSchedulerRef.current = createReconnectScheduler(() => setSocketAttempt((current) => current + 1));
   }
   const [mobilePanel, setMobilePanel] = useState("players");
-  const [claimOptions, setClaimOptions] = useState(null);
-  const [claimMove, setClaimMove] = useState("");
-  const [claimBusy, setClaimBusy] = useState(false);
+  const { options: claimOptions, selectedMove: claimMove, setSelectedMove: setClaimMove, busy: claimBusy, checkClaim: handleCheckClaim, claimDraw: handleClaimDraw, closeClaim } = useDrawClaims({ gameId, fen, gameStatus: game?.status, revisionRef, setGame, setError, setInfo });
   const isGameOver = game && game.status !== "active" && game.status !== "waiting";
   const socketToken = token ?? getAuthToken();
   const currentUserId = user?.id ?? getUserIdFromToken(socketToken);
@@ -83,12 +81,6 @@ export default function GamePage() {
     socketStatus,
     turnColor: game?.turn_color
   });
-
-  useEffect(() => {
-    claimRequestRef.current += 1;
-    setClaimOptions(null);
-    setClaimBusy(false);
-  }, [gameId, fen, game?.status]);
 
   useEffect(() => {
     let active = true;
@@ -337,41 +329,6 @@ export default function GamePage() {
     }
   }
 
-  async function handleCheckClaim() {
-    const request = ++claimRequestRef.current;
-    setError("");
-    setClaimBusy(true);
-    try {
-      const options = await getDrawClaimOptions(gameId);
-      if (request !== claimRequestRef.current) return;
-      setClaimOptions(options);
-      setClaimMove(options.current_reasons.length ? "" : options.moves[0]?.uci ?? "");
-    } catch (err) {
-      if (request === claimRequestRef.current) setError(err.message);
-    } finally {
-      if (request === claimRequestRef.current) setClaimBusy(false);
-    }
-  }
-
-  async function handleClaimDraw() {
-    if (!claimOptions || claimBusy) return;
-    const request = ++claimRequestRef.current;
-    setError("");
-    setClaimBusy(true);
-    try {
-      const result = await submitDrawClaim(gameId, claimMove || null);
-      if (request !== claimRequestRef.current) return;
-      revisionRef.current += 1;
-      setGame(result);
-      setClaimOptions(null);
-      setInfo("Draw claimed");
-    } catch (err) {
-      if (request === claimRequestRef.current) setError(err.message);
-    } finally {
-      if (request === claimRequestRef.current) setClaimBusy(false);
-    }
-  }
-
   return (
     <section className="game-layout">
       <aside className="game-side-column desktop-game-sidebar">
@@ -457,7 +414,7 @@ export default function GamePage() {
                 onOfferDraw={handleOfferDraw}
                 onResign={handleResign}
               />
-              {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={() => setClaimOptions(null)} busy={claimBusy} />}
+              {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={closeClaim} busy={claimBusy} />}
               <DrawOfferPanel
                 drawOfferByUserId={drawOfferByUserId}
                 hasPendingDrawOffer={hasPendingDrawOffer}
@@ -501,7 +458,7 @@ export default function GamePage() {
           onOfferDraw={handleOfferDraw}
           onResign={handleResign}
         />
-        {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={() => setClaimOptions(null)} busy={claimBusy} />}
+        {claimOptions && <DrawClaimPanel options={claimOptions} selectedMove={claimMove} onSelect={setClaimMove} onClaim={handleClaimDraw} onCancel={closeClaim} busy={claimBusy} />}
         <DrawOfferPanel
           drawOfferByUserId={drawOfferByUserId}
           hasPendingDrawOffer={hasPendingDrawOffer}
