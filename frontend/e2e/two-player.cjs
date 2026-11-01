@@ -138,6 +138,21 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
     await move(white, 'e2', 'e4', 1);
+    // A claim check belongs to the current position; a late response must not
+    // reopen its panel after the player moves.
+    let releaseClaim;
+    let claimStarted;
+    const claimBlocked = new Promise((resolve) => { releaseClaim = resolve; });
+    const claimRequestStarted = new Promise((resolve) => { claimStarted = resolve; });
+    const delayClaim = async (route) => {
+      const response = await route.fetch();
+      claimStarted();
+      await claimBlocked;
+      await route.fulfill({ response });
+    };
+    await black.route('**/api/v1/games/*/draw-claims', delayClaim);
+    await black.locator('.desktop-game-sidebar').last().getByRole('button', { name: 'Check draw claim' }).click();
+    await claimRequestStarted;
     await black.waitForFunction(() => document.querySelector('[data-square="d7"] [role=button]')?.getAttribute('aria-disabled') === 'false');
     const source = await black.locator('[data-square="d7"]').boundingBox();
     const target = await black.locator('[data-square="d5"]').boundingBox();
@@ -146,6 +161,12 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 10 });
     await black.mouse.up();
     for (const page of [white, black]) await page.getByText('d5', { exact: true }).first().waitFor();
+    const lateClaimResponse = black.waitForResponse((response) => response.url().endsWith('/draw-claims'));
+    releaseClaim();
+    await lateClaimResponse;
+    await black.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await black.getByRole('region', { name: 'Draw claim' }).count(), 0);
+    await black.unroute('**/api/v1/games/*/draw-claims', delayClaim);
     await move(white, 'e4', 'd5', 3);
     for (const page of [white, black]) await page.getByText('exd5', { exact: true }).first().waitFor();
     await move(black, 'd8', 'd5', 4);
