@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 
-export default function ChatBox({ messages = [], onSend, getAuthorLabel, message, onMessageChange, isSending, error }) {
+export default function ChatBox({ messages = [], onSend, getAuthorLabel, message, onMessageChange, isSending, error, onLoadOlder, onShowLatest, isOlderPage, canLoadOlder, isLoadingOlder, historyError, historyExhausted }) {
   const scrollRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -10,7 +10,7 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel, message
       container.scrollTop = container.scrollHeight;
     });
     return () => window.cancelAnimationFrame(frameId);
-  }, [messages.length]);
+  }, [messages]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -20,6 +20,14 @@ export default function ChatBox({ messages = [], onSend, getAuthorLabel, message
   return (
     <section className="panel chat-panel">
       <h2>Chat</h2>
+      {(canLoadOlder || isOlderPage) && <div>
+        {canLoadOlder && <button type="button" className="secondary-button" onClick={onLoadOlder} disabled={isLoadingOlder}>
+          {isLoadingOlder ? "Loading..." : "Older messages"}
+        </button>}
+        {isOlderPage && <button type="button" className="secondary-button" onClick={onShowLatest}>Latest messages</button>}
+      </div>}
+      {historyError && <p className="error" role="alert">{historyError}</p>}
+      {historyExhausted && <p className="muted" role="status">No earlier messages.</p>}
       <div className="panel-scroll chat-messages" ref={scrollRef}>
         {messages.length === 0 ? (
           <p className="muted">No messages yet.</p>
