@@ -8,7 +8,7 @@ Prepare `feature/practice-validation` for review against `main`. The practice ca
 
 ## Working state
 
-- Practice validation is on `feature/practice-validation`, based on `feature/board-practice-attempts`. Inspect `git status`, `git worktree list`, and recent commits before resuming; Git is authoritative. The user's edits to the continuation skill and shared preparation document are included in this branch.
+- Practice validation is on `feature/practice-validation`, with the current `main` merged in. Inspect `git status`, `git worktree list`, and recent commits before resuming; Git is authoritative. The user's edits to the continuation skill and shared preparation document are included in this branch.
 - Local worktree `/tmp/chess-en-passant` contains uncommitted experimental edits. Preserve them. Local stash `stash@{0}` and remote branch `handoff/stash-recovery` also contain unreviewed work.
 - The running preview has its own database and may contain user data. Avoid restarting it during a game or using it for automated tests.
 
