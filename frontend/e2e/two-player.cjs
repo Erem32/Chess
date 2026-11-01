@@ -75,12 +75,8 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     for (const page of [white, black]) await page.getByText('e4', { exact: true }).first().waitFor();
     assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
     await black.waitForFunction(() => document.querySelector('#game-board-square-e7 [role=button]')?.getAttribute('aria-disabled') === 'false');
-    const notation = black.getByLabel('Play a move');
-    await notation.fill('e8');
-    await notation.press('Enter');
-    await black.getByRole('alert').filter({ hasText: 'Enter a legal move' }).waitFor();
-    await notation.fill('e5');
-    await notation.press('Enter');
+    await black.locator('[data-square="e7"]').click();
+    await black.locator('[data-square="e5"]').click();
     for (const page of [white, black]) await page.getByText('e5', { exact: true }).first().waitFor();
     const whiteChat = white.locator('.desktop-game-sidebar .chat-panel').first();
     const blackChat = black.locator('.desktop-game-sidebar .chat-panel').first();
@@ -122,6 +118,17 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await white.getByText('Searching for another player').waitFor();
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
+    await move(white, 'e2', 'e4', 1);
+    await black.waitForFunction(() => document.querySelector('[data-square="d7"] [role=button]')?.getAttribute('aria-disabled') === 'false');
+    const source = await black.locator('[data-square="d7"]').boundingBox();
+    const target = await black.locator('[data-square="d5"]').boundingBox();
+    await black.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+    await black.mouse.down();
+    await black.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 10 });
+    await black.mouse.up();
+    for (const page of [white, black]) await page.getByText('d5', { exact: true }).first().waitFor();
+    await move(white, 'e4', 'd5', 3);
+    for (const page of [white, black]) await page.getByText('exd5', { exact: true }).first().waitFor();
     black.once('dialog', (dialog) => dialog.dismiss());
     await black.getByRole('button', { name: 'Resign' }).first().click();
     assert.equal(await black.getByRole('heading', { name: 'Game over' }).count(), 0);
@@ -132,7 +139,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       black.getByRole('heading', { name: 'Game over' }).waitFor()
     ]);
     assert.equal(await black.getByRole('button', { name: 'Resign' }).count(), 0);
-    console.log('Two-player smoke passed: registration, matchmaking, moves, chat, socket reconnect, reload, a declared-move draw claim and resignation.');
+    console.log('Two-player smoke passed: registration, matchmaking, click moves and capture, dragging, chat, reconnect, draw claim and resignation.');
   } finally {
     for (const context of contexts) await context.close();
     await browser.close();
