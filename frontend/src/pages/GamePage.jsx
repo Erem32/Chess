@@ -14,6 +14,7 @@ import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useGamePolling } from "../features/game/useGamePolling.js";
 import { normalizeGameEvent } from "../features/game/gameEvent.js";
+import { createGameEventBuffer } from "../features/game/gameEventBuffer.js";
 import { createPendingChat } from "../features/game/pendingChat.js";
 
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -141,10 +142,8 @@ export default function GamePage() {
     if (!canOpenSocket) return undefined;
 
     let active = true;
-    let synchronized = false;
     let authorized = true;
     let stableSince = 0;
-    const queuedGameMessages = [];
     setSocketStatus("connecting");
     const ws = createGameSocket(gameId, socketToken);
     socketRef.current = ws;
@@ -164,6 +163,8 @@ export default function GamePage() {
       setMoves((current) => appendMove(current, event.move));
       setError("");
     }
+
+    const gameEvents = createGameEventBuffer(applyGameMessage, () => ws.readyState === WebSocket.OPEN);
 
     ws.onopen = async () => {
       if (!active || socketRef.current !== ws) return;
@@ -185,12 +186,7 @@ export default function GamePage() {
         setGame(snapshot.game);
         setFen(resolveFen(snapshot.game));
         setMoves(snapshot.moves);
-        synchronized = true;
-        for (const message of queuedGameMessages) {
-          if (ws.readyState !== WebSocket.OPEN) return;
-          applyGameMessage(message);
-        }
-        if (ws.readyState !== WebSocket.OPEN) return;
+        if (!gameEvents.synchronize()) return;
         stableSince = Date.now();
         setSocketStatus("connected");
         setInfo("Connected");
@@ -216,8 +212,7 @@ export default function GamePage() {
       }
       const payload = data.payload ?? data;
       if (["game_state", "game_updated", "move", "move_made"].includes(data.type)) {
-        if (synchronized) applyGameMessage(data);
-        else queuedGameMessages.push(data);
+        gameEvents.receive(data);
       } else if (data.type === "chat") {
         setMessages((current) => mergeChatMessages(current, [payload]));
         if (Number(payload.user_id) === Number(currentUserId)) pendingChatRef.current.settle(payload.client_message_id, null);
