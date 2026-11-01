@@ -60,7 +60,7 @@ Branch cleanup: the integrated `improvement/*` feature branches were deleted aft
 
 ## Next task
 
-**Next:** Continue the code-structure roadmap by inspecting the game page's remaining session/reconnect logic for another cohesive, behavior-preserving extraction, with focused tests and browser verification. Game polling (`800bde2`), click-capture regression checks (`e1acfb3`), and shared history/dashboard formatting (`5daffbc`) are integrated. The local preview uses its separate database and existing accounts. GitHub Actions passed at `8c1e197`; later runs should be checked separately.
+**In progress:** Investigate and fix the reported en passant failure, with both-color regression coverage and server-authoritative move validation. Agent owns `improvement/en-passant` in `/tmp/chess-en-passant`. In parallel, an agent owns a small behavior-preserving game message/session structure improvement on `improvement/game-message-parsing` in `/tmp/chess-game-message-parsing`. Inspect both worktrees before resuming; review, test and integrate their work. The local preview uses its separate database and existing accounts; rebuild the affected frontend/backend after the fix without resetting the preview database.
 
 **Priority decision:** The user now prioritizes code structure and extensibility, asks to defer large interface changes and disability-accessibility work, and wants ordinary usability bugs fixed. Retain existing useful features and server-side move validation. GitHub Actions passed for the previously integrated mobile panel changes at `36523ce`.
 
