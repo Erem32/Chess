@@ -59,7 +59,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
 | [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, and history screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
-| [features/game/gamePresentation.js](../frontend/src/features/game/gamePresentation.js) | Shared game-result, player color, and duration formatting for dashboard and history. |
+| [features/game/](../frontend/src/features/game/) | Shared game presentation and background state-refresh logic. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
 | [context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx) | Authentication state and login/logout actions. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
@@ -73,6 +73,8 @@ The React application lives in [frontend/src/](../frontend/src/).
 4. **Reloading a game:** The game page retrieves the current game and moves through REST, then connects to the WebSocket for live messages. After connecting or reconnecting it buffers live game events while reading a consistent game and move snapshot, then applies any newer moves. A temporary connection failure triggers retries with backoff; the board remains disabled during synchronization. The game page reloads bounded chat history and merges it with live messages by ID.
 
 Moves, draw actions, resignations, and aborts lock affected game rows before changing their state. The database transaction serializes competing changes on PostgreSQL; abort locks games in ID order. Matchmaking uses a separate PostgreSQL advisory lock.
+
+The game page uses `useGamePolling` for background updates to HTTP-driven game actions; the refresh controller ignores responses superseded by live events, newer polls, or page cleanup.
 
 Game WebSockets open a database session for initial authorization and state, then a fresh session for each received message. Idle sockets do not retain a database session between messages.
 
