@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { moveChoices, notationMove } from "./boardMoves.js";
+import { moveChoices } from "./boardMoves.js";
 
 const whitePromotion = "7k/P7/8/8/8/8/8/7K w - - 0 1";
 const blackPromotion = "7k/8/8/8/8/8/p7/7K b - - 0 1";
@@ -25,15 +25,4 @@ test("ordinary moves remain unchanged and invalid actions produce no choices", (
   assert.deepEqual(moveChoices(start, "e2", "e5", "white"), []);
   assert.deepEqual(moveChoices(start, "e2", "e4", "black"), []);
   assert.deepEqual(moveChoices(start, "e2", "e4", "white", false), []);
-});
-
-test("keyboard move entry accepts legal notation and honors turn and promotion", () => {
-  const start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  assert.equal(notationMove(start, "e4", "white"), "e2e4");
-  assert.equal(notationMove(start, "e2e4", "white"), "e2e4");
-  assert.equal(notationMove(start, "e5", "white"), null);
-  assert.equal(notationMove(start, "e4", "black"), null);
-  assert.equal(notationMove(start, "e4", "white", false), null);
-  assert.equal(notationMove(whitePromotion, "a8=N", "white"), "a7a8n");
-  assert.equal(notationMove(whitePromotion, "a7a8n", "white"), "a7a8n");
 });

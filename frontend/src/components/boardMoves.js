@@ -17,19 +17,3 @@ export function moveChoices(fen, sourceSquare, targetSquare, playerColor, isInte
     .filter((move) => move.to === targetSquare)
     .map((move) => `${sourceSquare}${targetSquare}${move.promotion ?? ""}`);
 }
-
-export function notationMove(fen, text, playerColor, isInteractive = true) {
-  if (!fen || !text?.trim() || !playerColor || !isInteractive) return null;
-  try {
-    const board = new Chess(fen);
-    if (board.turn() !== (playerColor === "white" ? "w" : "b")) return null;
-    const input = text.trim();
-    const coordinate = /^([a-h][1-8])([a-h][1-8])([qrbn])?$/i.exec(input);
-    const move = coordinate
-      ? board.move({ from: coordinate[1].toLowerCase(), to: coordinate[2].toLowerCase(), promotion: coordinate[3]?.toLowerCase() })
-      : board.move(input);
-    return `${move.from}${move.to}${move.promotion ?? ""}`;
-  } catch {
-    return null;
-  }
-}
