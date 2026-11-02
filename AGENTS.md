@@ -72,7 +72,7 @@ docker compose exec backend alembic upgrade head
 
 - When changing behavior, configuration, API contracts, commands, or project structure, check whether `README.md`, `docs/PROJECT_STRUCTURE.md`, or other affected project notes need updating.
 - Keep documentation changes in the same change set as the implementation. Base claims and examples on the current code and tests; distinguish unverified or planned behavior.
-- Use `$maintain-chess-docs` when available. If it is not available, perform the documentation check above directly.
+- Use `$maintain-chess-docs` when available. For a project-wide review of documentation, plans and skills, use `$review-chess-project-guidance`. If a skill is unavailable, perform the applicable review directly.
 - Verify relevant links and examples. If no documentation needs changing, say so when reporting the work.
 
 ## Long-running improvement work
