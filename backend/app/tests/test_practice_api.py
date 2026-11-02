@@ -164,3 +164,23 @@ def test_exercises_can_be_filtered_by_kind(client, catalog):
     assert [item["id"] for item in client.get("/api/v1/practice/exercises?kind=puzzle").json()] == ["promotion"]
     assert len(client.get("/api/v1/practice/exercises").json()) == 2
     assert client.get("/api/v1/practice/exercises?kind=other").status_code == 422
+
+
+def test_puzzle_solution_is_available_only_on_request(client, catalog):
+    exercises = json.loads(catalog.read_text())
+    exercises[1]["kind"] = "puzzle"
+    exercises[1]["explanation"] = "The knight is the answer."
+    catalog.write_text(json.dumps(exercises))
+    puzzle = client.get("/api/v1/practice/exercises?kind=puzzle").json()[0]
+    assert "accepted_moves" not in puzzle and "explanation" not in puzzle
+    response = client.get("/api/v1/practice/exercises/promotion/solution")
+    board = chess.Board(exercises[1]["fen"])
+    board.push_uci("a7a8n")
+    assert response.json() == {"move_uci": "a7a8n", "fen": board.fen(), "explanation": "The knight is the answer."}
+    assert client.get("/api/v1/practice/exercises/opening/solution").status_code == 404
+    assert client.get("/api/v1/practice/exercises/missing/solution").status_code == 404
+
+
+def test_puzzle_solution_requires_authentication():
+    with TestClient(app) as test_client:
+        assert test_client.get("/api/v1/practice/exercises/promotion/solution").status_code == 401
