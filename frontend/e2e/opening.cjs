@@ -71,12 +71,15 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
       await page.reload();
       await page.getByRole('button', { name: /Guide 1, not completed/ }).waitFor();
       const content = page.locator('.opening-content');
+      const list = page.locator('.opening-list');
       const header = page.locator('.opening-page > .study-header');
       const headerBefore = await header.boundingBox();
       assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), 'opening page should fit the viewport');
-      assert.ok(await content.evaluate((element) => element.scrollHeight > element.clientHeight), 'opening content should scroll');
-      await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
-      assert.ok(await content.evaluate((element) => element.scrollTop > 0));
+      const controlsBefore = await page.locator('.opening-controls-panel').boundingBox();
+      assert.ok(await list.evaluate((element) => element.scrollHeight > element.clientHeight), 'opening list should scroll');
+      await list.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+      assert.ok(await list.evaluate((element) => element.scrollTop > 0));
+      assert.ok(Math.abs((await page.locator('.opening-controls-panel').boundingBox()).y - controlsBefore.y) < 1, 'filters should stay in place');
       assert.ok(Math.abs((await header.boundingBox()).y - headerBefore.y) < 1, 'header should stay in place');
       await page.getByRole('button', { name: /Guide 20, not completed/ }).click();
       await page.getByRole('heading', { name: 'Guide 20', level: 1 }).waitFor();
