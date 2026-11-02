@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -11,8 +11,11 @@ router = APIRouter()
 
 
 @router.get("/exercises", response_model=list[PracticeExerciseRead])
-def list_exercises(_user: Annotated[User, Depends(get_current_user)]) -> list[PracticeExerciseRead]:
-    return practice_service.list_exercises()
+def list_exercises(
+    _user: Annotated[User, Depends(get_current_user)],
+    kind: Literal["lesson", "puzzle"] | None = None,
+) -> list[PracticeExerciseRead]:
+    return practice_service.list_exercises(kind)
 
 
 @router.post("/exercises/{exercise_id}/attempt", response_model=PracticeAttemptResponse)

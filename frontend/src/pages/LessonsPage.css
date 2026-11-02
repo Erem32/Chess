@@ -1,0 +1,5 @@
+.lessons-page { padding: 1.5rem; }
+.lessons-list { display: grid; gap: 0.75rem; justify-items: start; }
+.lesson-exercise { display: grid; grid-template-columns: minmax(0, 480px) minmax(180px, 1fr); gap: 1.5rem; }
+.lesson-board { width: 100%; }
+@media (max-width: 700px) { .lesson-exercise { grid-template-columns: 1fr; } }

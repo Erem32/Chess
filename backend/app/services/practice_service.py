@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Literal
 
 import chess
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
@@ -19,6 +20,7 @@ class PracticeExercise(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    kind: Literal["lesson", "puzzle"] = "lesson"
     fen: str
     instruction: str = Field(min_length=1)
     accepted_moves: list[str] = Field(min_length=1)
@@ -54,8 +56,11 @@ def load_exercises() -> list[PracticeExercise]:
     return definitions
 
 
-def list_exercises() -> list[PracticeExerciseRead]:
-    return [PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction) for item in load_exercises()]
+def list_exercises(kind: str | None = None) -> list[PracticeExerciseRead]:
+    return [
+        PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction)
+        for item in load_exercises() if kind is None or item.kind == kind
+    ]
 
 
 def find_exercise(exercise_id: str) -> PracticeExercise | None:

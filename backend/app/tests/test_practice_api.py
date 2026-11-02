@@ -154,3 +154,13 @@ def test_attempt_rejects_client_supplied_answer_or_position(client):
         json={"move_uci": "d2d4", "accepted_moves": ["d2d4"], "fen": chess.STARTING_FEN},
     )
     assert response.status_code == 422
+
+
+def test_exercises_can_be_filtered_by_kind(client, catalog):
+    exercises = json.loads(catalog.read_text())
+    exercises[1]["kind"] = "puzzle"
+    catalog.write_text(json.dumps(exercises))
+    assert [item["id"] for item in client.get("/api/v1/practice/exercises?kind=lesson").json()] == ["opening"]
+    assert [item["id"] for item in client.get("/api/v1/practice/exercises?kind=puzzle").json()] == ["promotion"]
+    assert len(client.get("/api/v1/practice/exercises").json()) == 2
+    assert client.get("/api/v1/practice/exercises?kind=other").status_code == 422
