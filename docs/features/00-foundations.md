@@ -8,7 +8,7 @@ Practice screens can use the board's optional invalid-attempt callback to reques
 
 ## Practice content and validation
 
-Keep reviewed lesson, puzzle, opening and example positions in repository files. The practice catalog format is documented in [practice data](../../backend/app/data/README.md); its catalog starts empty. Interactive attempts use backend chess validation and distinguish an illegal move from a legal move that does not solve the exercise. Author positions compatible with the validation rules and test each supplied sequence.
+Keep reviewed lesson, puzzle, opening and example positions in repository files. The practice catalog format is documented in [practice data](../../backend/app/data/README.md). Interactive attempts use backend chess validation and distinguish an illegal move from a legal move that does not solve the exercise. Author positions compatible with the validation rules and test each supplied sequence.
 
 Prepared activities are separate from online games and must not alter their state, history or statistics. Read-only examples need no live socket. Existing game replay and repetition logic assumes a standard starting position; do not change that contract merely to display a prepared position.
 

@@ -1,6 +1,6 @@
 # Opening guide
 
-`opening_guide.json` is `null` until a guide is authored. Replace it with an object containing:
+`opening_guide.json` contains an Italian Game guide. A guide is an object containing:
 
 - `title` and `introduction`: nonempty text.
 - `moves`: a nonempty array of objects, each with a `move_uci` string and a nonempty `explanation`.

@@ -1,1 +1,27 @@
-null
+{
+  "title": "Italian Game: developing the pieces",
+  "introduction": "The Italian Game begins with both players contesting the center. This short line shows the first moves and a common way to develop the bishop; it is not a forced sequence.",
+  "moves": [
+    {
+      "move_uci": "e2e4",
+      "explanation": "White occupies the center with a pawn and opens lines for the queen and bishop."
+    },
+    {
+      "move_uci": "e7e5",
+      "explanation": "Black answers in the center and opens lines for the queen and bishop."
+    },
+    {
+      "move_uci": "g1f3",
+      "explanation": "The knight develops toward the center and attacks the e5 pawn."
+    },
+    {
+      "move_uci": "b8c6",
+      "explanation": "Black develops a knight and protects the pawn on e5."
+    },
+    {
+      "move_uci": "f1c4",
+      "explanation": "The bishop develops to c4, looking toward the f7 pawn. Both sides still need to develop their remaining pieces and keep their kings safe."
+    }
+  ],
+  "video_url": null
+}

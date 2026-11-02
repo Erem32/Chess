@@ -1,1 +1,107 @@
-[]
+[
+  {
+    "id": "lesson-pawn",
+    "kind": "lesson",
+    "fen": "7k/8/8/8/8/8/4P3/7K w - - 0 1",
+    "instruction": "Pawn: A pawn moves forward one square, or two from its starting square if both are clear. It captures diagonally. Move the pawn from e2 to e4.",
+    "accepted_moves": [
+      "e2e4"
+    ],
+    "correct_feedback": "A pawn can move two squares from its starting position.",
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+  },
+  {
+    "id": "lesson-knight",
+    "kind": "lesson",
+    "fen": "7k/8/8/8/8/8/1N6/K7 w - - 0 1",
+    "instruction": "Knight: A knight moves in an L shape and can jump over pieces. Move the knight from b2 to c4.",
+    "accepted_moves": [
+      "b2c4"
+    ],
+    "correct_feedback": "The knight moved two ranks and one file.",
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+  },
+  {
+    "id": "lesson-bishop",
+    "kind": "lesson",
+    "fen": "7k/8/8/8/8/8/8/2B4K w - - 0 1",
+    "instruction": "Bishop: A bishop travels diagonally through empty squares and stays on the same color. Move the bishop from c1 to g5.",
+    "accepted_moves": [
+      "c1g5"
+    ],
+    "correct_feedback": "The bishop traveled diagonally along clear squares.",
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+  },
+  {
+    "id": "lesson-rook",
+    "kind": "lesson",
+    "fen": "7k/8/8/8/8/8/3R4/7K w - - 0 1",
+    "instruction": "Rook: A rook travels along ranks or files through empty squares. Move the rook from d2 to d5.",
+    "accepted_moves": [
+      "d2d5"
+    ],
+    "correct_feedback": "The rook moved up the d-file.",
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+  },
+  {
+    "id": "lesson-queen",
+    "kind": "lesson",
+    "fen": "7k/8/8/8/8/8/8/3Q3K w - - 0 1",
+    "instruction": "Queen: A queen combines the rook and bishop moves, traveling along ranks, files or diagonals. Move the queen from d1 to h5.",
+    "accepted_moves": [
+      "d1h5"
+    ],
+    "correct_feedback": "The queen traveled diagonally to h5.",
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+  },
+  {
+    "id": "lesson-king",
+    "kind": "lesson",
+    "fen": "7k/8/8/8/8/8/8/7K w - - 0 1",
+    "instruction": "King: A king moves one square in any direction, but cannot move into check. Move the king from h1 to g2.",
+    "accepted_moves": [
+      "h1g2"
+    ],
+    "correct_feedback": "The king moved one square diagonally.",
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+  },
+  {
+    "id": "puzzle-win-queen",
+    "kind": "puzzle",
+    "fen": "7k/8/8/8/3q4/8/3R4/7K w - - 0 1",
+    "instruction": "White to move: capture the unprotected black queen with the rook.",
+    "accepted_moves": [
+      "d2d4"
+    ],
+    "correct_feedback": "Correct! The rook captures the queen.",
+    "incorrect_feedback": "Look for a rook move that captures the queen.",
+    "explanation": "The d-file is clear, so the rook can move from d2 to d4 and capture the queen."
+  },
+  {
+    "id": "puzzle-mate-one",
+    "kind": "puzzle",
+    "fen": "7k/5Q2/6K1/8/8/8/8/8 w - - 0 1",
+    "instruction": "White to move: find a checkmate in one.",
+    "accepted_moves": [
+      "f7f8",
+      "f7e8",
+      "f7h7",
+      "f7g7"
+    ],
+    "correct_feedback": "Checkmate! The black king has no legal escape.",
+    "incorrect_feedback": "That move does not give checkmate. Try another queen move.",
+    "explanation": "Qf8 is checkmate: the queen checks along the eighth rank, and White controls the black king’s escape squares."
+  },
+  {
+    "id": "puzzle-promotion",
+    "kind": "puzzle",
+    "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
+    "instruction": "White to move: promote the pawn to a queen and give check.",
+    "accepted_moves": [
+      "a7a8q"
+    ],
+    "correct_feedback": "Correct! The new queen checks the king.",
+    "incorrect_feedback": "Choose the promotion that creates a queen.",
+    "explanation": "Move the pawn from a7 to a8 and choose a queen. The queen checks the king along the eighth rank."
+  }
+]
