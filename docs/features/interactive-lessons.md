@@ -1,17 +1,5 @@
 # Piece lessons
 
-## Outcome
+Six short lessons explain the basic movement of each piece and provide a single-move exercise. The server distinguishes illegal moves from legal incorrect answers. Learners can retry or leave, and the marker setting applies.
 
-Provide six short authored lessons, one for each chess piece. A learner reads an explanation, tries moves on a prepared board, receives feedback on an invalid attempt, and can retry, repeat or leave. Legal-move guidance follows the user's setting.
-
-## Implementation
-
-- The Lessons page uses the practice catalog and supports server-checked single-move exercises. The catalog contains one short lesson for each piece.
-- Store a small set of reviewed positions, instructions, expected moves and predetermined feedback in repository files. Keep lessons separate from online games and statistics.
-- Reuse the existing board and its practice-only invalid-attempt callback as described in [shared preparation](00-foundations.md).
-- Validate submitted practice moves on the backend using the existing chess library. Distinguish an illegal move from a legal move that does not satisfy the lesson; show authored feedback and keep the position available for retry.
-- Build one lesson first, then supply the other five as content. Display guidance only when enabled in [settings](experience-settings.md).
-
-## Dependencies and checks
-
-The content and page can be developed in parallel against an agreed example response; integrate after the reusable board and settings interfaces are available. Test all six lesson fixtures, valid and invalid attempts, retry and exit, guidance on/off, and that no online game or statistic is changed. Run a browser check for completing one lesson.
+Lesson content and its format are in [practice data](../../backend/app/data/README.md). See `test_learning_content.py` and the `test:e2e:learning` browser check.
