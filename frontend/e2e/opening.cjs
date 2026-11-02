@@ -37,10 +37,13 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
       ] }];
     await page.reload();
     const rows = page.locator('.opening-list .opening-row');
+    await page.getByRole('button', { name: /Italian Game, not completed/ }).waitFor();
     assert.equal(await rows.count(), 2);
     await page.getByLabel('Find an opening').fill('Sicilian');
+    await page.waitForFunction(() => document.querySelectorAll('.opening-list .opening-row').length === 1);
     assert.equal(await rows.count(), 1);
     await page.getByLabel('Find an opening').fill('');
+    await page.waitForFunction(() => document.querySelectorAll('.opening-list .opening-row').length === 2);
     await page.getByRole('button', { name: /Italian Game, not completed/ }).click();
     assert.equal(await page.getByRole('link', { name: 'Watch an optional video' }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Previous' }).isDisabled(), true);
@@ -54,6 +57,7 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     await page.getByRole('button', { name: 'All openings' }).click();
     await page.getByText('1 of 2 completed', { exact: false }).waitFor();
     await page.getByRole('button', { name: 'Completed', exact: true }).click();
+    await page.waitForFunction(() => document.querySelectorAll('.opening-list .opening-row').length === 1);
     assert.equal(await rows.count(), 1);
     await page.getByRole('button', { name: /Italian Game, completed, study again/ }).click();
     await page.getByText('Starting position.', { exact: true }).waitFor();
