@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import { getMyStats } from "../api/auth.js";
 import {
   abortMyActiveGames,
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const [activeGame, setActiveGame] = useState(null);
+  const [checkingActiveGame, setCheckingActiveGame] = useState(true);
   const [recentGames, setRecentGames] = useState(null);
   const [historyError, setHistoryError] = useState("");
   const matchmakingRevision = useRef(0);
@@ -75,7 +77,8 @@ export default function DashboardPage() {
       })
       .catch((err) => {
         if (active) setError(`Could not check your active game: ${err.message}`);
-      });
+      })
+      .finally(() => { if (active) setCheckingActiveGame(false); });
 
     const initialMatchmakingRevision = matchmakingRevision.current;
     getMatchmakingStatus()
@@ -270,32 +273,10 @@ export default function DashboardPage() {
           <p className="dashboard-eyebrow">Dashboard</p>
           <h1>{user?.username ? `Welcome, ${user.username}` : "Ready for a game"}</h1>
         </div>
-        {activeGame?.id && (
-          <button type="button" onClick={() => navigate(`/games/${activeGame.id}`)}>
-            Resume game #{activeGame.id}
-          </button>
-        )}
       </header>
 
       <div className="dashboard-grid">
         <div className="dashboard-main">
-          {activeGame?.id && (
-            <section className="active-game-panel dashboard-active-game">
-              <div>
-                <h2>Active game</h2>
-                <p className="muted">Game #{activeGame.id} is still open.</p>
-              </div>
-              <div className="actions dashboard-actions">
-                <button type="button" onClick={() => navigate(`/games/${activeGame.id}`)}>
-                  Resume game
-                </button>
-                <button type="button" className="danger-button" onClick={handleEndActiveGame}>
-                  Abort game
-                </button>
-              </div>
-            </section>
-          )}
-
           <section className="panel dashboard-card">
             <div className="dashboard-section-heading">
               <div>
@@ -303,7 +284,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {isWaiting && (
+            <p className="dashboard-play-note muted">{activeGame?.id ? `Active game #${activeGame.id}` : "Play a game with another player."}</p>
+            {!activeGame?.id && isWaiting && (
               <div className="dashboard-searching">
                 <strong>Searching for another player</strong>
                 <p className="muted">Waiting for another player. You can leave the queue at any time.</p>
@@ -311,17 +293,16 @@ export default function DashboardPage() {
             )}
 
             <div className="actions dashboard-actions">
-              <button type="button" onClick={handleJoinQueue} disabled={isJoining || isWaiting}>
-                {isJoining ? "Joining..." : isWaiting ? "Searching..." : "Join matchmaking"}
-              </button>
-              {isWaiting && (
-                <button type="button" className="secondary-button" onClick={handleLeaveQueue}>
-                  Leave queue
+              {activeGame?.id ? <>
+                <button type="button" onClick={() => navigate(`/games/${activeGame.id}`)}>Resume game</button>
+                <button type="button" className="danger-button" onClick={handleEndActiveGame}>Abort game</button>
+              </> : <>
+                <button type="button" onClick={handleJoinQueue} disabled={checkingActiveGame || isJoining || isWaiting}>
+                  {isJoining ? "Joining..." : isWaiting ? "Searching..." : "Join matchmaking"}
                 </button>
-              )}
-              <button type="button" className="secondary-button" onClick={handleCheckStatus}>
-                Check status
-              </button>
+                {isWaiting && <button type="button" className="secondary-button" onClick={handleLeaveQueue}>Leave queue</button>}
+                <button type="button" className="secondary-button" onClick={handleCheckStatus} disabled={checkingActiveGame}>Check status</button>
+              </>}
             </div>
             {status && <p className="dashboard-status">{status}</p>}
             {error && <p className="error">{error}</p>}
@@ -341,7 +322,7 @@ export default function DashboardPage() {
             {historyError ? (
               <p className="error">Could not load recent games: {historyError}</p>
             ) : recentGames === null ? (
-              <p className="muted" role="status">Loading recent games...</p>
+              <LoadingPlaceholder label="Loading recent games" count={1} />
             ) : latestGames.length === 0 ? (
               <p className="muted dashboard-empty-state">
                 No games yet. Your active and completed games will appear here.
@@ -385,16 +366,16 @@ export default function DashboardPage() {
                 <p className="muted">Based on completed games.</p>
               </div>
             </div>
-            {statsError ? <p className="error" role="alert">Could not load statistics: {statsError}</p> : !stats ? (
-              <p className="muted" role="status">Loading statistics...</p>
-            ) : <div className="dashboard-stat-grid">
-              {statCards.map((item) => (
-                <div key={item.label} className="dashboard-stat-card">
-                  <span className="muted">{item.label}</span>
-                  <strong>{item.value}</strong>
-                </div>
-              ))}
-            </div>}
+            {statsError ? <p className="error" role="alert">Could not load statistics: {statsError}</p> :
+              <div className="dashboard-stat-grid" aria-busy={!stats} role={!stats ? "status" : undefined} aria-label={!stats ? "Loading statistics" : undefined}>
+                {statCards.map((item) => (
+                  <div key={item.label} className="dashboard-stat-card">
+                    <span className="muted">{item.label}</span>
+                    <strong>{stats ? item.value : <span className="loading-block loading-stat-value" aria-hidden="true" />}</strong>
+                  </div>
+                ))}
+              </div>}
+
           </section>
         </aside>
       </div>

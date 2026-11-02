@@ -203,6 +203,7 @@ input {
 }
 
 .dashboard-grid {
+  align-items: start;
   grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
 }
 
@@ -307,6 +308,7 @@ input {
   gap: 1rem;
 }
 
+.dashboard-main,
 .dashboard-sidebar {
   align-content: start;
 }
@@ -382,6 +384,8 @@ input {
 .dashboard-searching strong {
   color: var(--color-text-strong);
 }
+
+.dashboard-play-note { margin: 0; min-height: 1.5rem; }
 
 .dashboard-status {
   color: var(--color-text-primary);
@@ -1095,3 +1099,20 @@ input {
   .navbar .nav-link { padding: 0.7rem; }
   .nav-user { max-width: 100%; }
 }
+
+/* Quiet placeholders keep the page structure stable during initial requests. */
+.loading-block { background: var(--color-border); border-radius: 4px; display: block; }
+.loading-lines { display: grid; gap: 0.55rem; width: 100%; }
+.loading-line-short { height: 0.7rem; width: 38%; }
+.loading-line-long { height: 0.85rem; width: 70%; }
+.loading-rows { display: grid; gap: 0.65rem; }
+.loading-row { align-items: center; display: flex; min-height: 3.4rem; }
+.loading-card { cursor: default; }
+.loading-card-icon { border-radius: 10px; flex: 0 0 64px; height: 64px; opacity: 0.55; }
+.loading-card .loading-lines { opacity: 0.55; }
+.loading-stat-value { height: 1.5rem; width: 2rem; }
+.loading-board { aspect-ratio: 1; background: var(--color-bg-surface-muted); border: 1px solid var(--color-border); border-radius: 8px; max-width: 560px; width: 100%; }
+@media (max-width: 700px) { .loading-card-icon { flex-basis: 56px; height: 56px; } }
+/* Keep the space reserved without flashing placeholders for fast responses. */
+.loading-card, .loading-row, .loading-board, .loading-stat-value { animation: reveal-loading 1ms 160ms both; }
+@keyframes reveal-loading { from { opacity: 0; } to { opacity: 1; } }

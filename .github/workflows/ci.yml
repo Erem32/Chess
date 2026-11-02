@@ -140,3 +140,4 @@ jobs:
           npm run test:e2e:teaching
           npm run test:e2e:learning
           npm run test:e2e:mobile
+          npm run test:e2e:loading

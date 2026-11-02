@@ -9,6 +9,7 @@ import { createGameSocket } from "../api/websocket.js";
 import CapturedPiecesPanel from "../components/CapturedPiecesPanel.jsx";
 import ChatBox from "../components/ChatBox.jsx";
 import ChessBoard from "../components/ChessBoard.jsx";
+import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import { DrawClaimPanel, DrawOfferPanel, GameActionPanel, PlayerSummaryPanel } from "../components/GamePanels.jsx";
 import MoveHistory from "../components/MoveHistory.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -385,8 +386,9 @@ export default function GamePage() {
             </button>
           </section>
         )}
-        <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} />
-        <CapturedPiecesPanel fen={fen} playerColor={playerColor} />
+        {game && String(game.id) === String(gameId) ? <ChessBoard fen={fen} onMove={sendMove} playerColor={playerColor} isInteractive={canMove} /> :
+          <LoadingPlaceholder variant="board" label={isLoading ? "Loading game" : "Game unavailable"} />}
+        {game && <CapturedPiecesPanel fen={fen} playerColor={playerColor} />}
         <section className={`panel board-feedback-panel ${feedback ? `is-${feedback.tone}` : "is-empty"}`}>
           {feedback ? (
             <p className={feedback.tone === "error" ? "error" : "muted"}>{feedback.message}</p>
@@ -574,9 +576,7 @@ function resolveBoardFeedback({ boardIsCurrent, currentUserId, error, isGameOver
   if (error) {
     return { message: error, tone: "error" };
   }
-  if (isLoading) {
-    return { message: "Loading game...", tone: "muted" };
-  }
+  if (isLoading) return null;
   if (!playerColor && currentUserId && !isLoading) {
     return { message: "This account is not one of the players in this game.", tone: "error" };
   }

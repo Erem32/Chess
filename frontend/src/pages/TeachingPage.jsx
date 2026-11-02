@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client.js";
+import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import IllustratedGuide from "../components/IllustratedGuide.jsx";
 import StudyHeader from "../components/StudyHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
@@ -25,7 +26,7 @@ export default function TeachingPage() {
   return <section className="study-page">
     <StudyHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board." />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
-      examples === null ? <p className="muted">Loading examples...</p> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
+      examples === null ? <LoadingPlaceholder variant="cards" count={3} label="Loading examples" /> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
         selected ? <><button type="button" className="study-inline-back" onClick={() => setSelected(null)}><UiIcon name="back" /> All examples</button><IllustratedGuide key={selected.id} guide={selected} /></> :
           <div className="study-cards">{examples.map((example, index) => <button key={example.id} type="button" className="study-card" aria-label={example.title} onClick={() => setSelected(example)}>
             <span className="study-card-art" aria-hidden="true">{SYMBOLS[example.id] ?? <UiIcon name="board" />}</span>
