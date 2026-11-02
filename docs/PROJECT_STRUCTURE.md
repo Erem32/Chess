@@ -31,7 +31,7 @@ The Python application lives in [backend/app/](../backend/app/).
 | [repositories/](../backend/app/repositories/) | Database helpers for users, games, and matchmaking. |
 | [models/](../backend/app/models/) | SQLAlchemy models for users, games, players, moves, queue entries, and chat messages. |
 | [schemas/](../backend/app/schemas/) | Pydantic request and response types. |
-| [data/](../backend/app/data/) | Server-owned practice exercise catalog and its format. |
+| [data/](../backend/app/data/) | Server-owned practice exercise catalog and opening guide content. |
 | [db/](../backend/app/db/) | Database engine and sessions, model metadata, and development-user seeding. |
 | [tests/](../backend/app/tests/) | Backend pytest suite. |
 | [alembic/](../backend/alembic/) | Database migration configuration and versioned migrations. |
@@ -58,7 +58,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | --- | --- |
 | [main.jsx](../frontend/src/main.jsx) | Mounts the app and providers. |
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
-| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, and puzzles screens. |
+| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, puzzles, and opening study screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
 | [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, reconnect scheduling, background state refresh, board consistency checks, chat history navigation, draw-claim request handling, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
@@ -88,3 +88,5 @@ Backend tests are grouped by auth, matchmaking/game behavior, chess service, and
 The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.
 
 The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.
+
+The opening guide service validates the authored move sequence and sends positions to a read-only board; it does not create or change online games.
