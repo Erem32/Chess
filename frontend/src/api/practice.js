@@ -10,3 +10,11 @@ export function submitAttempt(id, moveUci) {
     body: JSON.stringify({ move_uci: moveUci })
   });
 }
+
+export function getPuzzles() {
+  return apiRequest("/api/v1/practice/exercises?kind=puzzle");
+}
+
+export function revealPuzzleSolution(id) {
+  return apiRequest(`/api/v1/practice/exercises/${encodeURIComponent(id)}/solution`);
+}

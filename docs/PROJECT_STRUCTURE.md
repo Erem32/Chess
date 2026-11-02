@@ -58,7 +58,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | --- | --- |
 | [main.jsx](../frontend/src/main.jsx) | Mounts the app and providers. |
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
-| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, and lessons screens. |
+| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, and puzzles screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
 | [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, reconnect scheduling, background state refresh, board consistency checks, chat history navigation, draw-claim request handling, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
@@ -87,4 +87,4 @@ Backend tests are grouped by auth, matchmaking/game behavior, chess service, and
 
 The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.
 
-The lessons screen loads lesson exercises from the practice API and sends moves for server validation. It does not use online game state.
+The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.

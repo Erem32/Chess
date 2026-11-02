@@ -8,6 +8,7 @@ import GamePage from "./pages/GamePage.jsx";
 import HistoryPage from "./pages/HistoryPage.jsx";
 import LessonsPage from "./pages/LessonsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import PuzzlesPage from "./pages/PuzzlesPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 
 const THEME_STORAGE_KEY = "theme_mode";
@@ -50,6 +51,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/puzzles" element={<ProtectedRoute><PuzzlesPage /></ProtectedRoute>} />
           <Route path="/lessons" element={<ProtectedRoute><LessonsPage /></ProtectedRoute>} />
           <Route
             path="/history"
