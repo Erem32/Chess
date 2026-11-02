@@ -4,6 +4,7 @@ import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import IllustratedGuide from "../components/IllustratedGuide.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
+import { groupByCategory } from "../features/study/groupByCategory.js";
 import "./LessonsPage.css";
 
 const SYMBOLS = { "pawn-capture": "♙", "pawn-promotion": "♕", "knight-move": "♘" };
@@ -28,10 +29,12 @@ export default function TeachingPage() {
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       examples === null ? <LoadingPlaceholder variant="cards" count={3} label="Loading examples" /> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
         selected ? <><button type="button" className="study-inline-back" onClick={() => setSelected(null)}><UiIcon name="back" /> All examples</button><IllustratedGuide key={selected.id} guide={selected} /></> :
-          <div className="study-cards">{examples.map((example, index) => <button key={example.id} type="button" className="study-card" aria-label={example.title} onClick={() => setSelected(example)}>
+          groupByCategory(examples, "Examples").map(({ category, entries }) => <section className="study-group" key={category}>
+            <h2 className="study-group-title">{category}</h2>
+            <div className="study-cards">{entries.map(({ item: example, index }) => <button key={example.id} type="button" className="study-card" aria-label={example.title} onClick={() => setSelected(example)}>
             <span className="study-card-art" aria-hidden="true">{SYMBOLS[example.id] ?? <UiIcon name="board" />}</span>
             <span className="study-card-content"><span className="study-card-index">Example {String(index + 1).padStart(2, "0")}</span><strong>{example.title}</strong><span className="study-card-meta">{example.steps.length - 1} illustrated {example.steps.length === 2 ? "move" : "moves"}</span></span>
             <UiIcon name="arrow" className="study-card-arrow" />
-          </button>)}</div>}
+          </button>)}</div></section>)}
   </section>;
 }

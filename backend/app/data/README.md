@@ -1,11 +1,12 @@
 # Practice exercise catalog
 
-`practice_exercises.json` is a JSON array of six piece lessons and 103 puzzles. Entries contain:
+`practice_exercises.json` is a JSON array of 24 interactive lessons and 103 puzzles. Entries contain:
 
 - `id`: unique letters and digits separated by hyphens, up to 80 characters. Lichess IDs are case-sensitive.
 - `kind`: `lesson` or `puzzle`; defaults to `lesson` when omitted.
 - `fen`: a valid chess position in FEN, including the side to move.
 - `instruction`: nonempty text shown with the position.
+- `title` and `category`: optional display title and grouping for lessons.
 - `accepted_moves`: one or more distinct, legal UCI moves from that position, including a promotion piece when required.
 - `solution_moves`: optional UCI sequence for a puzzle, alternating player and opponent moves and ending with the player. The first item must be the sole `accepted_moves` entry. Without a sequence, a puzzle is single-move and accepts any listed move.
 - `correct_feedback`, `incorrect_feedback` and `explanation`: optional text.

@@ -10,7 +10,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
 - Board interaction by clicking or dragging pieces, including promotion choices.
-- Piece lessons, puzzles, 20 opening guides, and illustrated teaching examples.
+- 24 interactive lessons, 103 puzzles, 20 opening guides, and 25 illustrated teaching examples, with shortcuts on the Play dashboard.
 - Browser-local settings for text size and legal-move markers.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
@@ -174,11 +174,11 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 
 The game history page shows opponents, results and game details, with links to open or resume a game. The list scrolls within the page while the header and pagination control remain in place. Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
 
-The Examples page provides short, illustrated teaching positions. See the [teaching content format](backend/app/data/TEACHING.md) to add examples.
+The Examples page groups 25 illustrated positions by topic, from piece movement and special rules to tactics and endgames. Each example is a read-only line with an explanation for every move. See the [teaching content format](backend/app/data/TEACHING.md) to add examples.
 
 The Opening study page lists 20 guides with a read-only board, annotated moves and an optional video link. The opening list scrolls independently while the page header and filters stay visible; guide content scrolls below the header. Guides are loaded and validated by the backend. Reaching the last position marks a guide completed, and completed guides can be repeated. Completion is saved in the current browser's local storage under the signed-in user ID; it is not yet stored on the server or synchronized across browsers or devices. Clearing site data removes it. See the [content format](backend/app/data/OPENING.md).
 
-The Lessons and Puzzles pages check moves with the server. The catalog contains six piece lessons and 103 puzzles, including 100 positions from the [Lichess puzzle database](https://database.lichess.org/#puzzles). Puzzles can have multiple moves, hints, and a revealed solution. The solved counter is saved per account in the current browser, not on the server or across devices; clearing site data removes it. Hints do not prevent a solve from counting, while revealing the solution requires a retry to count. Lichess puzzle ratings describe the puzzles, not the player's rating. See [puzzles](docs/features/puzzles.md) and the [practice data format](backend/app/data/README.md).
+The Lessons and Puzzles pages check moves with the server. The catalog contains 24 interactive lessons and 103 puzzles, including 100 positions from the [Lichess puzzle database](https://database.lichess.org/#puzzles). Lessons cover movement, special moves, king safety and tactics. Puzzles can have multiple moves, hints, and a revealed solution. The solved counter is saved per account in the current browser, not on the server or across devices; clearing site data removes it. Hints do not prevent a solve from counting, while revealing the solution requires a retry to count. Lichess puzzle ratings describe the puzzles, not the player's rating. See [puzzles](docs/features/puzzles.md) and the [practice data format](backend/app/data/README.md).
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game.
 

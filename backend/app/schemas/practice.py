@@ -7,6 +7,8 @@ class PracticeExerciseRead(BaseModel):
     id: str
     fen: str
     instruction: str
+    title: str | None = None
+    category: str | None = None
     rating: int | None = None
     source_url: str | None = None
 

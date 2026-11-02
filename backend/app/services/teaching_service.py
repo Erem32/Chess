@@ -19,6 +19,7 @@ class TeachingExample(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     title: str = Field(min_length=1)
+    category: str | None = Field(default=None, min_length=1)
     fen: str
     introduction: str = Field(min_length=1)
     moves: list[TeachingMove] = Field(min_length=1)
@@ -48,5 +49,8 @@ def load_teaching_examples() -> list[dict]:
             except ValueError as exc:
                 raise ValueError(f"Invalid teaching move: {example.id}: {item.move_uci}") from exc
             steps.append({"fen": board.fen(), "move": san, "explanation": item.explanation})
-        result.append({"id": example.id, "title": example.title, "steps": steps})
+        item = {"id": example.id, "title": example.title, "steps": steps}
+        if example.category is not None:
+            item["category"] = example.category
+        result.append(item)
     return result

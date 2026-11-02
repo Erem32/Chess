@@ -24,6 +24,8 @@ class PracticeExercise(BaseModel):
     kind: Literal["lesson", "puzzle"] = "lesson"
     fen: str
     instruction: str = Field(min_length=1)
+    title: str | None = Field(default=None, min_length=1)
+    category: str | None = Field(default=None, min_length=1)
     accepted_moves: list[str] = Field(min_length=1)
     correct_feedback: str | None = None
     incorrect_feedback: str | None = None
@@ -84,6 +86,7 @@ def _load_exercises(path: Path, _mtime_ns: int, _size: int) -> tuple[PracticeExe
 def list_exercises(kind: str | None = None) -> list[PracticeExerciseRead]:
     return [
         PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction,
+                             title=item.title, category=item.category,
                              rating=item.rating, source_url=item.source_url)
         for item in load_exercises() if kind is None or item.kind == kind
     ]

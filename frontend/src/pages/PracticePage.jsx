@@ -5,9 +5,17 @@ import ChessBoard from "../components/ChessBoard.jsx";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
+import { groupByCategory } from "../features/study/groupByCategory.js";
 import "./LessonsPage.css";
 
-const LESSON_PIECES = { "lesson-pawn": "♙", "lesson-knight": "♘", "lesson-bishop": "♗", "lesson-rook": "♖", "lesson-queen": "♕", "lesson-king": "♔" };
+const LESSON_PIECES = {
+  "lesson-pawn": "♙", "lesson-knight": "♘", "lesson-bishop": "♗", "lesson-rook": "♖", "lesson-queen": "♕", "lesson-king": "♔",
+  "lesson-pawn-capture": "♙", "lesson-knight-jump": "♘", "lesson-rook-capture": "♖", "lesson-bishop-capture": "♗",
+  "lesson-castle-kingside": "♔", "lesson-castle-queenside": "♔", "lesson-en-passant": "♙",
+  "lesson-promote-queen": "♕", "lesson-underpromotion": "♘", "lesson-escape-check": "♔", "lesson-block-check": "♗",
+  "lesson-capture-checker": "♔", "lesson-give-check": "♖", "lesson-checkmate": "♕", "lesson-knight-fork": "♘",
+  "lesson-absolute-pin": "♗", "lesson-skewer": "♖", "lesson-capture-attacker": "♕"
+};
 const PUZZLE_TITLES = { "puzzle-win-queen": "Win the queen", "puzzle-mate-one": "Find checkmate", "puzzle-promotion": "Pawn promotion" };
 
 export default function PracticePage({ title, singular, loadExercises, revealSolution }) {
@@ -78,26 +86,28 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
 
   const selectedIndex = lessons?.findIndex((item) => item.id === selected?.id) ?? -1;
   const nextExercise = selectedIndex >= 0 ? lessons[selectedIndex + 1] : null;
+  const groups = groupByCategory(lessons ?? [], singular === "Lesson" ? "Lessons" : "Exercises");
 
   return (
     <section className={`study-page${selected ? " study-page--detail" : ""}`}>
-      <PageHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Get to know the pieces, one move at a time." : "Find the right move in each position."} />
+      <PageHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Practise the rules, king safety and basic tactics, one move at a time." : "Find the right move in each position."} />
       {error && <p className="error" role="alert">{error}</p>}
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
       {lessons === null && !error && <LoadingPlaceholder variant="cards" count={singular === "Lesson" ? 6 : 3} label={`Loading ${title.toLowerCase()}`} />}
       {lessons?.length === 0 && <p className="muted">No {title.toLowerCase()} are available yet.</p>}
-      {lessons?.length > 0 && !selected && <div className="study-cards">
-        {lessons.map((lesson, index) => {
+      {lessons?.length > 0 && !selected && groups.map(({ category, entries }) => <section className="study-group" key={category}>
+        <h2 className="study-group-title">{category}</h2>
+        <div className="study-cards">{entries.map(({ item: lesson, index }) => {
           const label = singular === "Lesson" && lesson.instruction.includes(":") ? lesson.instruction.split(":", 1)[0] : lesson.instruction;
-          const cardTitle = singular === "Lesson" ? label : (PUZZLE_TITLES[lesson.id] ?? `Puzzle ${index + 1}`);
-          return <button key={lesson.id} type="button" className="study-card" aria-label={`${singular} ${index + 1}: ${label}`} onClick={() => selectLesson(lesson)}>
+          const cardTitle = singular === "Lesson" ? (lesson.title ?? label) : (PUZZLE_TITLES[lesson.id] ?? `Puzzle ${index + 1}`);
+          return <button key={lesson.id} type="button" className="study-card" aria-label={`${singular} ${index + 1}: ${cardTitle}`} onClick={() => selectLesson(lesson)}>
             <span className="study-card-art" aria-hidden="true">{singular === "Lesson" ? (LESSON_PIECES[lesson.id] ?? "♟") : <UiIcon name="spark" />}</span>
             <span className="study-card-content"><span className="study-card-index">{singular} {String(index + 1).padStart(2, "0")}</span><strong>{cardTitle}</strong>
-              <span className="study-card-meta">{singular === "Lesson" ? "Piece basics · One move" : `${lesson.fen.split(" ")[1] === "b" ? "Black" : "White"} to move · One move`}</span></span>
+              <span className="study-card-meta">{singular === "Lesson" ? `${lesson.category ?? "Practice"} · One move` : `${lesson.fen.split(" ")[1] === "b" ? "Black" : "White"} to move · One move`}</span></span>
             <UiIcon name="arrow" className="study-card-arrow" />
           </button>;
-        })}
-      </div>}
+        })}</div>
+      </section>)}
       {selected && <>
         <button type="button" className="study-inline-back" onClick={() => selectLesson(null)}><UiIcon name="back" /> All {title.toLowerCase()}</button>
         <div className="lesson-exercise">
@@ -106,7 +116,7 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
             onInvalidAttempt={({ sourceSquare, targetSquare }) => attempt(sourceSquare + targetSquare)} /></div>
           <div className="lesson-copy">
             <span className="study-card-index">{singular} {String(selectedIndex + 1).padStart(2, "0")} / {String(lessons.length).padStart(2, "0")}</span>
-            <h2>{singular === "Lesson" ? selected.instruction.split(":", 1)[0] : (PUZZLE_TITLES[selected.id] ?? "Find the move")}</h2>
+            <h2>{singular === "Lesson" ? (selected.title ?? selected.instruction.split(":", 1)[0]) : (PUZZLE_TITLES[selected.id] ?? "Find the move")}</h2>
             <p className="study-instruction">{selected.instruction}</p>
             {pending && <p className="study-feedback">Checking move...</p>}
             {feedback && <p className={`study-feedback${complete ? " is-success" : ""}`} role="status">{feedback}</p>}
