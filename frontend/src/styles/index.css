@@ -1021,17 +1021,14 @@ input {
   }
 
   .board-feedback-panel {
-    bottom: 0.85rem;
-    left: 50%;
+    position: static;
+    transform: none;
+    box-shadow: none;
     margin: 0;
-    max-width: min(calc(100vw - 1.5rem), 30rem);
+    max-width: none;
     min-height: auto;
-    padding: 0.7rem 0.85rem;
-    position: fixed;
-    transform: translateX(-50%);
-    width: calc(100vw - 1.5rem);
-    z-index: 20;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    padding: 0.5rem 0.75rem;
+    width: 100%;
   }
 
   .board-feedback-panel.is-empty {
@@ -1116,3 +1113,9 @@ input {
 /* Keep the space reserved without flashing placeholders for fast responses. */
 .loading-card, .loading-row, .loading-board, .loading-stat-value { animation: reveal-loading 1ms 160ms both; }
 @keyframes reveal-loading { from { opacity: 0; } to { opacity: 1; } }
+
+/* Leave room for game controls below the board on shorter windows. */
+.game-board-column .board-wrap, .game-board-column .loading-board { width: min(100%, max(220px, calc(100dvh - 230px))); }
+@media (max-width: 1180px) {
+  .game-board-column .board-wrap, .game-board-column .loading-board { width: min(100%, max(200px, calc(100dvh - 530px))); justify-self: center; }
+}

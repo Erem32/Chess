@@ -136,7 +136,7 @@ The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.
 
 To test the board component without a backend, start the frontend development server and run `CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHROME_PATH=/path/to/chrome npm run test:e2e:board` from `frontend/`.
 
-The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, `test:e2e:settings`, and `test:e2e:loading` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning` and `test:e2e:mobile` use the actual backend and register accounts, so they also require `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
+The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, `test:e2e:settings`, and `test:e2e:loading` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning`, `test:e2e:mobile`, and `test:e2e:viewport` use the actual backend and register accounts, so they also require `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
