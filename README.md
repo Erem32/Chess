@@ -194,6 +194,8 @@ A game may be aborted only before its first move; afterward a player can resign.
 
 Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which returns `{ "game_id": ..., "messages": [...] }` in ascending message ID order. It returns the newest 100 messages by default; `limit` can be 1–100, and `before_id` requests an older page. Chat is stored without an automatic retention or deletion policy.
 
+The online game board waits for server confirmation before allowing another move; if confirmation is lost, the client reconnects and synchronizes the game. The dashboard shows the matchmaking queue and its cancellation control.
+
 The game screen shows the latest chat messages and offers older pages when the latest page is full. Use **Latest messages** to return to the live view; new messages continue arriving while an older page is open.
 
 The server sends `game_state`, `chat`, and `error` messages. After connection it sends `game_state` with `payload.game`; after a committed move, it broadcasts `game_state` with `payload.game`, `payload.move`, and the end-of-game flags. Each move has a per-game `move_number` and `fen_after_move` matching the accompanying game's `current_fen`. Older clients may send `move` instead of `move_uci`, either inside `payload` or at the top level; new clients should use the documented `payload.move_uci` shape. These messages are currently unversioned.

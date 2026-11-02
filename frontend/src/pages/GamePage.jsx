@@ -32,6 +32,8 @@ export default function GamePage() {
   const lastMoveNumberRef = useRef(0);
   const revisionRef = useRef(0);
   const pendingChatRef = useRef(null);
+  const pendingMoveRef = useRef(null);
+  const [movePending, setMovePending] = useState(false);
   if (!pendingChatRef.current) pendingChatRef.current = createPendingChat();
   const currentGameRef = useRef(gameId);
   currentGameRef.current = gameId;
@@ -63,7 +65,7 @@ export default function GamePage() {
   const canConnect = Boolean(socketToken);
   const canOpenSocket = canConnect && String(game?.id) === String(gameId);
   const boardIsCurrent = boardMatchesGame(game, fen);
-  const canMove = canPlayGameMove(game, fen, playerColor, socketStatus);
+  const canMove = !movePending && canPlayGameMove(game, fen, playerColor, socketStatus);
   const drawOfferByUserId = game?.draw_offer_by_user_id ?? null;
   const hasPendingDrawOffer = Boolean(drawOfferByUserId) && !isGameOver;
   const isOwnDrawOffer = hasPendingDrawOffer && Number(drawOfferByUserId) === Number(currentUserId);
@@ -77,10 +79,17 @@ export default function GamePage() {
     error,
     isGameOver,
     isLoading,
+    movePending,
     playerColor,
     socketStatus,
     turnColor: game?.turn_color
   });
+
+  function clearPendingMove() {
+    if (pendingMoveRef.current !== null) window.clearTimeout(pendingMoveRef.current);
+    pendingMoveRef.current = null;
+    setMovePending(false);
+  }
 
   useEffect(() => {
     let active = true;
@@ -150,6 +159,7 @@ export default function GamePage() {
         ws.close();
         return;
       }
+      clearPendingMove();
       lastMoveNumberRef.current = Number(event.move.move_number);
       revisionRef.current += 1;
       if (event.game) setGame((current) => mergeGameUpdate(current, event.game));
@@ -214,6 +224,7 @@ export default function GamePage() {
         setInfo(payload.message ?? "Connected");
       } else if (data.type === "error") {
         if (!pendingChatRef.current.settle(payload.client_message_id, payload.message ?? "Message rejected")) {
+          if (!payload.client_message_id) clearPendingMove();
           setError(payload.message ?? "WebSocket error");
         }
       }
@@ -224,6 +235,7 @@ export default function GamePage() {
     ws.onclose = (event) => {
       if (!active || socketRef.current !== ws) return;
       pendingChatRef.current.rejectAll();
+      clearPendingMove();
       setSocketStatus("disconnected");
       setInfo("Disconnected");
       if (event.code === 1008 || !authorized) {
@@ -236,6 +248,7 @@ export default function GamePage() {
     return () => {
       active = false;
       pendingChatRef.current.rejectAll();
+      clearPendingMove();
       reconnectSchedulerRef.current.cancelRetry();
       if (socketRef.current === ws) socketRef.current = null;
       ws.close();
@@ -243,6 +256,7 @@ export default function GamePage() {
   }, [canOpenSocket, gameId, socketAttempt, socketToken]);
 
   function sendMove(move) {
+    if (movePending || pendingMoveRef.current !== null) return;
     if (isGameOver) {
       setError("This game is over.");
       return;
@@ -253,7 +267,18 @@ export default function GamePage() {
       return;
     }
     setError("");
-    activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: move } }));
+    setMovePending(true);
+    pendingMoveRef.current = window.setTimeout(() => {
+      setError("Move confirmation timed out. Reconnecting to check the game...");
+      activeSocket.close();
+    }, 10000);
+    try {
+      activeSocket.send(JSON.stringify({ type: "move", payload: { move_uci: move } }));
+    } catch {
+      clearPendingMove();
+      setError("Could not send your move. Reconnecting...");
+      activeSocket.close();
+    }
   }
 
   async function sendChat(message) {
@@ -537,6 +562,7 @@ function buildPlayerSummary(game, currentUserId) {
   const players = game.players.map((player) => ({
     user_id: player.user_id,
     isCurrentUser: Number(player.user_id) === Number(currentUserId),
+    color: player.color,
     name: player.username ?? player.color ?? `Player ${player.user_id}`
   }));
 
@@ -544,7 +570,7 @@ function buildPlayerSummary(game, currentUserId) {
   return players;
 }
 
-function resolveBoardFeedback({ boardIsCurrent, currentUserId, error, isGameOver, isLoading, playerColor, socketStatus, turnColor }) {
+function resolveBoardFeedback({ boardIsCurrent, currentUserId, error, isGameOver, isLoading, movePending, playerColor, socketStatus, turnColor }) {
   if (error) {
     return { message: error, tone: "error" };
   }
@@ -560,9 +586,11 @@ function resolveBoardFeedback({ boardIsCurrent, currentUserId, error, isGameOver
   if (playerColor && !isGameOver && !boardIsCurrent) {
     return { message: "Synchronizing game...", tone: "muted" };
   }
+  if (movePending) return { message: "Move sent. Waiting for confirmation...", tone: "muted" };
   if (playerColor && !isGameOver && turnColor && turnColor !== playerColor) {
     return { message: "Waiting for your opponent's move.", tone: "muted" };
   }
+  if (playerColor && !isGameOver && turnColor === playerColor) return { message: "Your turn.", tone: "muted" };
   return null;
 }
 

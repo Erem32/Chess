@@ -21,6 +21,25 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
         const NativeWebSocket = window.WebSocket;
         window.__socketCount = 0;
         window.WebSocket = class extends NativeWebSocket {
+          set onmessage(handler) {
+            super.onmessage = (event) => {
+              const data = JSON.parse(event.data);
+              if (window.__delayMove && data.type === 'game_state' && data.payload?.move) {
+                window.__delayMove = false;
+                setTimeout(() => handler.call(this, event), 700);
+              } else handler.call(this, event);
+            };
+          }
+          send(message) {
+            if (window.__rejectMove && JSON.parse(message).type === 'move') {
+              window.__rejectMove = false;
+              setTimeout(() => this.dispatchEvent(new MessageEvent('message', {
+                data: JSON.stringify({ type: 'error', payload: { message: 'Move rejected for test' } })
+              })), 100);
+              return;
+            }
+            super.send(message);
+          }
           constructor(...args) {
             super(...args);
             window.__gameSocket = this;
@@ -43,6 +62,10 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     }
     const white = await register(`white${suffix}`);
     const black = await register(`black${suffix}`);
+    await white.getByRole('button', { name: 'Join matchmaking' }).click();
+    await white.getByText('Searching for another player').waitFor();
+    await white.getByRole('button', { name: 'Leave queue' }).click();
+    await white.getByRole('button', { name: 'Join matchmaking' }).waitFor();
     await white.getByRole('button', { name: 'Join matchmaking' }).click();
     await white.getByText('Searching for another player').waitFor();
     await white.evaluate(() => sessionStorage.removeItem('matchmaking_pending'));
@@ -71,8 +94,16 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     assert.equal(await black.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await black.setViewportSize({ width: 1440, height: 900 });
     await white.waitForFunction(() => document.querySelector('#game-board-square-e2 [role=button]')?.getAttribute('aria-disabled') === 'false');
+    await white.evaluate(() => { window.__rejectMove = true; });
     await white.locator('[data-square="e2"]').click();
     await white.locator('[data-square="e4"]').click();
+    await white.getByText('Move rejected for test').waitFor();
+    await white.waitForFunction(() => document.querySelector('#game-board-square-e2 [role=button]')?.getAttribute('aria-disabled') === 'false');
+    await white.evaluate(() => { window.__delayMove = true; });
+    await white.locator('[data-square="e2"]').click();
+    await white.locator('[data-square="e4"]').click();
+    await white.getByText('Move sent. Waiting for confirmation...').waitFor();
+    assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
     for (const page of [white, black]) await page.getByText('e4', { exact: true }).first().waitFor();
     assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
     await black.waitForFunction(() => document.querySelector('#game-board-square-e7 [role=button]')?.getAttribute('aria-disabled') === 'false');

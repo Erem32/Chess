@@ -299,14 +299,14 @@ export default function DashboardPage() {
           <section className="panel dashboard-card">
             <div className="dashboard-section-heading">
               <div>
-                <h2>Find a game</h2>
+                <h2>Play online</h2>
               </div>
             </div>
 
             {isWaiting && (
               <div className="dashboard-searching">
                 <strong>Searching for another player</strong>
-                <p className="muted">We are checking for a match every few seconds.</p>
+                <p className="muted">Waiting for another player. You can leave the queue at any time.</p>
               </div>
             )}
 
