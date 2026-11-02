@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import { getMyHistory } from "../api/games.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { formatGameDuration, formatPlayerColor, humanizeGameValue, resolveGameStatusClass, resolvePlayerResult } from "../features/game/gamePresentation.js";
@@ -52,7 +53,7 @@ export default function HistoryPage() {
           </button>
         )}
         {games === null && !error ? (
-          <p className="muted" role="status">Loading game history...</p>
+          <LoadingPlaceholder label="Loading game history" count={2} />
         ) : games === null ? null : games.length === 0 ? (
           <p className="muted">No games yet.</p>
         ) : (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client.js";
+import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import IllustratedGuide from "../components/IllustratedGuide.jsx";
 import StudyHeader from "../components/StudyHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
@@ -26,10 +27,10 @@ export default function OpeningPage() {
     return () => { active = false; };
   }, [attempt]);
 
-  return <section className="study-page">
+  return <section className={`study-page${selected && guide ? " study-page--detail" : ""}`}>
     <StudyHeader eyebrow="LEARN & PRACTISE" title="Opening study" description="Explore opening ideas at your own pace, move by move." />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
-      guide === undefined ? <p className="muted">Loading opening guide...</p> : selected && guide ? <>
+      guide === undefined ? <LoadingPlaceholder variant="cards" count={4} label="Loading opening guide" /> : selected && guide ? <>
         <button type="button" className="study-inline-back" onClick={() => setSelected(false)}><UiIcon name="back" /> All openings</button>
         <IllustratedGuide guide={guide} />
       </> : <>

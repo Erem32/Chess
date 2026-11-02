@@ -136,7 +136,7 @@ The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.
 
 To test the board component without a backend, start the frontend development server and run `CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHROME_PATH=/path/to/chrome npm run test:e2e:board` from `frontend/`.
 
-The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, and `test:e2e:settings` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning` uses the actual backend content and registers an account, so it also requires `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
+The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, `test:e2e:settings`, and `test:e2e:loading` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning`, `test:e2e:mobile`, and `test:e2e:viewport` use the actual backend and register accounts, so they also require `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
@@ -204,7 +204,7 @@ A game may be aborted only before its first move; afterward a player can resign.
 
 Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which returns `{ "game_id": ..., "messages": [...] }` in ascending message ID order. It returns the newest 100 messages by default; `limit` can be 1–100, and `before_id` requests an older page. Chat is stored without an automatic retention or deletion policy.
 
-The online game board waits for server confirmation before allowing another move; if confirmation is lost, the client reconnects and synchronizes the game. The dashboard shows the matchmaking queue and its cancellation control.
+The Play panel shows the active-game controls in the same place as matchmaking. The online game board waits for server confirmation before allowing another move; if confirmation is lost, the client reconnects and synchronizes the game. The dashboard shows the matchmaking queue and its cancellation control.
 
 The game screen shows the latest chat messages and offers older pages when the latest page is full. Use **Latest messages** to return to the live view; new messages continue arriving while an older page is open.
 

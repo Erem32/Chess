@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { submitAttempt } from "../api/practice.js";
 import ChessBoard from "../components/ChessBoard.jsx";
+import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import StudyHeader from "../components/StudyHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
@@ -79,11 +80,11 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
   const nextExercise = selectedIndex >= 0 ? lessons[selectedIndex + 1] : null;
 
   return (
-    <section className="study-page">
+    <section className={`study-page${selected ? " study-page--detail" : ""}`}>
       <StudyHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Get to know the pieces, one move at a time." : "Find the right move in each position."} />
       {error && <p className="error" role="alert">{error}</p>}
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
-      {lessons === null && !error && <p className="muted">Loading {title.toLowerCase()}...</p>}
+      {lessons === null && !error && <LoadingPlaceholder variant="cards" count={singular === "Lesson" ? 6 : 3} label={`Loading ${title.toLowerCase()}`} />}
       {lessons?.length === 0 && <p className="muted">No {title.toLowerCase()} are available yet.</p>}
       {lessons?.length > 0 && !selected && <div className="study-cards">
         {lessons.map((lesson, index) => {

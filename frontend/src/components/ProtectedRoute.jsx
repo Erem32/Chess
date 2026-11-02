@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 
+import LoadingPlaceholder from "./LoadingPlaceholder.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function ProtectedRoute({ children }) {
@@ -7,7 +8,7 @@ export default function ProtectedRoute({ children }) {
   const location = useLocation();
 
   if (sessionStatus === "checking") {
-    return <p className="muted" role="status">Checking session...</p>;
+    return <LoadingPlaceholder label="Checking session" count={2} />;
   }
 
   if (sessionStatus === "unavailable") {

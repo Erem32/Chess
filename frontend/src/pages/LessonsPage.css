@@ -92,3 +92,25 @@ button.study-card:hover { border-color: var(--color-link); transform: translateY
   .lesson-copy { order: -1; }
   .study-actions { flex-wrap: wrap; }
 }
+
+/* Keep board activities compact while allowing long explanations to scroll. */
+.study-page--detail { padding: 0 0 1rem; }
+.study-page--detail .study-header { align-items: center; display: flex; gap: 1rem; margin-bottom: 0.75rem; }
+.study-page--detail .study-header h1 { font-size: 1.45rem; }
+.study-page--detail .study-eyebrow,
+.study-page--detail .study-description { display: none; }
+.study-page--detail .study-inline-back { margin-bottom: 0.75rem; }
+.study-page--detail .lesson-exercise {
+  grid-template-columns: minmax(0, min(52%, 560px, max(200px, calc(100dvh - 240px)))) minmax(0, 1fr);
+  padding: 1rem;
+}
+@media (max-width: 700px) {
+  .study-page--detail .study-header { margin-bottom: 0.6rem; }
+  .study-page--detail .study-header h1 { font-size: 1.25rem; }
+  .study-page--detail .lesson-exercise { grid-template-columns: minmax(0, 1fr); }
+  .study-page--detail .lesson-board { margin: 0 auto; max-width: min(100%, max(200px, calc(100dvh - 560px))); }
+  .study-page--detail .lesson-copy h2 { font-size: 1.3rem; margin-top: 0.35rem; }
+  .study-page--detail .study-instruction { line-height: 1.45; margin: 0.6rem 0; }
+  .study-page--detail .guide-move { margin-top: 0.65rem; padding: 0.35rem 0.65rem; }
+  .study-page--detail .study-actions { margin-top: 0.25rem; }
+}

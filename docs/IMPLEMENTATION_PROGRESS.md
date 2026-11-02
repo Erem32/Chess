@@ -1,14 +1,14 @@
 # Implementation checkpoint
 
-Objective: improve the navigation and learning screens while preserving the chess MVP, following [project instructions](../AGENTS.md).
+Objective: fit board-focused screens and their primary controls in common viewport sizes, following [project instructions](../AGENTS.md).
 
 ## Working state
 
-- `feature/learning-ui` starts from `main`. It updates navigation, lessons, puzzles and examples, and adds an opening selector. Only the Italian Game has guide content; the other listed openings are unavailable.
-- Preserve the unreviewed local stash and `handoff/stash-recovery` branch. Inspect Git status and worktrees before resuming.
+- `feature/viewport-board` builds on `feature/smooth-loading`. Merge or include that branch first when reviewing.
+- The layout keeps scrolling available for long content, expanded controls or unusually small windows.
+- Preserve unreviewed local stashes and `handoff/stash-recovery`; inspect Git status and worktrees before resuming.
 
 ## Checks
 
 - Frontend: `cd frontend && npm test && npm run lint && npm run build` (28 tests passed).
-- Browser: board, lessons, puzzles, opening, settings, teaching, mobile and real-content learning checks passed; two-player smoke passed against disposable SQLite services.
-- PostgreSQL-specific checks were not rerun. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.
+- Browser: `test:e2e:viewport`, `test:e2e:mobile`, `test:e2e:loading`, and two-player smoke passed using disposable SQLite services. PostgreSQL-specific checks were not rerun.
