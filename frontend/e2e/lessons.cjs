@@ -55,6 +55,13 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     await page.getByRole('button', { name: 'All lessons' }).click();
     await page.getByRole('button', { name: 'Lesson 1: Test move' }).waitFor();
     assert.deepEqual(moves, ['e2e5', 'd2d4', 'e2e4', 'e2e4']);
+    exercises = Array.from({ length: 12 }, (_, index) => ({ id: `lesson-${index}`, fen: start, instruction: `Move ${index + 1}` }));
+    await page.reload();
+    await page.getByRole('button', { name: 'Lesson 1: Move 1' }).waitFor();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await page.getByRole('button', { name: 'Lesson 10: Move 10' }).waitFor();
+    await page.getByRole('button', { name: 'Previous', exact: true }).click();
+    await page.getByRole('button', { name: 'Lesson 1: Move 1' }).waitFor();
     console.log('Lessons browser test passed.');
   } finally { await browser.close(); }
 })().catch((error) => { console.error(error); process.exit(1); });

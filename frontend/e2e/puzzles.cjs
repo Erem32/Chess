@@ -53,6 +53,9 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     exercises = Array.from({ length: 13 }, (_, index) => ({ id: `test-${index}`, fen: start, instruction: `Test move ${index}` }));
     await page.reload();
     await page.getByText('0 / 13 solved').waitFor();
+    await page.setViewportSize({ width: 1280, height: 720 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+    assert.ok(await page.locator('.study-catalog-scroll').evaluate((element) => element.scrollHeight <= element.clientHeight + 1), 'puzzle cards should fit on screen');
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.getByRole('button', { name: 'Puzzle 13: Test move 12' }).waitFor();
     await page.getByRole('button', { name: 'Previous', exact: true }).click();
@@ -107,6 +110,9 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     userId = 2;
     await page.reload();
     await page.getByText('0 / 13 solved').waitFor();
+    await page.setViewportSize({ width: 1280, height: 720 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+    assert.ok(await page.locator('.study-catalog-scroll').evaluate((element) => element.scrollHeight <= element.clientHeight + 1), 'puzzle cards should fit on screen');
     assert.deepEqual(attempts.map(({ move }) => move), ['e2e5', 'd2d4', 'e2e4', 'e2e4', 'g1f3']);
     console.log('Puzzles browser test passed.');
   } finally { await browser.close(); }
