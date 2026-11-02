@@ -74,6 +74,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await black.getByRole('button', { name: 'Join matchmaking' }).click();
     await Promise.all([white.waitForURL('**/games/*'), black.waitForURL('**/games/*')]);
     assert.equal(new URL(white.url()).pathname, new URL(black.url()).pathname);
+    assert.equal(await white.getByRole('link', { name: 'Play', exact: true }).getAttribute('aria-current'), 'page');
     assert.equal(await white.getByLabel('Play a move').count(), 0);
     // Mobile panel choices must expose their selected state to assistive technology.
     await black.setViewportSize({ width: 390, height: 844 });

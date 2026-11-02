@@ -18,11 +18,14 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     });
     await page.goto(`${baseURL}/opening`);
     await page.getByText('No opening guide is available yet.').waitFor();
+    await page.getByText('Sicilian Defence').waitFor();
+    assert.equal(await page.getByRole('button', { name: /Sicilian Defence/ }).count(), 0);
     guide = { title: 'Test guide', video_url: null, steps: [
       { fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', move: null, explanation: 'Starting position.' },
       { fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1', move: 'e4', explanation: 'White moves.' }
     ] };
     await page.reload();
+    await page.getByRole('button', { name: /Test guide/ }).click();
     await page.getByText('Starting position.', { exact: true }).waitFor();
     assert.equal(await page.getByRole('link', { name: 'Watch video' }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Previous' }).isDisabled(), true);
@@ -32,8 +35,12 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     assert.equal(await page.getByRole('button', { name: 'Next' }).isDisabled(), true);
     await page.getByRole('button', { name: 'Previous' }).click();
     await page.getByText('Starting position.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'All openings' }).click();
+    await page.getByText('Sicilian Defence').waitFor();
+    assert.equal(await page.getByRole('button', { name: /Sicilian Defence/ }).count(), 0);
     guide.video_url = 'https://example.com/video';
     await page.reload();
+    await page.getByRole('button', { name: /Test guide/ }).click();
     assert.equal(await page.getByRole('link', { name: 'Watch video' }).getAttribute('href'), guide.video_url);
     console.log('Opening study browser test passed.');
   } finally { await browser.close(); }

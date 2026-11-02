@@ -94,3 +94,5 @@ The opening guide service validates the authored move sequence and sends positio
 Teaching examples and the opening guide use a shared read-only guide component. The server validates the example positions and moves before returning them.
 
 On narrow screens the main navigation collapses into a menu, and practice and illustrated-guide instructions appear before the board.
+
+The main navigation marks the current page and collapses on narrow screens. Learning pages use shared cards and board layouts; the opening selector marks entries without guides unavailable.

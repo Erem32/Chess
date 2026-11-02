@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 
 import { submitAttempt } from "../api/practice.js";
 import ChessBoard from "../components/ChessBoard.jsx";
+import StudyHeader from "../components/StudyHeader.jsx";
+import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
+
+const LESSON_PIECES = { "lesson-pawn": "♙", "lesson-knight": "♘", "lesson-bishop": "♗", "lesson-rook": "♖", "lesson-queen": "♕", "lesson-king": "♔" };
+const PUZZLE_TITLES = { "puzzle-win-queen": "Win the queen", "puzzle-mate-one": "Find checkmate", "puzzle-promotion": "Pawn promotion" };
 
 export default function PracticePage({ title, singular, loadExercises, revealSolution }) {
   const [lessons, setLessons] = useState(null);
@@ -75,38 +79,44 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
   const nextExercise = selectedIndex >= 0 ? lessons[selectedIndex + 1] : null;
 
   return (
-    <section className="panel lessons-page">
-      <h1>{title}</h1>
+    <section className="study-page">
+      <StudyHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Get to know the pieces, one move at a time." : "Find the right move in each position."} />
       {error && <p className="error" role="alert">{error}</p>}
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
-      {lessons === null && !error && <p>Loading {title.toLowerCase()}...</p>}
+      {lessons === null && !error && <p className="muted">Loading {title.toLowerCase()}...</p>}
       {lessons?.length === 0 && <p className="muted">No {title.toLowerCase()} are available yet.</p>}
-      {lessons?.length > 0 && !selected && <div className="lessons-list">
-        <p>Choose an exercise to practise.</p>
-        {lessons.map((lesson, index) => <button key={lesson.id} type="button" className="secondary-button" onClick={() => selectLesson(lesson)}>
-          {singular} {index + 1}: {singular === "Lesson" && lesson.instruction.includes(":") ? lesson.instruction.split(":", 1)[0] : lesson.instruction}
-        </button>)}
+      {lessons?.length > 0 && !selected && <div className="study-cards">
+        {lessons.map((lesson, index) => {
+          const label = singular === "Lesson" && lesson.instruction.includes(":") ? lesson.instruction.split(":", 1)[0] : lesson.instruction;
+          const cardTitle = singular === "Lesson" ? label : (PUZZLE_TITLES[lesson.id] ?? `Puzzle ${index + 1}`);
+          return <button key={lesson.id} type="button" className="study-card" aria-label={`${singular} ${index + 1}: ${label}`} onClick={() => selectLesson(lesson)}>
+            <span className="study-card-art" aria-hidden="true">{singular === "Lesson" ? (LESSON_PIECES[lesson.id] ?? "♟") : <UiIcon name="spark" />}</span>
+            <span className="study-card-content"><span className="study-card-index">{singular} {String(index + 1).padStart(2, "0")}</span><strong>{cardTitle}</strong>
+              <span className="study-card-meta">{singular === "Lesson" ? "Piece basics · One move" : `${lesson.fen.split(" ")[1] === "b" ? "Black" : "White"} to move · One move`}</span></span>
+            <UiIcon name="arrow" className="study-card-arrow" />
+          </button>;
+        })}
       </div>}
-      {selected && <div className="lesson-exercise">
-        <div className="lesson-board">
-          <ChessBoard fen={fen} playerColor={selected.fen.split(" ")[1] === "b" ? "black" : "white"}
+      {selected && <>
+        <button type="button" className="study-inline-back" onClick={() => selectLesson(null)}><UiIcon name="back" /> All {title.toLowerCase()}</button>
+        <div className="lesson-exercise">
+          <div className="lesson-board"><ChessBoard fen={fen} playerColor={selected.fen.split(" ")[1] === "b" ? "black" : "white"}
             isInteractive={!pending && !complete} onMove={attempt}
-            onInvalidAttempt={({ sourceSquare, targetSquare }) => attempt(sourceSquare + targetSquare)} />
-        </div>
-        <div className="lesson-copy">
-          <h2>Practice</h2>
-          <p>{selected.instruction}</p>
-          {pending && <p>Checking move...</p>}
-          {feedback && <p role="status">{feedback}</p>}
-          <div className="actions">
-            {revealSolution && !complete && <button type="button" onClick={reveal} disabled={pending}>Reveal solution</button>}
-            {complete && nextExercise && <button type="button" onClick={() => selectLesson(nextExercise)}>Next {singular.toLowerCase()}</button>}
-            <button type="button" className="secondary-button" onClick={() => selectLesson(selected)}>Retry</button>
-            <button type="button" className="secondary-button" onClick={() => selectLesson(null)}>All {title.toLowerCase()}</button>
+            onInvalidAttempt={({ sourceSquare, targetSquare }) => attempt(sourceSquare + targetSquare)} /></div>
+          <div className="lesson-copy">
+            <span className="study-card-index">{singular} {String(selectedIndex + 1).padStart(2, "0")} / {String(lessons.length).padStart(2, "0")}</span>
+            <h2>{singular === "Lesson" ? selected.instruction.split(":", 1)[0] : (PUZZLE_TITLES[selected.id] ?? "Find the move")}</h2>
+            <p className="study-instruction">{selected.instruction}</p>
+            {pending && <p className="study-feedback">Checking move...</p>}
+            {feedback && <p className={`study-feedback${complete ? " is-success" : ""}`} role="status">{feedback}</p>}
+            <div className="actions study-actions">
+              {revealSolution && !complete && <button type="button" className="secondary-button" onClick={reveal} disabled={pending}>Reveal solution</button>}
+              {complete && nextExercise && <button type="button" onClick={() => selectLesson(nextExercise)}>Next {singular.toLowerCase()} <UiIcon name="arrow" /></button>}
+              <button type="button" className="secondary-button" onClick={() => selectLesson(selected)}><UiIcon name="refresh" /> Retry</button>
+            </div>
           </div>
         </div>
-      </div>}
-      <p><Link to="/dashboard">Back to dashboard</Link></p>
+      </>}
     </section>
   );
 }
