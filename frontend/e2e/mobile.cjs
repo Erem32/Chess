@@ -28,7 +28,11 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await menu.tap();
     await page.getByRole('link', { name: 'Lessons', exact: true }).tap();
     await page.getByRole('heading', { name: 'Lessons', exact: true }).waitFor();
+    assert.equal(await page.locator('.nav-current').textContent(), 'Lessons');
     assert.equal(await menu.getAttribute('aria-expanded'), 'false');
+    await menu.tap();
+    assert.equal(await page.getByRole('link', { name: 'Lessons', exact: true }).getAttribute('aria-current'), 'page');
+    await page.getByRole('button', { name: 'Close', exact: true }).tap();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.getByRole('button', { name: 'Lesson 1: Pawn', exact: true }).tap();
     const order = await page.locator('.lesson-exercise').evaluate((element) => {
@@ -49,6 +53,8 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     assert.equal(await page.getByLabel('Show legal-move markers').isChecked(), false);
     await menu.tap();
     await page.getByRole('link', { name: 'Puzzles', exact: true }).tap();
+    await page.getByRole('heading', { name: 'Puzzles', exact: true }).waitFor();
+    assert.equal(await page.locator('.nav-current').textContent(), 'Puzzles');
     await page.getByRole('button', { name: /Puzzle 1:/ }).tap();
     await page.getByRole('button', { name: 'Reveal solution' }).tap();
     await page.getByText(/Solution: d2d4/).waitFor();

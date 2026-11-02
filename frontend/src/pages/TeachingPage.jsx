@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client.js";
 import IllustratedGuide from "../components/IllustratedGuide.jsx";
+import StudyHeader from "../components/StudyHeader.jsx";
+import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
+
+const SYMBOLS = { "pawn-capture": "♙", "pawn-promotion": "♕", "knight-move": "♘" };
 
 export default function TeachingPage() {
   const [examples, setExamples] = useState(null);
@@ -19,12 +22,15 @@ export default function TeachingPage() {
     return () => { active = false; };
   }, [attempt]);
 
-  return <section className="panel lessons-page">
-    <h1>Teaching examples</h1>
+  return <section className="study-page">
+    <StudyHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board." />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
-      examples === null ? <p>Loading examples...</p> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
-        selected ? <><IllustratedGuide key={selected.id} guide={selected} /><p><button type="button" className="secondary-button" onClick={() => setSelected(null)}>All examples</button></p></> :
-          <div className="lessons-list"><p>Choose an example.</p>{examples.map((example) => <button key={example.id} type="button" className="secondary-button" onClick={() => setSelected(example)}>{example.title}</button>)}</div>}
-    <p><Link to="/dashboard">Back to dashboard</Link></p>
+      examples === null ? <p className="muted">Loading examples...</p> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
+        selected ? <><button type="button" className="study-inline-back" onClick={() => setSelected(null)}><UiIcon name="back" /> All examples</button><IllustratedGuide key={selected.id} guide={selected} /></> :
+          <div className="study-cards">{examples.map((example, index) => <button key={example.id} type="button" className="study-card" aria-label={example.title} onClick={() => setSelected(example)}>
+            <span className="study-card-art" aria-hidden="true">{SYMBOLS[example.id] ?? <UiIcon name="board" />}</span>
+            <span className="study-card-content"><span className="study-card-index">Example {String(index + 1).padStart(2, "0")}</span><strong>{example.title}</strong><span className="study-card-meta">{example.steps.length - 1} illustrated {example.steps.length === 2 ? "move" : "moves"}</span></span>
+            <UiIcon name="arrow" className="study-card-arrow" />
+          </button>)}</div>}
   </section>;
 }

@@ -11,7 +11,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
 (async () => {
   const browser = await chromium.launch({ executablePath: chromePath, headless: true, args: ['--no-sandbox'] });
   try {
-    const page = await browser.newPage({ viewport: { width: 1100, height: 800 } });
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     const name = `learner${randomBytes(5).toString('hex')}`;
     await page.goto(`${baseURL}/register`);
     await page.getByLabel('Username', { exact: true }).fill(name);
@@ -24,15 +24,19 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.getByRole('button', { name: 'Login', exact: true }).click();
     await page.getByRole('heading', { name: `Welcome, ${name}` }).waitFor();
     await page.goto(`${baseURL}/lessons`);
+    assert.equal(await page.getByRole('link', { name: 'Lessons', exact: true }).getAttribute('aria-current'), 'page');
     await page.getByRole('button', { name: /Lesson 1: Pawn/ }).click();
     await page.locator('[data-square="e2"]').click();
     await page.locator('[data-square="e4"]').click();
     await page.getByText('A pawn can move two squares from its starting position.').waitFor();
     await page.goto(`${baseURL}/puzzles`);
+    assert.equal(await page.getByRole('link', { name: 'Puzzles', exact: true }).getAttribute('aria-current'), 'page');
     await page.getByRole('button', { name: /Puzzle 1: White to move/ }).click();
     await page.getByRole('button', { name: 'Reveal solution' }).click();
     await page.getByText(/Solution: d2d4/).waitFor();
     await page.goto(`${baseURL}/opening`);
+    assert.equal(await page.getByRole('link', { name: 'Opening', exact: true }).getAttribute('aria-current'), 'page');
+    await page.getByRole('button', { name: /Italian Game: developing the pieces/ }).click();
     await page.getByRole('heading', { name: 'Italian Game: developing the pieces' }).waitFor();
     for (let i = 0; i < 5; i += 1) await page.getByRole('button', { name: 'Next' }).click();
     await page.getByText(/bishop develops to c4/).waitFor();

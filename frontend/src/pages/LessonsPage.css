@@ -1,13 +1,94 @@
-.lessons-page { padding: 1.5rem; }
-.lessons-list { display: grid; gap: 0.75rem; justify-items: stretch; max-width: 42rem; }
-.lessons-list button { text-align: left; }
-.lesson-exercise { display: grid; grid-template-columns: minmax(0, 480px) minmax(180px, 1fr); gap: 1.5rem; }
-.lesson-board { width: 100%; min-width: 0; }
-.lesson-copy { min-width: 0; }
+.study-page {
+  margin: 0 auto;
+  max-width: 1120px;
+  padding: clamp(0.5rem, 2vw, 1.75rem) 0 3rem;
+}
+.study-header { margin-bottom: 2rem; }
+.study-back, .study-inline-back {
+  align-items: center;
+  background: transparent;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  font-size: 0.9rem;
+  gap: 0.45rem;
+  padding: 0;
+}
+.study-back:hover, .study-inline-back:hover { color: var(--color-text-strong); }
+.study-back svg, .study-inline-back svg { height: 17px; width: 17px; }
+.study-eyebrow, .study-card-index {
+  color: var(--color-link);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.study-eyebrow { margin: 2.5rem 0 0.55rem; }
+.study-header h1 { color: var(--color-text-strong); font-size: clamp(2rem, 4vw, 2.8rem); letter-spacing: -0.035em; line-height: 1.1; margin: 0; }
+.study-description { color: var(--color-text-muted); line-height: 1.6; margin: 0.75rem 0 0; }
+.study-cards { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.study-card {
+  align-items: center;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-primary);
+  display: flex;
+  gap: 1rem;
+  min-height: 132px;
+  min-width: 0;
+  padding: 1.15rem;
+  text-align: left;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+button.study-card:hover { border-color: var(--color-link); transform: translateY(-2px); }
+.study-card-art {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-link) 13%, var(--color-bg-surface-muted));
+  border-radius: 10px;
+  color: var(--color-text-strong);
+  display: flex;
+  flex: 0 0 64px;
+  font-size: 2.5rem;
+  height: 64px;
+  justify-content: center;
+  line-height: 1;
+}
+.study-card-art svg { color: var(--color-link); height: 28px; width: 28px; }
+.study-card-content { display: grid; gap: 0.35rem; min-width: 0; }
+.study-card-content strong { color: var(--color-text-strong); font-size: 1.05rem; line-height: 1.3; }
+.study-card-meta { color: var(--color-text-muted); font-size: 0.8rem; line-height: 1.4; }
+.study-card-arrow { color: var(--color-text-muted); flex: 0 0 20px; margin-left: auto; }
+.study-card--unavailable { opacity: 0.66; }
+.study-inline-back { margin: 0 0 1.2rem; }
+.lesson-exercise {
+  align-items: start;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+  padding: clamp(1rem, 2.5vw, 1.75rem);
+}
+.lesson-board, .lesson-copy { min-width: 0; width: 100%; }
+.lesson-copy { display: flex; flex-direction: column; align-items: flex-start; padding: 0.35rem 0; }
+.lesson-copy h2 { color: var(--color-text-strong); font-size: 1.65rem; letter-spacing: -0.025em; line-height: 1.2; margin: 0.7rem 0 0; }
+.study-instruction { line-height: 1.7; margin: 1.15rem 0; }
+.study-feedback { background: var(--color-bg-surface-muted); border-radius: 8px; line-height: 1.55; padding: 0.8rem 1rem; width: 100%; }
+.study-feedback.is-success { border-left: 3px solid var(--color-link); }
+.study-actions { gap: 0.6rem; margin-top: 0.75rem; }
+.study-actions button { align-items: center; display: inline-flex; gap: 0.35rem; justify-content: center; }
+.study-actions svg { height: 16px; width: 16px; }
+.guide-move { background: var(--color-bg-surface-muted); border-radius: 6px; font-weight: 600; margin: 1.2rem 0 0; padding: 0.5rem 0.75rem; }
+@media (max-width: 900px) { .study-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) {
-  .lessons-page { padding: 1rem; }
+  .study-page { padding-top: 0.25rem; }
+  .study-header { margin-bottom: 1.5rem; }
+  .study-eyebrow { margin-top: 1.75rem; }
+  .study-cards { grid-template-columns: 1fr; gap: 0.7rem; }
+  .study-card { min-height: 100px; padding: 0.9rem; }
+  .study-card-art { flex-basis: 56px; height: 56px; font-size: 2.1rem; }
   .lesson-exercise { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .lesson-copy { order: -1; }
-  .lesson-copy h2 { margin-top: 0; }
-  .lesson-copy .actions { flex-wrap: wrap; }
+  .study-actions { flex-wrap: wrap; }
 }
