@@ -1,14 +1,14 @@
 # Implementation checkpoint
 
-Objective: add [piece lessons](features/interactive-lessons.md), [puzzles](features/puzzles.md), and an [opening guide](features/opening-study.md), following [project instructions](../AGENTS.md).
+Objective: improve the interface and mobile use while preserving the chess MVP, following [project instructions](../AGENTS.md).
 
 ## Working state
 
-- `feature/learning-content` starts from `main` and adds six single-move piece lessons, three puzzles, and a short Italian Game guide.
-- Preserve the unreviewed local stash and `handoff/stash-recovery` branch. Inspect Git status and worktrees before resuming.
+- `feature/mobile-usability` starts from `main`. It adds compact mobile navigation, shorter lesson choices, responsive practice layouts and a next-exercise action.
+- Preserve unreviewed local stashes and `handoff/stash-recovery`. Inspect Git status and worktrees before resuming.
 
 ## Checks
 
-- Backend: `cd backend && pytest -q` against disposable SQLite (111 passed, 7 PostgreSQL concurrency tests skipped); Ruff passed.
-- Frontend: `cd frontend && npm test && npm run lint && npm run build` (30 tests passed).
-- Browser: `npm run test:e2e:learning` passed with real backend content and a disposable SQLite database initialized with SQLAlchemy metadata. Set `CHESS_E2E_ALLOW_REGISTRATION=1`, `CHESS_E2E_FRONTEND_URL`, and `CHROME_PATH`; see [Contributing](../CONTRIBUTING.md) for disposable services.
+- Frontend: `cd frontend && npm test && npm run lint && npm run build` (28 tests passed).
+- Browser: board, lessons, puzzles, opening, settings and examples checks passed, as did learning content and mobile touch navigation against disposable SQLite services.
+- The two-player browser smoke passed against disposable SQLite, including a mobile touch move. PostgreSQL migrations and concurrency tests were not rerun. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.

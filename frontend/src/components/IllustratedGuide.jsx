@@ -6,7 +6,7 @@ export default function IllustratedGuide({ guide }) {
   const current = guide.steps[step];
   return <div className="lesson-exercise">
     <div className="lesson-board"><ChessBoard fen={current.fen} playerColor="white" isInteractive={false} /></div>
-    <div>
+    <div className="lesson-copy">
       <h2>{guide.title}</h2>
       <p>Step {step + 1} of {guide.steps.length}{current.move ? ` · ${current.move}` : " · Starting position"}</p>
       <p>{current.explanation}</p>

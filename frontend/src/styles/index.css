@@ -109,8 +109,12 @@ input {
 .navbar nav {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
+  justify-content: flex-end;
 }
+
+.nav-menu-toggle { display: none; }
 
 .nav-action-button {
   padding: 0.55rem 0.9rem;
@@ -950,6 +954,16 @@ input {
   }
 }
 
+@media (max-width: 1100px) {
+  .navbar { flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem; }
+  .nav-menu-toggle { display: inline-block; }
+  .navbar nav { display: none; width: 100%; flex-direction: column; align-items: stretch; gap: 0.35rem; }
+  .navbar nav.is-open { display: flex; }
+  .navbar nav a, .navbar nav .nav-user { padding: 0.6rem 0.35rem; overflow-wrap: anywhere; }
+  .navbar nav button:not(.theme-toggle) { text-align: left; }
+  .navbar nav .theme-toggle { align-self: flex-start; padding: 0.6rem 0.35rem; }
+}
+
 @media (max-width: 820px) {
   .dashboard-grid,
   .game-layout {
@@ -1051,16 +1065,6 @@ input {
 
   .dashboard-stat-grid {
     grid-template-columns: 1fr;
-  }
-
-  .navbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .navbar nav {
-    justify-content: flex-start;
-    width: 100%;
   }
 }
 

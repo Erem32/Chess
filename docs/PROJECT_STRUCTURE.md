@@ -92,3 +92,5 @@ The lessons and puzzles screens load exercises from the practice API and send mo
 The opening guide service validates the authored move sequence and sends positions to a read-only board; it does not create or change online games.
 
 Teaching examples and the opening guide use a shared read-only guide component. The server validates the example positions and moves before returning them.
+
+On narrow screens the main navigation collapses into a menu, and practice and illustrated-guide instructions appear before the board.
