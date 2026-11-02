@@ -100,6 +100,6 @@ The main navigation marks the current page and collapses on narrow screens. Lear
 
 Initial page requests use quiet, space-reserving placeholders. The Play dashboard keeps active-game controls in its matchmaking panel, and the game screen waits for the server position before displaying a board.
 
-Board-focused screens size their boards to the available viewport height and retain scrolling for longer content or very small screens.
+Learning detail screens group the dashboard and section-list return controls in the header. Their boards can grow to 720 CSS pixels on larger displays, while respecting the available viewport height; longer content and very small screens can still scroll.
 
 The history page uses the paginated history API, displays each opponent and result, and links to the existing game screen; its list scrolls independently, and it does not provide move replay. The shared `PageHeader` keeps top-level page headings consistent.

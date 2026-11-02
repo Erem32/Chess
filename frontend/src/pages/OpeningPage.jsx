@@ -85,13 +85,14 @@ export default function OpeningPage() {
 
   return <section className={`study-page opening-page${selected ? " study-page--detail" : ""}`}>
     <PageHeader eyebrow="LEARN & PRACTISE" title={selected?.title ?? "Opening study"}
-      description={selected?.introduction ?? "Choose an opening and explore an example line, one move at a time."} />
+      description={selected?.introduction ?? "Choose an opening and explore an example line, one move at a time."}
+      backToList={selected ? { label: "All openings", onClick: () => selectOpening(null) } : null} />
     <div className={`opening-content${catalog !== null && !selected && !error ? " opening-content--catalog" : ""}`} ref={contentRef}>
     {warning}
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       catalog === null ? <LoadingPlaceholder variant="cards" count={4} label="Loading opening guides" /> :
         selected ? <OpeningDetails key={selected.id} opening={selected} completed={completed.has(selected.id)}
-          onComplete={completeOpening} onBack={() => selectOpening(null)} /> : <>
+          onComplete={completeOpening} /> : <>
           <section className="opening-controls-panel" aria-label="Opening selection">
             <div className="opening-library-summary">
               <p className="muted">{completedCount} of {catalog.length} completed · You can repeat any guide</p>
@@ -133,7 +134,7 @@ export default function OpeningPage() {
   </section>;
 }
 
-function OpeningDetails({ opening, completed, onComplete, onBack }) {
+function OpeningDetails({ opening, completed, onComplete }) {
   const [step, setStep] = useState(0);
   const current = opening.steps[step];
   const lastStep = opening.steps.length - 1;
@@ -145,7 +146,6 @@ function OpeningDetails({ opening, completed, onComplete, onBack }) {
   }
 
   return <>
-    <button type="button" className="study-inline-back" onClick={onBack}><UiIcon name="back" /> All openings</button>
     <div className="lesson-exercise">
       <div className="lesson-board"><ChessBoard fen={current.fen} playerColor="white" isInteractive={false} /></div>
       <div className="lesson-copy">

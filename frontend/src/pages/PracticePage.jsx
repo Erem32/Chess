@@ -90,7 +90,8 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
 
   return (
     <section className={`study-page${selected ? " study-page--detail" : ""}`}>
-      <PageHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Practise the rules, king safety and basic tactics, one move at a time." : "Find the right move in each position."} />
+      <PageHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Practise the rules, king safety and basic tactics, one move at a time." : "Find the right move in each position."}
+        backToList={selected ? { label: `All ${title.toLowerCase()}`, onClick: () => selectLesson(null) } : null} />
       {error && <p className="error" role="alert">{error}</p>}
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
       {lessons === null && !error && <LoadingPlaceholder variant="cards" count={singular === "Lesson" ? 6 : 3} label={`Loading ${title.toLowerCase()}`} />}
@@ -109,7 +110,6 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
         })}</div>
       </section>)}
       {selected && <>
-        <button type="button" className="study-inline-back" onClick={() => selectLesson(null)}><UiIcon name="back" /> All {title.toLowerCase()}</button>
         <div className="lesson-exercise">
           <div className="lesson-board"><ChessBoard fen={fen} playerColor={selected.fen.split(" ")[1] === "b" ? "black" : "white"}
             isInteractive={!pending && !complete} onMove={attempt}

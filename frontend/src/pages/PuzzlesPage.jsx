@@ -145,7 +145,8 @@ export default function PuzzlesPage() {
   const storageWarning = progress.userId === userId && !progress.persistent;
 
   return <section className={`study-page puzzles-page${selected ? " study-page--detail" : ""}`}>
-    <PageHeader eyebrow="LEARN & PRACTISE" title="Puzzles" description="Find the best continuation in each position." />
+    <PageHeader eyebrow="LEARN & PRACTISE" title="Puzzles" description="Find the best continuation in each position."
+      backToList={selected ? { label: "All puzzles", onClick: () => selectPuzzle(null) } : null} />
     {storageWarning && <p className="puzzle-warning" role="status">Progress could not be saved in this browser. You can still solve puzzles.</p>}
     {error && <p className="error" role="alert">{error}</p>}
     {error && catalog === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
@@ -181,7 +182,6 @@ export default function PuzzlesPage() {
       </>}
     </>}
     {selected && <>
-      <button type="button" className="study-inline-back" onClick={() => selectPuzzle(null)}><UiIcon name="back" /> All puzzles</button>
       <div className="lesson-exercise">
         <div className="lesson-board"><ChessBoard fen={fen} playerColor={selected.fen.split(" ")[1] === "b" ? "black" : "white"}
           isInteractive={!pending && status === "playing"} onMove={attempt}

@@ -25,10 +25,11 @@ export default function TeachingPage() {
   }, [attempt]);
 
   return <section className={`study-page${selected ? " study-page--detail" : ""}`}>
-    <PageHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board." />
+    <PageHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board."
+      backToList={selected ? { label: "All examples", onClick: () => setSelected(null) } : null} />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       examples === null ? <LoadingPlaceholder variant="cards" count={3} label="Loading examples" /> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
-        selected ? <><button type="button" className="study-inline-back" onClick={() => setSelected(null)}><UiIcon name="back" /> All examples</button><IllustratedGuide key={selected.id} guide={selected} /></> :
+        selected ? <IllustratedGuide key={selected.id} guide={selected} /> :
           groupByCategory(examples, "Examples").map(({ category, entries }) => <section className="study-group" key={category}>
             <h2 className="study-group-title">{category}</h2>
             <div className="study-cards">{entries.map(({ item: example, index }) => <button key={example.id} type="button" className="study-card" aria-label={example.title} onClick={() => setSelected(example)}>
