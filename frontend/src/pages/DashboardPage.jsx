@@ -5,6 +5,7 @@ import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
+import "./DashboardPage.css";
 import { getMyStats } from "../api/auth.js";
 import {
   abortMyActiveGames,
@@ -281,7 +282,7 @@ export default function DashboardPage() {
 
       <div className="dashboard-grid">
         <div className="dashboard-main">
-          <section className="panel dashboard-card">
+          <section className="panel dashboard-card dashboard-play-card">
             <div className="dashboard-section-heading">
               <div>
                 <h2>Play online</h2>
@@ -308,11 +309,11 @@ export default function DashboardPage() {
                 <button type="button" className="secondary-button" onClick={handleCheckStatus} disabled={checkingActiveGame}>Check status</button>
               </>}
             </div>
-            {status && <p className="dashboard-status">{status}</p>}
+            {status && !(isWaiting && status === "Waiting for another player") && <p className="dashboard-status">{status}</p>}
             {error && <p className="error">{error}</p>}
           </section>
 
-          <section className="panel dashboard-card">
+          <section className="panel dashboard-card dashboard-learning-card">
             <div className="dashboard-section-heading">
               <div>
                 <h2>Learn &amp; practise</h2>
@@ -328,7 +329,7 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <section className="panel dashboard-card">
+          <section className="panel dashboard-card dashboard-history-card">
             <div className="dashboard-section-heading">
               <div>
                 <h2>Latest games</h2>
