@@ -1,6 +1,6 @@
 # Practice exercise catalog
 
-`practice_exercises.json` is a JSON array of server-owned, single-move exercises. It is empty until reviewed learning content is added. Each entry has:
+`practice_exercises.json` is a JSON array of server-owned, single-move exercises. It contains six piece lessons and three puzzles. Each entry has:
 
 - `id`: unique lowercase letters and digits separated by hyphens, up to 80 characters.
 - `kind`: `lesson` or `puzzle`; defaults to `lesson` when omitted.

@@ -173,9 +173,9 @@ Game history returns the current player's games in descending ID order. `GET /ap
 
 The Examples page provides short, illustrated teaching positions. See the [teaching content format](backend/app/data/TEACHING.md) to add examples.
 
-The Opening study page displays a written guide with a read-only board and optional video link. Its [content file](backend/app/data/OPENING.md) starts empty.
+The Opening study page displays a written guide with a read-only board and optional video link. The [content file](backend/app/data/OPENING.md) contains a short Italian Game guide.
 
-The Lessons and Puzzles pages list available exercises and check moves with the server. Puzzles can also reveal a prepared solution and explanation. The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog starts empty and may be filtered with `?kind=lesson` or `?kind=puzzle`. See the [practice data format](backend/app/data/README.md) when adding exercises.
+The Lessons and Puzzles pages list available exercises and check moves with the server. Puzzles can also reveal a prepared solution and explanation. The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog contains six piece lessons and three puzzles, and may be filtered with `?kind=lesson` or `?kind=puzzle`. See the [practice data format](backend/app/data/README.md) when adding exercises.
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game.
 
