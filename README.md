@@ -10,7 +10,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
 - Board interaction by clicking or dragging pieces, including promotion choices.
-- Piece lessons, puzzles, an opening guide, and illustrated teaching examples.
+- Piece lessons, puzzles, 20 opening guides, and illustrated teaching examples.
 - Browser-local settings for text size and legal-move markers.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
@@ -166,7 +166,7 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
 | Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
 | Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
-| Opening guide | `GET /api/v1/opening` |
+| Opening guides | `GET /api/v1/opening/catalog`, `GET /api/v1/opening` (existing single guide) |
 | Teaching examples | `GET /api/v1/teaching-examples` |
 | Practice | `GET /api/v1/practice/exercises`, `POST /api/v1/practice/exercises/{exercise_id}/attempt`, `GET /api/v1/practice/exercises/{exercise_id}/solution` |
 | Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
@@ -176,7 +176,7 @@ The game history page shows opponents, results and game details, with links to o
 
 The Examples page provides short, illustrated teaching positions. See the [teaching content format](backend/app/data/TEACHING.md) to add examples.
 
-The Opening study page lets users choose an opening; available guides have a read-only board and optional video link, while openings without content are marked unavailable. The [content file](backend/app/data/OPENING.md) contains a short Italian Game guide.
+The Opening study page lists 20 guides with a read-only board, annotated moves and an optional video link. Guides are loaded and validated by the backend. Reaching the last position marks a guide completed, and completed guides can be repeated. Completion is saved in the current browser's local storage under the signed-in user ID; it is not yet stored on the server or synchronized across browsers or devices. Clearing site data removes it. See the [content format](backend/app/data/OPENING.md).
 
 The Lessons and Puzzles pages list available exercises and check moves with the server. Puzzles can also reveal a prepared solution and explanation. The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog contains six piece lessons and three puzzles, and may be filtered with `?kind=lesson` or `?kind=puzzle`. See the [practice data format](backend/app/data/README.md) when adding exercises.
 

@@ -28,6 +28,16 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       assert.ok(size.page <= size.viewport + 1, `${label}: page ${size.page}px exceeds viewport ${size.viewport}px`);
       assert.ok(size.board >= 200, `${label}: board is too small`);
     }
+    async function openingFits(label) {
+      const size = await page.evaluate(() => {
+        const board = document.querySelector('.board-wrap').getBoundingClientRect();
+        const next = document.querySelector('.study-actions button:last-child').getBoundingClientRect();
+        return { viewport: innerHeight, boardTop: board.top, boardBottom: board.bottom, boardHeight: board.height, nextTop: next.top, nextBottom: next.bottom };
+      });
+      assert.ok(size.boardHeight >= 200, `${label}: board is too small`);
+      assert.ok(size.boardTop >= 0 && size.boardBottom <= size.viewport + 1, `${label}: board is outside the viewport`);
+      assert.ok(size.nextTop >= 0 && size.nextBottom <= size.viewport + 1, `${label}: next control is outside the viewport`);
+    }
     for (const viewport of [{ width: 1366, height: 768 }, { width: 1280, height: 720 }, { width: 768, height: 768 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       await page.goto(`${baseURL}/examples`);
@@ -49,10 +59,10 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       await page.getByText(/Solution: d2d4/).waitFor();
       await fits('puzzle solution');
       await page.goto(`${baseURL}/opening`);
-      await page.getByRole('button', { name: /Italian Game: developing the pieces/ }).click();
+      await page.getByRole('button', { name: /Italian Game, not completed/ }).click();
       for (let step = 0; step < 6; step += 1) {
-        await fits(`opening ${step}`);
-        if (step < 5) await page.getByRole('button', { name: 'Next', exact: true }).click();
+        await openingFits(`opening ${step}`);
+        if (step < 5) await page.getByRole('button', { name: 'Next move', exact: true }).click();
       }
     }
     console.log('Board activities fit the tested desktop and phone viewports.');

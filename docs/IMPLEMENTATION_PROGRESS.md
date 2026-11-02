@@ -1,13 +1,16 @@
 # Implementation checkpoint
 
-Objective: improve game history and unify compact page headers, following [project instructions](../AGENTS.md).
+Objective: integrate game history and compact page headers with the opening catalog, following [project instructions](../AGENTS.md).
 
 ## Working state
 
-- `feature/history-overhaul` starts from `main`. History presents game details and scrolls within the page; top-level screens share compact headers.
+- `feature/history-overhaul` merges the current `main`, including 20 backend-validated opening guides. Completion is stored locally in the browser.
+- History scrolls within the page and top-level screens share compact headers. Scrolling remains available for long content and small windows.
 - Preserve unreviewed local stashes and `handoff/stash-recovery`. Inspect Git status and worktrees before resuming.
 
 ## Checks
 
-- Frontend: `cd frontend && npm test && npm run lint && npm run build` (30 tests passed).
-- Browser: `test:e2e:headers`, `test:e2e:history-ui`, `test:e2e:history`, `test:e2e:viewport`, `test:e2e:mobile`, `test:e2e:loading`, and two-player smoke passed. Real-service checks used disposable SQLite; PostgreSQL-specific checks were not rerun.
+- Integrated checks: 32 frontend unit tests, frontend lint and build; 114 backend tests passed with 7 PostgreSQL-specific tests skipped.
+- Browser checks passed for opening study, learning content, headers, history UI, history pagination, and board viewports. Real-service checks used disposable SQLite.
+- Reproduce: `cd frontend && npm test && npm run lint && npm run build`; `cd backend && pytest`. Browser scripts require a disposable running application and `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH`; real-service scripts also require `CHESS_E2E_ALLOW_REGISTRATION=1`.
+- PostgreSQL-specific checks were not rerun. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.

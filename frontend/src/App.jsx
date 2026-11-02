@@ -57,6 +57,7 @@ export default function App() {
           />
           <Route path="/examples" element={<ProtectedRoute><TeachingPage /></ProtectedRoute>} />
           <Route path="/opening" element={<ProtectedRoute><OpeningPage /></ProtectedRoute>} />
+          <Route path="/opening-guide" element={<Navigate to="/opening" replace />} />
           <Route path="/puzzles" element={<ProtectedRoute><PuzzlesPage /></ProtectedRoute>} />
           <Route path="/lessons" element={<ProtectedRoute><LessonsPage /></ProtectedRoute>} />
           <Route

@@ -17,7 +17,7 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
       if (path === '/api/v1/matchmaking/status') return route.fulfill({ json: { status: 'idle' } });
       if (path === '/api/v1/games/my-history') return route.fulfill({ json: { games: [], next_before_id: null } });
       if (path === '/api/v1/practice/exercises' || path === '/api/v1/teaching-examples') return route.fulfill({ json: [] });
-      if (path === '/api/v1/opening') return route.fulfill({ status: 200, contentType: 'application/json', body: 'null' });
+      if (path === '/api/v1/opening/catalog') return route.fulfill({ json: [] });
       return route.fulfill({ status: 404 });
     });
     for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }]) {
