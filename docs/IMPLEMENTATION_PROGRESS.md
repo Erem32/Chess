@@ -1,14 +1,15 @@
 # Implementation checkpoint
 
-Objective: improve the interface and mobile use while preserving the chess MVP, following [project instructions](../AGENTS.md).
+Objective: maintain the chess MVP and complete the remaining evaluation in [Project Helix scope](features/README.md), following [project instructions](../AGENTS.md).
+
+## Next task
+
+Review the learning content for suitability and plan a small user evaluation of the learning activities, settings and online queue. Record actual results; do not invent participants or outcomes. Arrange participants only when the project owner requests it.
 
 ## Working state
 
-- `feature/mobile-usability` starts from `main`. It adds compact mobile navigation, shorter lesson choices, responsive practice layouts and a next-exercise action.
-- Preserve unreviewed local stashes and `handoff/stash-recovery`. Inspect Git status and worktrees before resuming.
+Git is authoritative for branches, worktrees and recent checks. Inspect it before resuming. Preserve the unreviewed local stash and `handoff/stash-recovery` branch until their contents are reviewed.
 
-## Checks
+## Reproducing checks
 
-- Frontend: `cd frontend && npm test && npm run lint && npm run build` (28 tests passed).
-- Browser: board, lessons, puzzles, opening, settings and examples checks passed, as did learning content and mobile touch navigation against disposable SQLite services.
-- The two-player browser smoke passed against disposable SQLite, including a mobile touch move. PostgreSQL migrations and concurrency tests were not rerun. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.
+Use [Contributing](../CONTRIBUTING.md) and the [README](../README.md#tests-and-checks). Browser tests that register users or create games require a disposable database. PostgreSQL concurrency tests require the disposable database described in Contributing.

@@ -1,5 +1,5 @@
 # Improvement plan
 
-Follow the [Project Helix feature plan](features/README.md) for the current scope and the [implementation checkpoint](IMPLEMENTATION_PROGRESS.md) for the next task. Work in small increments, keep changes easy to review, and retain backend authority for chess rules and game state.
+The current university-project scope and remaining evaluation are described in [Project Helix scope](features/README.md). Consult the [implementation checkpoint](IMPLEMENTATION_PROGRESS.md) before resuming interrupted work.
 
-Use the existing project structure and improve it where a feature needs a clearer boundary. Add focused tests and update relevant documentation with each change. Preserve the existing two-player game while the learning features are developed.
+Keep future changes small, grounded in an actual need, and easy to review. Preserve backend authority over chess rules and game state, and avoid expanding the feature scope without a clear requirement.

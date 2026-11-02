@@ -1,16 +1,5 @@
-# Authored teaching examples
+# Teaching examples
 
-## Outcome
+Three short examples illustrate pawn capture, promotion and knight movement using prepared positions, explanations and a read-only board. They do not change saved games.
 
-Provide a few prepared chess positions with short written explanations and illustrated moves. These examples teach an idea; they are not analysis of the player's own games.
-
-## Implementation
-
-- The Examples page provides three original examples and uses a shared read-only guide. See the [content format](../../backend/app/data/TEACHING.md).
-- Store a few reviewed positions, explanations and legal example moves in repository files. Keep the text understandable without a chess engine.
-- Use a read-only board with previous/next navigation for illustrated moves. This can share the board adaptation used by the [opening guide](opening-study.md), without requiring a shared content platform.
-- Show the explanation alongside the position and let the user revisit it. Do not write anything to a live game or its result.
-
-## Dependencies and checks
-
-Content can be authored independently while a developer builds the view against a fixture. Integrate after the read-only board interface in [shared preparation](00-foundations.md) is available. Validate positions and moves, test navigation and isolation from saved games, and run a browser check for one example.
+See the [content format](../../backend/app/data/TEACHING.md), `test_teaching_api.py`, and the `test:e2e:teaching` browser check.
