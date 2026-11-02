@@ -163,11 +163,14 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` |
 | Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
 | Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
+| Opening guide | `GET /api/v1/opening` |
 | Practice | `GET /api/v1/practice/exercises`, `POST /api/v1/practice/exercises/{exercise_id}/attempt`, `GET /api/v1/practice/exercises/{exercise_id}/solution` |
 | Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
 | Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline`, `GET` and `POST /api/v1/games/{game_id}/draw-claims` |
 
 Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
+
+The Opening study page displays a written guide with a read-only board and optional video link. Its [content file](backend/app/data/OPENING.md) starts empty.
 
 The Lessons and Puzzles pages list available exercises and check moves with the server. Puzzles can also reveal a prepared solution and explanation. The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog starts empty and may be filtered with `?kind=lesson` or `?kind=puzzle`. See the [practice data format](backend/app/data/README.md) when adding exercises.
 
@@ -194,6 +197,8 @@ On their turn, a player can check draw-claim options in the game interface. The 
 A game may be aborted only before its first move; afterward a player can resign. Aborted games are excluded from player statistics. Fivefold repetition and threefold claims require persisted moves to reconstruct the current position.
 
 Game players can retrieve chat through `GET /api/v1/games/{game_id}/chat`, which returns `{ "game_id": ..., "messages": [...] }` in ascending message ID order. It returns the newest 100 messages by default; `limit` can be 1–100, and `before_id` requests an older page. Chat is stored without an automatic retention or deletion policy.
+
+The online game board waits for server confirmation before allowing another move; if confirmation is lost, the client reconnects and synchronizes the game. The dashboard shows the matchmaking queue and its cancellation control.
 
 The game screen shows the latest chat messages and offers older pages when the latest page is full. Use **Latest messages** to return to the live view; new messages continue arriving while an older page is open.
 

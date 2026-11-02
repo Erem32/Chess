@@ -8,6 +8,7 @@ import GamePage from "./pages/GamePage.jsx";
 import HistoryPage from "./pages/HistoryPage.jsx";
 import LessonsPage from "./pages/LessonsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import OpeningPage from "./pages/OpeningPage.jsx";
 import PuzzlesPage from "./pages/PuzzlesPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -53,6 +54,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/opening" element={<ProtectedRoute><OpeningPage /></ProtectedRoute>} />
           <Route path="/puzzles" element={<ProtectedRoute><PuzzlesPage /></ProtectedRoute>} />
           <Route path="/lessons" element={<ProtectedRoute><LessonsPage /></ProtectedRoute>} />
           <Route

@@ -8,7 +8,7 @@ export function PlayerSummaryPanel({ playerSummary }) {
         <div className="player-summary-list">
           {playerSummary.map((player) => (
             <p key={player.user_id} className="player-summary-row">
-              <span className="player-summary-name">{player.name}</span>
+              <span className="player-summary-name">{player.name}{player.isCurrentUser ? " (you)" : ""}{player.color ? ` · ${player.color}` : ""}</span>
             </p>
           ))}
         </div>

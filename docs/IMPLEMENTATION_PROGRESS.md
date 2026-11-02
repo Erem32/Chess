@@ -1,14 +1,15 @@
 # Implementation checkpoint
 
-Objective: implement [display and move guidance settings](features/experience-settings.md), following [project instructions](../AGENTS.md).
+Objective: provide opening study as described in the [feature plan](features/opening-study.md), following [project instructions](../AGENTS.md).
 
 ## Working state
 
-- `feature/experience-settings` starts from `main`. Text size and legal-move marker settings persist in the browser and apply to the shared board.
+- `feature/opening-study` starts from `main` and provides a read-only guide with backend-validated moves. The content file is empty; author and review a guide separately.
 - Preserve the unreviewed local stash and `handoff/stash-recovery` branch. Inspect Git status and worktrees before resuming.
 
 ## Checks
 
-- Frontend: `cd frontend && npm test && npm run lint && npm run build` (30 tests passed).
-- Browser: with a frontend dev server running, set `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH`, then run `npm run test:e2e:settings` and `npm run test:e2e:board` from `frontend` (both passed).
-- Two-player smoke passed against disposable SQLite with SQLAlchemy metadata; PostgreSQL migrations and concurrency were not checked. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.
+- Backend: `cd backend && pytest -q` against disposable SQLite (103 passed, 7 PostgreSQL concurrency tests skipped); `ruff check --no-cache app alembic` passed.
+- Frontend: `cd frontend && npm test && npm run lint && npm run build` (29 tests passed).
+- Browser: with a frontend dev server running, set `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH`, then run `npm run test:e2e:opening` from `frontend` (passed using test-only API responses).
+- The two-player smoke was not rerun locally; no live-game behavior was changed. CI runs it against disposable PostgreSQL.
