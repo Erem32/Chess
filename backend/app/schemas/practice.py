@@ -45,6 +45,7 @@ class PuzzleAttemptResponse(BaseModel):
     result: Literal["illegal", "incorrect", "correct"]
     fen: str
     complete: bool = False
+    player_fen: str | None = None
     opponent_move: str | None = None
     feedback: str | None = None
 
@@ -54,7 +55,14 @@ class PuzzleHintResponse(BaseModel):
     piece: str
 
 
+class PuzzleLineStep(BaseModel):
+    fen: str
+    move: str | None = None
+    move_uci: str | None = None
+
+
 class PuzzleLineResponse(BaseModel):
     moves: list[str]
     fen: str
     explanation: str | None = None
+    steps: list[PuzzleLineStep]

@@ -2,7 +2,7 @@
   {
     "id": "italian-game",
     "title": "Italian Game",
-    "line": "Giuoco Piano",
+    "line": "Giuoco Pianissimo",
     "introduction": "A classical open game in which White develops the bishop towards f7 and both players build up around the centre.",
     "ideas": [
       "Develop your pieces before starting an attack.",
@@ -56,7 +56,7 @@
       },
       {
         "move_uci": "e8g8",
-        "explanation": "Black castles as well, connecting the rooks."
+        "explanation": "Black castles too. The rooks are not connected yet: the queen and c8 bishop still stand between them."
       },
       {
         "move_uci": "f1e1",
@@ -398,7 +398,7 @@
       },
       {
         "move_uci": "d6d5",
-        "explanation": "Black challenges White's central space."
+        "explanation": "Black advances to d5, blocking the d-pawn and supporting the knight on e4."
       }
     ]
   },

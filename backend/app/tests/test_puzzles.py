@@ -8,7 +8,7 @@ from app.api.deps import get_current_user
 from app.main import app
 from app.models import User
 from app.services import practice_service
-from app.services.puzzle_service import attempt, hint
+from app.services.puzzle_service import attempt, hint, reveal
 
 
 @pytest.fixture()
@@ -42,12 +42,23 @@ def test_multimove_line_hints_and_reveal(client):
     first = post(client, "line", "attempt", move_uci="e2e4").json()
     board = chess.Board()
     board.push_uci("e2e4")
+    assert first["player_fen"] == board.fen()
     board.push_uci("e7e5")
     assert first["result"] == "correct" and not first["complete"]
     assert first["opponent_move"] == "e5" and first["fen"] == board.fen()
     assert post(client, "line", "hint", ["e2e4"]).json() == {"square": "g1", "piece": "knight"}
-    assert post(client, "line", "solution", ["e2e4"]).json()["moves"] == ["Nf3"]
-    assert post(client, "line", "solution").json()["moves"] == ["e4", "e5", "Nf3"]
+    partial = post(client, "line", "solution", ["e2e4"]).json()
+    assert partial["moves"] == ["Nf3"] and partial["steps"][0]["fen"] == board.fen()
+    solution = post(client, "line", "solution").json()
+    assert solution["moves"] == ["e4", "e5", "Nf3"]
+    replay = chess.Board()
+    assert solution["steps"][0] == {"fen": replay.fen(), "move": None, "move_uci": None}
+    for step, expected in zip(solution["steps"][1:], ["e2e4", "e7e5", "g1f3"], strict=True):
+        move = chess.Move.from_uci(expected)
+        assert step["move_uci"] == expected and step["move"] == replay.san(move)
+        replay.push(move)
+        assert step["fen"] == replay.fen()
+    assert solution["fen"] == replay.fen()
     last = post(client, "line", "attempt", ["e2e4"], move_uci="g1f3").json()
     board.push_uci("g1f3")
     assert last["result"] == "correct" and last["complete"] and last["fen"] == board.fen()
@@ -90,6 +101,20 @@ def test_every_imported_line_plays_to_completion():
             assert response.complete == (index == len(line) - 1), puzzle.id
             if not response.complete:
                 moves.append(line[index])
+
+
+def test_every_puzzle_replay_matches_its_server_owned_line():
+    for puzzle in (item for item in practice_service.load_exercises() if item.kind == "puzzle"):
+        line = puzzle.solution_moves or [puzzle.accepted_moves[0]]
+        replay = reveal(puzzle, [])
+        board = chess.Board(puzzle.fen)
+        assert replay.steps[0].fen == board.fen()
+        assert len(replay.steps) == len(line) + 1
+        for step, move_uci in zip(replay.steps[1:], line, strict=True):
+            move = chess.Move.from_uci(move_uci)
+            assert move in board.legal_moves and step.move == board.san(move)
+            board.push(move)
+            assert step.fen == board.fen() and step.move_uci == move_uci
 
 
 @pytest.mark.parametrize("line", [[], ["d2d4"], ["e2e4", "e7e5"], ["e2e4", "e7e5", "g1g4"]])

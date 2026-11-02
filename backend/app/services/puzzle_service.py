@@ -2,7 +2,7 @@
 
 import chess
 
-from app.schemas.practice import PuzzleAttemptResponse, PuzzleHintResponse, PuzzleLineResponse
+from app.schemas.practice import PuzzleAttemptResponse, PuzzleHintResponse, PuzzleLineResponse, PuzzleLineStep
 from app.services.practice_service import PracticeExercise
 
 
@@ -46,13 +46,15 @@ def attempt(exercise: PracticeExercise, moves: list[str], move_uci: str) -> Puzz
         return PuzzleAttemptResponse(result="incorrect", fen=board.fen(), feedback=exercise.incorrect_feedback)
 
     index += 1
+    player_fen = board.fen()
     if board.is_checkmate() or index == len(line):
-        return PuzzleAttemptResponse(result="correct", fen=board.fen(), complete=True, feedback=exercise.correct_feedback)
+        return PuzzleAttemptResponse(result="correct", fen=player_fen, complete=True,
+                                     player_fen=player_fen, feedback=exercise.correct_feedback)
 
     reply = chess.Move.from_uci(line[index])
     reply_san = board.san(reply)
     board.push(reply)
-    return PuzzleAttemptResponse(result="correct", fen=board.fen(), opponent_move=reply_san)
+    return PuzzleAttemptResponse(result="correct", fen=board.fen(), player_fen=player_fen, opponent_move=reply_san)
 
 
 def hint(exercise: PracticeExercise, moves: list[str]) -> PuzzleHintResponse:
@@ -67,8 +69,11 @@ def hint(exercise: PracticeExercise, moves: list[str]) -> PuzzleHintResponse:
 def reveal(exercise: PracticeExercise, moves: list[str]) -> PuzzleLineResponse:
     board, line, index = _position(exercise, moves)
     notation = []
+    steps = [PuzzleLineStep(fen=board.fen())]
     for move_uci in line[index:]:
         move = chess.Move.from_uci(move_uci)
-        notation.append(board.san(move))
+        san = board.san(move)
+        notation.append(san)
         board.push(move)
-    return PuzzleLineResponse(moves=notation, fen=board.fen(), explanation=exercise.explanation)
+        steps.append(PuzzleLineStep(fen=board.fen(), move=san, move_uci=move_uci))
+    return PuzzleLineResponse(moves=notation, fen=board.fen(), explanation=exercise.explanation, steps=steps)

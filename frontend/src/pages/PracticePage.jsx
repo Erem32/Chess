@@ -12,7 +12,7 @@ const LESSON_PIECES = {
   "lesson-pawn": "♙", "lesson-knight": "♘", "lesson-bishop": "♗", "lesson-rook": "♖", "lesson-queen": "♕", "lesson-king": "♔",
   "lesson-pawn-capture": "♙", "lesson-knight-jump": "♘", "lesson-rook-capture": "♖", "lesson-bishop-capture": "♗",
   "lesson-castle-kingside": "♔", "lesson-castle-queenside": "♔", "lesson-en-passant": "♙",
-  "lesson-promote-queen": "♕", "lesson-underpromotion": "♘", "lesson-escape-check": "♔", "lesson-block-check": "♗",
+  "lesson-promote-queen": "♕", "lesson-underpromotion": "♖", "lesson-escape-check": "♔", "lesson-block-check": "♗",
   "lesson-capture-checker": "♔", "lesson-give-check": "♖", "lesson-checkmate": "♕", "lesson-knight-fork": "♘",
   "lesson-absolute-pin": "♗", "lesson-skewer": "♖", "lesson-capture-attacker": "♕"
 };

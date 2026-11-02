@@ -11,6 +11,7 @@ import "./LessonsPage.css";
 import "./PuzzlesPage.css";
 
 const PAGE_SIZE = 12;
+const OPPONENT_REPLY_DELAY_MS = 850;
 const TITLES = { "puzzle-win-queen": "Win the queen", "puzzle-mate-one": "Find checkmate", "puzzle-promotion": "Pawn promotion" };
 
 function browserStorage() {
@@ -30,6 +31,8 @@ export default function PuzzlesPage() {
   const [hint, setHint] = useState("");
   const [status, setStatus] = useState("playing");
   const [pending, setPending] = useState(false);
+  const [review, setReview] = useState(null);
+  const [reviewStep, setReviewStep] = useState(0);
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [progress, setProgress] = useState(() => loadPuzzleProgress(browserStorage(), user?.id));
@@ -61,6 +64,8 @@ export default function PuzzlesPage() {
     setError("");
     setStatus("playing");
     setPending(false);
+    setReview(null);
+    setReviewStep(0);
   }
 
   function markSolved(id) {
@@ -81,19 +86,24 @@ export default function PuzzlesPage() {
     try {
       const result = await submitPuzzleMove(selected.id, moves, move);
       if (currentRevision !== revision.current) return;
-      setFen(result.fen);
       if (result.result === "correct") {
+        setFen(result.player_fen ?? result.fen);
         setHint("");
         if (result.complete) {
           setStatus("solved");
           setFeedback(result.feedback || "Puzzle solved!");
           markSolved(selected.id);
         } else {
+          setFeedback("Correct! Waiting for the opponent's reply...");
+          await new Promise((resolve) => window.setTimeout(resolve, OPPONENT_REPLY_DELAY_MS));
+          if (currentRevision !== revision.current) return;
+          setFen(result.fen);
           setMoves((previous) => [...previous, move]);
           setFeedback(`Correct! Opponent played ${result.opponent_move}. Find the next move.`);
         }
       } else {
-        setFeedback(result.feedback || (result.result === "illegal" ? "That move is not legal." : "Not quite. Try another move."));
+        setFen(result.fen);
+        setFeedback(result.feedback || (result.result === "illegal" ? "That move is not legal." : "That move is not in this puzzle's solution. Try another move."));
       }
     } catch (err) {
       if (currentRevision === revision.current) setError(`Could not check your move: ${err.message}`);
@@ -125,15 +135,27 @@ export default function PuzzlesPage() {
     try {
       const result = await getPuzzleSolution(selected.id, moves);
       if (currentRevision !== revision.current) return;
-      setFen(result.fen);
+      if (!Array.isArray(result.steps) || result.steps.length < 2 || !result.steps.every((step) => typeof step.fen === "string")) {
+        throw new Error("The solution could not be replayed.");
+      }
+      setReview({ steps: result.steps, explanation: result.explanation });
+      setReviewStep(0);
+      setFen(result.steps[0].fen);
       setStatus("revealed");
       setHint("");
-      setFeedback(`Solution: ${result.moves.join(" ")}${result.explanation ? ` — ${result.explanation}` : ""} Retry to solve it yourself.`);
+      setFeedback("");
     } catch (err) {
       if (currentRevision === revision.current) setError(`Could not reveal the solution: ${err.message}`);
     } finally {
       if (currentRevision === revision.current) setPending(false);
     }
+  }
+
+  function changeReviewStep(nextStep) {
+    if (!review) return;
+    const index = Math.max(0, Math.min(nextStep, review.steps.length - 1));
+    setReviewStep(index);
+    setFen(review.steps[index].fen);
   }
 
   const completedCount = catalog?.filter((puzzle) => completed.has(puzzle.id)).length ?? 0;
@@ -143,6 +165,9 @@ export default function PuzzlesPage() {
   const selectedIndex = catalog?.findIndex((puzzle) => puzzle.id === selected?.id) ?? -1;
   const nextPuzzle = selectedIndex >= 0 ? catalog[selectedIndex + 1] : null;
   const storageWarning = progress.userId === userId && !progress.persistent;
+  const previousReviewFen = reviewStep > 0 ? review?.steps[reviewStep - 1].fen : null;
+  const reviewMove = reviewStep > 0 ? review?.steps[reviewStep].move : null;
+  const reviewColor = previousReviewFen?.split(" ")[1] === "b" ? "Black" : "White";
 
   return <section className={`study-page puzzles-page${selected ? " study-page--detail" : ""}`}>
     <PageHeader eyebrow="LEARN & PRACTISE" title="Puzzles" description="Find the best continuation in each position."
@@ -154,7 +179,7 @@ export default function PuzzlesPage() {
     {catalog?.length === 0 && <p className="muted">No puzzles are available yet.</p>}
     {catalog?.length > 0 && !selected && <>
       <div className="puzzle-summary">
-        <div><strong>{completedCount} / {catalog.length} solved</strong><p className="muted">Hints are allowed. Progress is saved in this browser for your account.</p></div>
+        <div><strong>{completedCount} / {catalog.length} solved</strong><p className="muted">Hints are allowed. Revealing a solution does not count as solved. Progress is saved in this browser for your account.</p></div>
         <button type="button" onClick={() => selectPuzzle(catalog.find((puzzle) => !completed.has(puzzle.id)) ?? catalog[0])}>Start next unsolved <UiIcon name="arrow" /></button>
       </div>
       <div className="puzzle-filters" role="group" aria-label="Filter puzzles">
@@ -190,9 +215,18 @@ export default function PuzzlesPage() {
           <span className="study-card-index">Puzzle {selectedIndex + 1} / {catalog.length} · {completedCount} solved</span>
           <h2>{TITLES[selected.id] ?? "Find the move"}</h2>
           <p className="study-instruction">{selected.instruction}{selected.rating != null ? ` Lichess puzzle rating: ${selected.rating}.` : ""}</p>
-          {pending && <p className="study-feedback">Checking...</p>}
+          {pending && !feedback && <p className="study-feedback">Checking...</p>}
           {hint && <p className="study-feedback" role="status">{hint}</p>}
           {feedback && <p className={`study-feedback${status === "solved" ? " is-success" : ""}`} role="status">{feedback}</p>}
+          {status === "revealed" && review && <section className="puzzle-review" aria-label="Solution replay">
+            <span className="study-card-index">Solution · Step {reviewStep} / {review.steps.length - 1}</span>
+            <p className="guide-move" aria-live="polite">{reviewMove ? `${reviewColor}: ${reviewMove}` : "Starting position"}</p>
+            {reviewStep === review.steps.length - 1 && review.explanation && <p className="study-instruction">{review.explanation}</p>}
+            <div className="actions study-actions">
+              <button type="button" className="secondary-button" disabled={reviewStep === 0} onClick={() => changeReviewStep(reviewStep - 1)}><UiIcon name="back" /> Previous move</button>
+              <button type="button" disabled={reviewStep === review.steps.length - 1} onClick={() => changeReviewStep(reviewStep + 1)}>Next move <UiIcon name="arrow" /></button>
+            </div>
+          </section>}
           <div className="actions study-actions">
             {status === "playing" && <><button type="button" className="secondary-button" onClick={showHint} disabled={pending}>Hint</button>
               <button type="button" className="secondary-button" onClick={reveal} disabled={pending}>Reveal solution</button></>}

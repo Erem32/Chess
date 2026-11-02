@@ -15,7 +15,7 @@
   {
     "id": "knight-move",
     "title": "The knight's move",
-    "fen": "7k/8/8/8/8/8/1N6/K7 w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/PN6/K7 w - - 0 1",
     "introduction": "A knight moves in an L shape: two squares in one direction and one square sideways. It can jump over other pieces.",
     "moves": [
       {
@@ -42,7 +42,7 @@
     "id": "bishop-capture",
     "title": "How a bishop captures",
     "category": "Piece movement",
-    "fen": "7k/8/8/8/5n2/8/8/2B4K w - - 0 1",
+    "fen": "7k/8/8/8/5n2/8/P7/2B4K w - - 0 1",
     "introduction": "The bishop on c1 can reach the knight on f4 along a clear diagonal.",
     "moves": [
       {
@@ -68,7 +68,7 @@
     "id": "castle-kingside",
     "title": "Castling kingside",
     "category": "Special moves",
-    "fen": "4k2r/8/8/8/8/8/8/4K2R w Kk - 0 1",
+    "fen": "4k2r/7p/8/8/8/8/7P/4K2R w Kk - 0 1",
     "introduction": "Castling moves the king toward a rook and brings that rook into play. The king and rook must retain castling rights.",
     "moves": [
       {
@@ -81,7 +81,7 @@
     "id": "castle-queenside",
     "title": "Castling queenside",
     "category": "Special moves",
-    "fen": "r3k3/8/8/8/8/8/8/R3K3 b Qq - 0 1",
+    "fen": "r3k3/p7/8/8/8/8/P7/R3K3 b Qq - 0 1",
     "introduction": "Black can castle toward the a-file rook if the squares between them are empty and the king's route is safe.",
     "moves": [
       {
@@ -105,14 +105,22 @@
   },
   {
     "id": "underpromotion",
-    "title": "Promoting to a knight",
+    "title": "A rook promotion avoids stalemate",
     "category": "Special moves",
-    "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
-    "introduction": "A pawn may promote to a queen, rook, bishop or knight. Choosing a different piece is called underpromotion.",
+    "fen": "8/k1P5/2K5/8/8/8/8/8 w - - 0 1",
+    "introduction": "White is winning, but c8=Q would immediately stalemate Black. A rook is enough to keep the win.",
     "moves": [
       {
-        "move_uci": "a7a8n",
-        "explanation": "The pawn becomes a knight on a8. In real games an underpromotion is useful when that piece achieves something a queen cannot."
+        "move_uci": "c7c8r",
+        "explanation": "c8=R avoids stalemate. With a queen on c8, Black would have no legal move and the king would not be in check."
+      },
+      {
+        "move_uci": "a7a6",
+        "explanation": "Ka6 is Black’s only legal move."
+      },
+      {
+        "move_uci": "c8a8",
+        "explanation": "Ra8# is checkmate: the rook checks on the a-file and the white king controls b5, b6 and b7."
       }
     ]
   },
@@ -133,16 +141,20 @@
     "id": "escape-a-check",
     "title": "Escaping check",
     "category": "King safety",
-    "fen": "k3r3/8/8/8/8/8/8/4K3 w - - 0 1",
-    "introduction": "The rook checks along the e-file. A king can escape by moving to a safe square.",
+    "fen": "k3r3/8/8/8/8/8/8/3RK3 w - - 0 1",
+    "introduction": "The rook checks along the e-file. White can escape by moving the king to an unattacked square.",
     "moves": [
       {
-        "move_uci": "e1d1",
-        "explanation": "Kd1 moves away from the rook's line. A king cannot move to a square controlled by an enemy piece."
+        "move_uci": "e1f2",
+        "explanation": "Kf2 leaves the rook’s line. A king cannot move to a square controlled by an enemy piece."
       },
       {
-        "move_uci": "e8e2",
-        "explanation": "The rook remains active on e2, so White must still watch which squares it controls."
+        "move_uci": "e8e5",
+        "explanation": "Black places the rook on e5. White has escaped the check and still has an active rook."
+      },
+      {
+        "move_uci": "d1d8",
+        "explanation": "Rd8+ illustrates how White can give a check of their own."
       }
     ]
   },
@@ -150,16 +162,20 @@
     "id": "block-a-check",
     "title": "Blocking a check",
     "category": "King safety",
-    "fen": "k3r3/8/8/8/8/8/3B4/4K3 w - - 0 1",
-    "introduction": "A sliding piece's check can sometimes be stopped by placing a piece between the attacker and king.",
+    "fen": "k3r3/8/8/8/2N5/8/3B4/4K2R w - - 0 1",
+    "introduction": "A sliding piece’s check can be stopped by a protected piece placed between the attacker and the king.",
     "moves": [
       {
         "move_uci": "d2e3",
-        "explanation": "Be3 blocks the e-file and ends the immediate check."
+        "explanation": "Be3 blocks the e-file. The knight on c4 protects the bishop on e3."
       },
       {
         "move_uci": "e8e3",
-        "explanation": "Rxe3+ captures the blocker and checks again. A block is legal, but it is not necessarily a good defence if the blocker is unprotected."
+        "explanation": "If Black plays Rxe3+, the rook captures the bishop but lands on a square defended by the knight."
+      },
+      {
+        "move_uci": "c4e3",
+        "explanation": "Nxe3 captures the rook. Blocking with a defended piece prevents Black from winning the bishop for free."
       }
     ]
   },
@@ -207,7 +223,7 @@
     "title": "Stalemate is a draw",
     "category": "King safety",
     "fen": "7k/8/5KQ1/8/8/8/8/8 w - - 0 1",
-    "introduction": "A side that has no legal move is not always checkmated. The king must also be in check.",
+    "introduction": "White is winning, but the next queen move accidentally draws. No legal move is checkmate only when the king is also in check.",
     "moves": [
       {
         "move_uci": "g6f7",
@@ -219,7 +235,7 @@
     "id": "knight-fork",
     "title": "A knight fork",
     "category": "Tactical patterns",
-    "fen": "8/2q3k1/8/2N5/8/8/8/K7 w - - 0 1",
+    "fen": "8/2q3k1/8/2N5/8/8/8/K2R4 w - - 0 1",
     "introduction": "A fork attacks two pieces at once. The knight can attack the black king and queen together.",
     "moves": [
       {
@@ -240,7 +256,7 @@
     "id": "absolute-pin",
     "title": "An absolute pin",
     "category": "Tactical patterns",
-    "fen": "4k3/8/2n5/8/8/8/8/4KB2 w - - 0 1",
+    "fen": "4k3/8/2n5/8/8/8/8/R3KB2 w - - 0 1",
     "introduction": "A pinned piece cannot move if that would expose its own king to check.",
     "moves": [
       {
@@ -261,8 +277,8 @@
     "id": "rook-skewer",
     "title": "A rook skewer",
     "category": "Tactical patterns",
-    "fen": "q7/k7/8/8/8/8/7K/1R6 w - - 0 1",
-    "introduction": "In a skewer, an attack on a valuable front piece exposes another target behind it.",
+    "fen": "q7/k7/2B5/1P6/8/8/7K/1R6 w - - 0 1",
+    "introduction": "In a skewer, an attack on a valuable front piece exposes another target behind it. The bishop on c6 guards a8.",
     "moves": [
       {
         "move_uci": "b1a1",
@@ -270,11 +286,11 @@
       },
       {
         "move_uci": "a7b6",
-        "explanation": "The king must leave the a-file to escape the check."
+        "explanation": "The king leaves the a-file. Kb8 is also legal, but the bishop protects a8 against the king."
       },
       {
         "move_uci": "a1a8",
-        "explanation": "Rxa8 captures the queen that was exposed behind the king."
+        "explanation": "Rxa8 captures the exposed queen; the bishop protects the rook, and the pawn on b5 protects the bishop."
       }
     ]
   },
@@ -386,8 +402,8 @@
     "id": "king-opposition",
     "title": "King opposition",
     "category": "Planning and endgames",
-    "fen": "8/8/3k4/8/3K4/8/8/8 b - - 0 1",
-    "introduction": "The kings face each other with one square between them. The side to move must give way; this is called opposition.",
+    "fen": "8/8/3k4/8/3K4/8/3P4/8 b - - 0 1",
+    "introduction": "The kings face each other with one square between them. Black must move first and give way; this is called opposition.",
     "moves": [
       {
         "move_uci": "d6c6",

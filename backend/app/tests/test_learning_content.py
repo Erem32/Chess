@@ -22,6 +22,7 @@ def test_authored_practice_content_and_attempts():
         with TestClient(app) as client:
             for exercise in exercises:
                 board = chess.Board(exercise.fen)
+                assert board.is_valid() and not board.is_game_over(), exercise.id
                 accepted = set(exercise.accepted_moves)
                 incorrect = next(move for move in board.legal_moves if move.uci() not in accepted)
                 response = client.post(f"/api/v1/practice/exercises/{exercise.id}/attempt", json={"move_uci": incorrect.uci()})
@@ -64,7 +65,38 @@ def test_special_rule_lessons_demonstrate_the_rules_they_name():
     lesson = lessons["lesson-en-passant"]
     board = chess.Board(lesson.fen)
     assert board.is_en_passant(chess.Move.from_uci(lesson.accepted_moves[0]))
-    assert chess.Move.from_uci(lessons["lesson-underpromotion"].accepted_moves[0]).promotion == chess.KNIGHT
+    promotion = chess.Board(lessons["lesson-underpromotion"].fen)
+    promotion.push_uci("c7c8q")
+    assert promotion.is_stalemate()
+    promotion = chess.Board(lessons["lesson-underpromotion"].fen)
+    promotion.push_uci(lessons["lesson-underpromotion"].accepted_moves[0])
+    assert list(promotion.legal_moves) == [chess.Move.from_uci("a7a6")]
+    promotion.push_uci("a7a6")
+    promotion.push_uci("c8a8")
+    assert promotion.is_checkmate()
+
+    for lesson_id, rook_square in (("lesson-castle-kingside", chess.H1), ("lesson-castle-queenside", chess.A8)):
+        board = chess.Board(lessons[lesson_id].fen)
+        assert not board.is_attacked_by(not board.turn, rook_square)
+
+    block = chess.Board(lessons["lesson-block-check"].fen)
+    block.push_uci("d2e3")
+    assert chess.C4 in block.attackers(chess.WHITE, chess.E3)
+    block.push_uci("e8e3")
+    assert chess.Move.from_uci("c4e3") in block.legal_moves
+    block.push_uci("c4e3")
+    assert block.piece_at(chess.E3) == chess.Piece(chess.KNIGHT, chess.WHITE)
+    assert not block.is_game_over()
+
+    skewer = chess.Board(lessons["lesson-skewer"].fen)
+    skewer.push_uci("b1a1")
+    for reply in list(skewer.legal_moves):
+        branch = skewer.copy()
+        branch.push(reply)
+        capture = chess.Move.from_uci("a1a8")
+        assert capture in branch.legal_moves
+        branch.push(capture)
+        assert all(move.to_square != chess.A8 for move in branch.legal_moves)
 
     lesson = lessons["lesson-checkmate"]
     board = chess.Board(lesson.fen)

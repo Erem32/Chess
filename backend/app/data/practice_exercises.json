@@ -2,7 +2,7 @@
   {
     "id": "lesson-pawn",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/4P3/7K w - - 0 1",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     "instruction": "Pawn: A pawn moves forward one square, or two from its starting square if both are clear. It captures diagonally. Move the pawn from e2 to e4.",
     "accepted_moves": [
       "e2e4"
@@ -15,7 +15,7 @@
   {
     "id": "lesson-knight",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/1N6/K7 w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/PN6/K7 w - - 0 1",
     "instruction": "Knight: A knight moves in an L shape and can jump over pieces. Move the knight from b2 to c4.",
     "accepted_moves": [
       "b2c4"
@@ -28,7 +28,7 @@
   {
     "id": "lesson-bishop",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/8/2B4K w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/P7/2B4K w - - 0 1",
     "instruction": "Bishop: A bishop travels diagonally through empty squares and stays on the same color. Move the bishop from c1 to g5.",
     "accepted_moves": [
       "c1g5"
@@ -67,7 +67,7 @@
   {
     "id": "lesson-king",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/8/7K w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/P7/7K w - - 0 1",
     "instruction": "King: A king moves one square in any direction, but cannot move into check. Move the king from h1 to g2.",
     "accepted_moves": [
       "h1g2"
@@ -121,7 +121,7 @@
     "kind": "lesson",
     "title": "Bishop capture",
     "category": "Piece movement",
-    "fen": "7k/8/8/8/5n2/8/8/2B4K w - - 0 1",
+    "fen": "7k/8/8/8/5n2/8/P7/2B4K w - - 0 1",
     "instruction": "Bishops capture along an unobstructed diagonal. Capture the knight on f4 with the bishop on c1.",
     "accepted_moves": [
       "c1f4"
@@ -134,7 +134,7 @@
     "kind": "lesson",
     "title": "Kingside castling",
     "category": "Special moves",
-    "fen": "4k2r/8/8/8/8/8/8/4K2R w Kk - 0 1",
+    "fen": "4k2r/7p/8/8/8/8/7P/4K2R w Kk - 0 1",
     "instruction": "Castling moves both king and rook. Castle kingside by moving the white king from e1 to g1.",
     "accepted_moves": [
       "e1g1"
@@ -147,7 +147,7 @@
     "kind": "lesson",
     "title": "Queenside castling",
     "category": "Special moves",
-    "fen": "r3k3/8/8/8/8/8/8/R3K3 b Qq - 0 1",
+    "fen": "r3k3/p7/8/8/8/8/P7/R3K3 b Qq - 0 1",
     "instruction": "Black can castle queenside when the route is clear and the king does not cross an attacked square. Move the king from e8 to c8.",
     "accepted_moves": [
       "e8c8"
@@ -184,41 +184,41 @@
   {
     "id": "lesson-underpromotion",
     "kind": "lesson",
-    "title": "Choose a knight",
+    "title": "Underpromotion avoids stalemate",
     "category": "Special moves",
-    "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
-    "instruction": "Promotion is not limited to a queen. Move the pawn from a7 to a8 and choose a knight.",
+    "fen": "8/k1P5/2K5/8/8/8/8/8 w - - 0 1",
+    "instruction": "Promoting to a queen on c8 would leave Black with no legal move and no check: a draw by stalemate. Promote the c7 pawn to a rook instead.",
     "accepted_moves": [
-      "a7a8n"
+      "c7c8r"
     ],
-    "correct_feedback": "Correct. A promotion may produce a queen, rook, bishop or knight.",
-    "incorrect_feedback": "Move to a8 and choose the knight."
+    "correct_feedback": "Correct. c8=R avoids stalemate. Black must play Ka6, then Ra8 is checkmate.",
+    "incorrect_feedback": "A queen would stalemate Black. Choose a rook on c8 to keep a winning position."
   },
   {
     "id": "lesson-escape-check",
     "kind": "lesson",
     "title": "Escape a check",
     "category": "King safety",
-    "fen": "k3r3/8/8/8/8/8/8/4K3 w - - 0 1",
-    "instruction": "The rook on e8 checks your king. Move the king from e1 to the safe square d1.",
+    "fen": "k3r3/8/8/8/8/8/8/3RK3 w - - 0 1",
+    "instruction": "The rook on e8 checks your king. Move the king from e1 to the safe square f2.",
     "accepted_moves": [
-      "e1d1"
+      "e1f2"
     ],
-    "correct_feedback": "Correct. A king may escape check by moving to an unattacked square.",
-    "incorrect_feedback": "Move the king off the attacked e-file to d1."
+    "correct_feedback": "Correct. The king escapes the e-file; White still has the rook on d1.",
+    "incorrect_feedback": "Move the king off the attacked e-file to f2."
   },
   {
     "id": "lesson-block-check",
     "kind": "lesson",
     "title": "Block a check",
     "category": "King safety",
-    "fen": "k3r3/8/8/8/8/8/3B4/4K3 w - - 0 1",
-    "instruction": "The rook checks along the e-file. Block the check by moving the bishop from d2 to e3.",
+    "fen": "k3r3/8/8/8/2N5/8/3B4/4K2R w - - 0 1",
+    "instruction": "The rook checks along the e-file. Block with the bishop from d2 to e3; notice that the knight on c4 protects e3.",
     "accepted_moves": [
       "d2e3"
     ],
-    "correct_feedback": "Correct. A piece placed on e3 interrupts the rook's line to the king.",
-    "incorrect_feedback": "Place the bishop between the rook and the king."
+    "correct_feedback": "Correct. Be3 blocks the check. If ...Rxe3+, Nxe3 captures the rook.",
+    "incorrect_feedback": "Put the bishop on e3, where the knight protects it."
   },
   {
     "id": "lesson-capture-checker",
@@ -267,7 +267,7 @@
     "kind": "lesson",
     "title": "Knight fork",
     "category": "Basic tactics",
-    "fen": "8/2q3k1/8/2N5/8/8/8/K7 w - - 0 1",
+    "fen": "8/2q3k1/8/2N5/8/8/8/K2R4 w - - 0 1",
     "instruction": "A fork attacks two targets at once. Move the knight to check the king and attack the queen on c7.",
     "accepted_moves": [
       "c5e6"
@@ -280,7 +280,7 @@
     "kind": "lesson",
     "title": "Pin a knight",
     "category": "Basic tactics",
-    "fen": "4k3/8/2n5/8/8/8/8/4KB2 w - - 0 1",
+    "fen": "4k3/8/2n5/8/8/8/8/R3KB2 w - - 0 1",
     "instruction": "A piece is pinned to its king when moving it would expose the king to check. Move the bishop from f1 to b5.",
     "accepted_moves": [
       "f1b5"
@@ -293,12 +293,12 @@
     "kind": "lesson",
     "title": "Rook skewer",
     "category": "Basic tactics",
-    "fen": "q7/k7/8/8/8/8/7K/1R6 w - - 0 1",
-    "instruction": "A skewer attacks a valuable piece with another target behind it. Check the king on a7 with your rook.",
+    "fen": "q7/k7/2B5/1P6/8/8/7K/1R6 w - - 0 1",
+    "instruction": "A skewer attacks a valuable piece with another target behind it. Check the king on a7; the bishop protects a8.",
     "accepted_moves": [
       "b1a1"
     ],
-    "correct_feedback": "Correct. The king must leave the a-file, exposing the queen behind it.",
+    "correct_feedback": "Correct. The king must leave the a-file and Rxa8 can capture the queen, protected by the bishop.",
     "incorrect_feedback": "Move the rook to the a-file to check the king."
   },
   {

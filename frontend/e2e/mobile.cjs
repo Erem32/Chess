@@ -57,7 +57,9 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     assert.equal(await page.locator('.nav-current').textContent(), 'Puzzles');
     await page.getByRole('button', { name: /Puzzle 1:/ }).tap();
     await page.getByRole('button', { name: 'Reveal solution' }).tap();
-    await page.getByText(/Solution: Rxd4/).waitFor();
+    await page.getByText('Solution · Step 0 / 1').waitFor();
+    await page.getByRole('button', { name: 'Next move' }).tap();
+    await page.getByText('White: Rxd4').waitFor();
     for (const width of [320, 390, 768, 1280]) {
       await page.setViewportSize({ width, height: 844 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Unexpected overflow at ${width}px`);

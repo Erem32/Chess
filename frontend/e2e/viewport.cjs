@@ -69,7 +69,9 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       await page.getByRole('button', { name: /Puzzle 1: White to move/ }).click();
       await hasNavigation('All puzzles');
       await page.getByRole('button', { name: 'Reveal solution' }).click();
-      await page.getByText(/Solution: Rxd4/).waitFor();
+      await page.getByText('Solution · Step 0 / 1').waitFor();
+      await page.getByRole('button', { name: 'Next move' }).click();
+      await page.getByText('White: Rxd4').waitFor();
       await fits('puzzle solution');
       await page.goto(`${baseURL}/opening`);
       await page.getByRole('button', { name: /Italian Game, not completed/ }).click();

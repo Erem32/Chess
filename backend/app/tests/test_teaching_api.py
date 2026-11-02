@@ -28,7 +28,7 @@ def test_authored_examples_are_legal_and_available():
             }
             for example in examples:
                 board = chess.Board(example["steps"][0]["fen"])
-                assert board.is_valid()
+                assert board.is_valid() and not board.is_game_over()
                 for step in example["steps"][1:]:
                     board.push_san(step["move"])
                     assert board.fen() == step["fen"]
@@ -47,7 +47,7 @@ def test_named_examples_really_show_those_chess_ideas():
             board.push_san(step["move"])
         return board
 
-    for example_id in ("checkmate-net", "back-rank-mate", "scholars-mate"):
+    for example_id in ("checkmate-net", "back-rank-mate", "scholars-mate", "underpromotion"):
         assert board_after(example_id).is_checkmate()
     assert board_after("stalemate").is_stalemate()
 
@@ -61,7 +61,11 @@ def test_named_examples_really_show_those_chess_ideas():
 
     fork = board_after("knight-fork", 1)
     assert fork.is_check() and chess.C7 in fork.attacks(chess.E6)
+    assert not board_after("knight-fork").is_insufficient_material()
     assert board_after("absolute-pin", 1).is_pinned(chess.BLACK, chess.C6)
+    block = board_after("block-a-check", 1)
+    assert chess.C4 in block.attackers(chess.WHITE, chess.E3)
+    assert board_after("block-a-check").piece_at(chess.E3) == chess.Piece(chess.KNIGHT, chess.WHITE)
 
 
 @pytest.mark.parametrize("failure", ["fen", "move", "duplicate"])
