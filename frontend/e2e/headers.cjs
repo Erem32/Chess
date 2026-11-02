@@ -23,13 +23,20 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       const sizes = [];
+      const positions = [];
       for (const route of ['login', 'register', 'dashboard', 'lessons', 'puzzles', 'opening', 'examples', 'history', 'settings']) {
         await page.goto(`${baseURL}/${route}`);
         const heading = page.locator('.study-header h1');
         await heading.waitFor();
         sizes.push({ route, size: await heading.evaluate((element) => getComputedStyle(element).fontSize) });
+        if (['lessons', 'puzzles', 'opening', 'examples', 'history', 'settings'].includes(route)) {
+          positions.push({ route, heading: (await heading.boundingBox()).y, back: (await page.locator('.study-back').boundingBox()).y });
+        }
       }
       assert.equal(new Set(sizes.map((item) => item.size)).size, 1, JSON.stringify(sizes));
+      for (const item of positions) {
+        assert.ok(Math.abs(item.heading - positions[0].heading) < 1 && Math.abs(item.back - positions[0].back) < 1, JSON.stringify(positions));
+      }
     }
     console.log('Page headers are consistent at desktop and mobile widths.');
   } finally { await browser.close(); }
