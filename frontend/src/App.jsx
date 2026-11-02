@@ -9,6 +9,7 @@ import HistoryPage from "./pages/HistoryPage.jsx";
 import LessonsPage from "./pages/LessonsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import PuzzlesPage from "./pages/PuzzlesPage.jsx";
+import SettingsPage from "./pages/SettingsPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 
 const THEME_STORAGE_KEY = "theme_mode";
@@ -33,6 +34,7 @@ export default function App() {
       <main className="page">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route

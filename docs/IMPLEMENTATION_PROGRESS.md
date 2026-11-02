@@ -1,16 +1,14 @@
 # Implementation checkpoint
 
-Objective: provide a puzzles MVP for the [feature plan](features/puzzles.md), following [project instructions](../AGENTS.md).
+Objective: implement [display and move guidance settings](features/experience-settings.md), following [project instructions](../AGENTS.md).
 
 ## Working state
 
-- `feature/puzzles-mvp` builds on `feature/interactive-lessons`; merge the lessons branch first or include it when reviewing. Both pages use server-validated single-move exercises. The catalog remains empty.
-- Remaining work: author reviewed content and implement the separately planned legal-move guidance setting.
+- `feature/experience-settings` starts from `main`. Text size and legal-move marker settings persist in the browser and apply to the shared board.
 - Preserve the unreviewed local stash and `handoff/stash-recovery` branch. Inspect Git status and worktrees before resuming.
 
 ## Checks
 
-- Backend: `cd backend && pytest -q app/tests/test_practice_api.py` (19 passed).
-- Frontend: `cd frontend && npm test && npm run lint && npm run build` (29 tests passed).
-- Browser: with a frontend dev server running, set `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH`, then run `npm run test:e2e:puzzles` and `npm run test:e2e:lessons` from `frontend` (both passed using test-only API responses).
-- Full backend and two-player checks were not rerun locally for this increment; CI runs them against disposable PostgreSQL.
+- Frontend: `cd frontend && npm test && npm run lint && npm run build` (30 tests passed).
+- Browser: with a frontend dev server running, set `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH`, then run `npm run test:e2e:settings` and `npm run test:e2e:board` from `frontend` (both passed).
+- Two-player smoke passed against disposable SQLite with SQLAlchemy metadata; PostgreSQL migrations and concurrency were not checked. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.

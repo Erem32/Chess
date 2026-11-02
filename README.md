@@ -10,6 +10,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
 - Board interaction by clicking or dragging pieces, including promotion choices.
+- Browser-local settings for text size and legal-move markers.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
 ## Stack

@@ -36,6 +36,7 @@ export default function Navbar({ theme, onToggleTheme }) {
           </span>
           <span className="theme-icon" aria-hidden="true">○</span>
         </button>
+        <Link to="/settings">Settings</Link>
         {token ? (
           <>
             <button type="button" className="secondary-button nav-action-button" onClick={handleReload}>

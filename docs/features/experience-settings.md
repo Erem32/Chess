@@ -6,6 +6,7 @@ Let a user change text size and turn legal-move guidance on or off. The board ad
 
 ## Implementation
 
+- The Settings page stores text size and move-marker preferences in the browser.
 - Add a small settings control for text size and move guidance. Use a few fixed text sizes rather than a complex editor.
 - Store choices in browser `localStorage`, following the existing theme setting. Use the current text size and enabled move guidance as defaults so existing users retain the current experience. Handle missing or invalid stored values with those defaults.
 - Apply the text setting consistently across the app. Pass the guidance setting to the shared board so it controls visible legal-move markers in online games, lessons and puzzles. It must not change which moves are legal or prevent a player from making a legal move.

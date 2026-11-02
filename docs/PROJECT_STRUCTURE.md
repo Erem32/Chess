@@ -58,11 +58,11 @@ The React application lives in [frontend/src/](../frontend/src/).
 | --- | --- |
 | [main.jsx](../frontend/src/main.jsx) | Mounts the app and providers. |
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
-| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, and puzzles screens. |
+| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, puzzles, and settings screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
 | [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, reconnect scheduling, background state refresh, board consistency checks, chat history navigation, draw-claim request handling, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
-| [context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx) | Authentication state and login/logout actions. |
+| [context/](../frontend/src/context/) | Authentication and browser-local display settings. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
 | [frontend/e2e/](../frontend/e2e/) | Headless two-player smoke test for a disposable environment. |
 
@@ -88,3 +88,5 @@ Backend tests are grouped by auth, matchmaking/game behavior, chess service, and
 The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.
 
 The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.
+
+Display settings are stored in browser localStorage. The shared board uses the guidance setting only for move markers; it does not change move validation.

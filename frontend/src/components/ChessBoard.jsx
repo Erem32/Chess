@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard, defaultPieces } from "react-chessboard";
 
+import { useSettings } from "../context/SettingsContext.jsx";
 import { legalMovesFrom, moveChoices } from "./boardMoves.js";
 import "./ChessBoard.css";
 
@@ -25,13 +26,14 @@ const FIREFOX_SAFE_PIECES = Object.fromEntries(
 );
 
 export default function ChessBoard({ fen, onMove, playerColor, isInteractive = true, onInvalidAttempt }) {
+  const { moveGuidance } = useSettings();
   const boardRef = useRef(null);
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [promotion, setPromotion] = useState(null);
   const isChoosingPromotion = Boolean(promotion && promotion.fen === fen && promotion.playerColor === playerColor && isInteractive);
   const boardInteractive = isInteractive && !isChoosingPromotion;
   const legalMoves = legalMovesFrom(fen, selectedSquare, playerColor, boardInteractive);
-  const squareStyles = buildSquareStyles(fen, selectedSquare, legalMoves);
+  const squareStyles = moveGuidance ? buildSquareStyles(fen, selectedSquare, legalMoves) : {};
 
   useEffect(() => {
     setSelectedSquare(null);
