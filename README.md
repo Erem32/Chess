@@ -168,7 +168,7 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 
 Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
 
-The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog starts empty. See the [practice data format](backend/app/data/README.md) when adding exercises.
+The Lessons page lists available lesson exercises and checks moves with the server. The authenticated practice API lists server-owned positions and validates submitted `move_uci` values as `illegal`, `incorrect` or `correct`; only a correct move advances the returned position. The catalog starts empty and may be filtered with `?kind=lesson` or `?kind=puzzle`. See the [practice data format](backend/app/data/README.md) when adding exercises.
 
 The game socket is `/ws/games/{game_id}?token=...` and is restricted to players in that game.
 

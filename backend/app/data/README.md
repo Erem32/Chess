@@ -3,6 +3,7 @@
 `practice_exercises.json` is a JSON array of server-owned, single-move exercises. It is empty until reviewed learning content is added. Each entry has:
 
 - `id`: unique lowercase letters and digits separated by hyphens, up to 80 characters.
+- `kind`: `lesson` or `puzzle`; defaults to `lesson` when omitted.
 - `fen`: a valid chess position in FEN, including the side to move.
 - `instruction`: nonempty text shown with the position.
 - `accepted_moves`: one or more distinct, legal UCI moves from that position, including a promotion piece when required.

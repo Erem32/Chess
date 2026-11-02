@@ -6,8 +6,9 @@ Provide six short authored lessons, one for each chess piece. A learner reads an
 
 ## Implementation
 
+- The Lessons page uses the practice catalog and supports server-checked single-move exercises. The catalog is empty until content is authored.
 - Store a small set of reviewed positions, instructions, expected moves and predetermined feedback in repository files. Keep lessons separate from online games and statistics.
-- Reuse the existing board after the small adaptation in [shared preparation](00-foundations.md). Its current interaction filters illegal moves before calling `onMove`, so add a practice-only way to report an invalid attempt without changing live-game behavior.
+- Reuse the existing board and its practice-only invalid-attempt callback as described in [shared preparation](00-foundations.md).
 - Validate submitted practice moves on the backend using the existing chess library. Distinguish an illegal move from a legal move that does not satisfy the lesson; show authored feedback and keep the position available for retry.
 - Build one lesson first, then supply the other five as content. Display guidance only when enabled in [settings](experience-settings.md).
 
