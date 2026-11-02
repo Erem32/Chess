@@ -13,12 +13,37 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     let games = [];
     let nextBeforeId = null;
     let failHistory = true;
+    let releaseHistory = null;
     await page.route('**/api/v1/**', async (route) => {
       const path = new URL(route.request().url()).pathname;
       if (path === '/api/v1/users/me') return route.fulfill({ json: { id: 1, username: 'learner' } });
-      if (path === '/api/v1/games/my-history') return failHistory ? route.fulfill({ status: 503, json: { detail: 'Unavailable' } }) : route.fulfill({ json: { games, next_before_id: nextBeforeId } });
+      if (path === '/api/v1/games/my-history') {
+        if (releaseHistory) await releaseHistory.promise;
+        return failHistory ? route.fulfill({ status: 503, json: { detail: 'Unavailable' } }) : route.fulfill({ json: { games, next_before_id: nextBeforeId } });
+      }
       return route.fulfill({ status: 404 });
     });
+    failHistory = false;
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+      await page.setViewportSize(viewport);
+      await page.goto(`${baseURL}/settings`);
+      const reference = await page.locator('.study-page').boundingBox();
+      releaseHistory = {};
+      releaseHistory.promise = new Promise((resolve) => { releaseHistory.resolve = resolve; });
+      await page.goto(`${baseURL}/history`);
+      await page.getByRole('status', { name: 'Loading game history' }).waitFor();
+      const before = await page.locator('.history-archive').boundingBox();
+      assert.ok(Math.abs(before.width - reference.width) < 1, `history width ${before.width} differs from other pages ${reference.width}`);
+      assert.ok(Math.abs(before.x - reference.x) < 1, 'history should align with other pages');
+      releaseHistory.resolve();
+      releaseHistory = null;
+      await page.getByRole('heading', { name: 'No games yet' }).waitFor();
+      const after = await page.locator('.history-archive').boundingBox();
+      for (const key of ['x', 'y', 'width', 'height']) {
+        assert.ok(Math.abs(before[key] - after[key]) < 1, `history ${key} shifted during loading`);
+      }
+    }
+    failHistory = true;
     await page.goto(`${baseURL}/history`);
     await page.getByRole('alert').getByText('Unavailable', { exact: false }).waitFor();
     failHistory = false;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { apiRequest } from "../api/client.js";
 import ChessBoard from "../components/ChessBoard.jsx";
@@ -25,6 +25,7 @@ function moveLabel(step, san) {
 
 export default function OpeningPage() {
   const { user } = useAuth();
+  const contentRef = useRef(null);
   const [catalog, setCatalog] = useState(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -67,7 +68,7 @@ export default function OpeningPage() {
 
   function selectOpening(id) {
     setSelectedId(id);
-    window.scrollTo({ top: 0 });
+    contentRef.current?.scrollTo({ top: 0 });
   }
 
   const warning = progress.userId === userId && !progress.persistent
@@ -85,6 +86,7 @@ export default function OpeningPage() {
   return <section className={`study-page opening-page${selected ? " study-page--detail" : ""}`}>
     <PageHeader eyebrow="LEARN & PRACTISE" title={selected?.title ?? "Opening study"}
       description={selected?.introduction ?? "Choose an opening and explore an example line, one move at a time."} />
+    <div className={`opening-content${catalog !== null && !selected && !error ? " opening-content--catalog" : ""}`} ref={contentRef}>
     {warning}
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       catalog === null ? <LoadingPlaceholder variant="cards" count={4} label="Loading opening guides" /> :
@@ -92,16 +94,14 @@ export default function OpeningPage() {
           onComplete={completeOpening} onBack={() => selectOpening(null)} /> : <>
           <section className="opening-controls-panel" aria-label="Opening selection">
             <div className="opening-library-summary">
-              <div><h2>Your opening guides</h2><p className="muted">{completedCount} of {catalog.length} completed · You can repeat any guide</p></div>
+              <p className="muted">{completedCount} of {catalog.length} completed · You can repeat any guide</p>
               {catalog.length > 0 && <div className="opening-progress-track" role="progressbar" aria-label="Completed opening guides"
                 aria-valuemin={0} aria-valuemax={catalog.length} aria-valuenow={completedCount}>
                 <span style={{ width: `${(completedCount / catalog.length) * 100}%` }} />
               </div>}
             </div>
             <div className="opening-toolbar">
-              <label className="opening-search"><span>Find an opening</span>
-                <input type="search" placeholder="Search openings..." value={query} onChange={(event) => setQuery(event.target.value)} />
-              </label>
+              <input className="opening-search" type="search" aria-label="Find an opening" placeholder="Search openings..." value={query} onChange={(event) => setQuery(event.target.value)} />
               <div className="opening-filter" role="group" aria-label="Filter openings">
                 {[["all", "All"], ["new", "Not completed"], ["completed", "Completed"]].map(([value, label]) => (
                   <button key={value} type="button" className={filter === value ? "is-active" : ""}
@@ -129,6 +129,7 @@ export default function OpeningPage() {
                 })}
               </ul>}
         </>}
+    </div>
   </section>;
 }
 
