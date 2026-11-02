@@ -6,6 +6,7 @@ Provide one short written opening guide with board examples and an optional vide
 
 ## Implementation
 
+- The opening study page provides a read-only board, previous/next controls and an optional video link. Its [content file](../../backend/app/data/OPENING.md) starts empty.
 - Put reviewed text and a legal illustrative move sequence in a small repository file; confirm permission to reuse any external material.
 - Use the read-only board adaptation in [shared preparation](00-foundations.md) with previous/next controls. Keep the guide separate from saved games and their results.
 - Offer a normal link to a video only if one is supplied; it is not needed to use the guide.

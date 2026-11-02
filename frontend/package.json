@@ -14,7 +14,8 @@
     "test:e2e:board": "node e2e/board-practice.cjs",
     "lint": "biome lint src e2e",
     "test:e2e:lessons": "node e2e/lessons.cjs",
-    "test:e2e:puzzles": "node e2e/puzzles.cjs"
+    "test:e2e:puzzles": "node e2e/puzzles.cjs",
+    "test:e2e:opening": "node e2e/opening.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "6.0.2",
