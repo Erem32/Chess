@@ -1,0 +1,38 @@
+[
+  {
+    "id": "pawn-capture",
+    "title": "How a pawn captures",
+    "fen": "7k/8/8/3p4/4P3/8/8/7K w - - 0 1",
+    "introduction": "A pawn captures one square diagonally forward. The white pawn on e4 can capture the black pawn on d5.",
+    "moves": [
+      {
+        "move_uci": "e4d5",
+        "explanation": "The pawn moves diagonally to d5 and removes the black pawn."
+      }
+    ]
+  },
+  {
+    "id": "pawn-promotion",
+    "title": "Promoting a pawn",
+    "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
+    "introduction": "When a pawn reaches the far rank, its player chooses a queen, rook, bishop or knight. Here White chooses a queen.",
+    "moves": [
+      {
+        "move_uci": "a7a8q",
+        "explanation": "The pawn reaches a8 and becomes a queen. The new queen gives check along the eighth rank."
+      }
+    ]
+  },
+  {
+    "id": "knight-move",
+    "title": "The knight's move",
+    "fen": "7k/8/8/8/8/8/1N6/K7 w - - 0 1",
+    "introduction": "A knight moves in an L shape: two squares in one direction and one square sideways. It can jump over other pieces.",
+    "moves": [
+      {
+        "move_uci": "b2c4",
+        "explanation": "The knight moves from b2 to c4: two ranks forward and one file sideways."
+      }
+    ]
+  }
+]

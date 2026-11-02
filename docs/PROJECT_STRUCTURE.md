@@ -31,7 +31,7 @@ The Python application lives in [backend/app/](../backend/app/).
 | [repositories/](../backend/app/repositories/) | Database helpers for users, games, and matchmaking. |
 | [models/](../backend/app/models/) | SQLAlchemy models for users, games, players, moves, queue entries, and chat messages. |
 | [schemas/](../backend/app/schemas/) | Pydantic request and response types. |
-| [data/](../backend/app/data/) | Server-owned practice exercise catalog and opening guide content. |
+| [data/](../backend/app/data/) | Server-owned practice, opening guide and teaching example content. |
 | [db/](../backend/app/db/) | Database engine and sessions, model metadata, and development-user seeding. |
 | [tests/](../backend/app/tests/) | Backend pytest suite. |
 | [alembic/](../backend/alembic/) | Database migration configuration and versioned migrations. |
@@ -90,3 +90,5 @@ The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skip
 The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.
 
 The opening guide service validates the authored move sequence and sends positions to a read-only board; it does not create or change online games.
+
+Teaching examples and the opening guide use a shared read-only guide component. The server validates the example positions and moves before returning them.
