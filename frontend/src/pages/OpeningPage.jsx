@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { apiRequest } from "../api/client.js";
 import ChessBoard from "../components/ChessBoard.jsx";
@@ -25,6 +25,7 @@ function moveLabel(step, san) {
 
 export default function OpeningPage() {
   const { user } = useAuth();
+  const contentRef = useRef(null);
   const [catalog, setCatalog] = useState(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -67,7 +68,7 @@ export default function OpeningPage() {
 
   function selectOpening(id) {
     setSelectedId(id);
-    window.scrollTo({ top: 0 });
+    contentRef.current?.scrollTo({ top: 0 });
   }
 
   const warning = progress.userId === userId && !progress.persistent
@@ -85,6 +86,7 @@ export default function OpeningPage() {
   return <section className={`study-page opening-page${selected ? " study-page--detail" : ""}`}>
     <PageHeader eyebrow="LEARN & PRACTISE" title={selected?.title ?? "Opening study"}
       description={selected?.introduction ?? "Choose an opening and explore an example line, one move at a time."} />
+    <div className="opening-content" ref={contentRef}>
     {warning}
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       catalog === null ? <LoadingPlaceholder variant="cards" count={4} label="Loading opening guides" /> :
@@ -129,6 +131,7 @@ export default function OpeningPage() {
                 })}
               </ul>}
         </>}
+    </div>
   </section>;
 }
 

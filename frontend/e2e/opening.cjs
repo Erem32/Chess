@@ -65,6 +65,27 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     await page.reload();
     await page.getByRole('button', { name: /Italian Game, completed, study again/ }).click();
     assert.equal(await page.getByRole('link', { name: 'Watch an optional video' }).getAttribute('href'), catalog[0].video_url);
+    catalog = Array.from({ length: 20 }, (_, index) => ({ ...catalog[0], id: `guide-${index}`, title: `Guide ${index + 1}` }));
+    for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
+      await page.setViewportSize(viewport);
+      await page.reload();
+      await page.getByRole('button', { name: /Guide 1, not completed/ }).waitFor();
+      const content = page.locator('.opening-content');
+      const header = page.locator('.opening-page > .study-header');
+      const headerBefore = await header.boundingBox();
+      assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), 'opening page should fit the viewport');
+      assert.ok(await content.evaluate((element) => element.scrollHeight > element.clientHeight), 'opening content should scroll');
+      await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+      assert.ok(await content.evaluate((element) => element.scrollTop > 0));
+      assert.ok(Math.abs((await header.boundingBox()).y - headerBefore.y) < 1, 'header should stay in place');
+      await page.getByRole('button', { name: /Guide 20, not completed/ }).click();
+      await page.getByRole('heading', { name: 'Guide 20', level: 1 }).waitFor();
+      assert.equal(await content.evaluate((element) => element.scrollTop), 0, 'opening guide should start at the top');
+      await content.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+      await page.getByRole('button', { name: 'All openings' }).click();
+      assert.equal(await content.evaluate((element) => element.scrollTop), 0, 'opening list should return to the top');
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(`${baseURL}/opening-guide`);
     await page.waitForURL('**/opening');
     assert.equal(await page.getByRole('link', { name: 'Opening', exact: true }).getAttribute('aria-current'), 'page');
