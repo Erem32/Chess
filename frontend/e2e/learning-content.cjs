@@ -35,6 +35,13 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
       await page.getByRole('button', { name: `Open ${label}`, exact: true }).click();
       await page.waitForURL(`${baseURL}${path}`);
     }
+    async function openCatalogItem(name) {
+      const item = page.getByRole('button', { name, exact: true });
+      const next = page.getByRole('navigation', { name: 'Pages' }).getByRole('button', { name: 'Next' });
+      await next.waitFor();
+      while (!(await item.count()) && await next.isEnabled()) await next.click();
+      await item.click();
+    }
     await page.goto(`${baseURL}/lessons`);
     assert.equal(await page.getByRole('link', { name: 'Lessons', exact: true }).getAttribute('aria-current'), 'page');
     await page.getByRole('button', { name: /Lesson 1: Pawn/ }).click();
@@ -42,17 +49,17 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.locator('[data-square="e4"]').click();
     await page.getByText('A pawn can move two squares from its starting position.').waitFor();
     await page.getByRole('button', { name: 'All lessons' }).click();
-    await page.getByRole('button', { name: 'Lesson 11: Kingside castling' }).click();
+    await openCatalogItem('Lesson 11: Kingside castling');
     await page.locator('[data-square="e1"]').click();
     await page.locator('[data-square="g1"]').click();
     await page.getByText('Correct. The king goes to g1 and the rook moves from h1 to f1.').waitFor();
     await page.getByRole('button', { name: 'All lessons' }).click();
-    await page.getByRole('button', { name: 'Lesson 13: En passant' }).click();
+    await openCatalogItem('Lesson 13: En passant');
     await page.locator('[data-square="e5"]').click();
     await page.locator('[data-square="d6"]').click();
     await page.getByText('Correct. The pawn lands on d6 and the black pawn on d5 is removed.').waitFor();
     await page.getByRole('button', { name: 'All lessons' }).click();
-    await page.getByRole('button', { name: 'Lesson 15: Underpromotion avoids stalemate' }).click();
+    await openCatalogItem('Lesson 15: Underpromotion avoids stalemate');
     await page.locator('[data-square="c7"]').click();
     await page.locator('[data-square="c8"]').click();
     await page.getByRole('button', { name: 'Rook', exact: true }).click();
@@ -66,7 +73,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.getByText('White: Rxd4').waitFor();
     await page.getByText('Puzzle 1 / 103 · 0 solved').waitFor();
     await page.getByRole('button', { name: 'All puzzles' }).click();
-    await page.getByRole('button', { name: 'Puzzle 4: White to move: find the best continuation.' }).click();
+    await openCatalogItem('Puzzle 4: White to move: find the best continuation.');
     await page.getByRole('button', { name: 'Hint', exact: true }).click();
     await page.getByText('Hint: consider the queen on d2.').waitFor();
     await page.locator('[data-square="d2"]').click();
@@ -79,17 +86,17 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.getByText('Puzzle solved!').waitFor();
     await page.reload();
     await page.getByText('1 / 103 solved').waitFor();
-    await page.getByRole('button', { name: 'Puzzle 7: Black to move: find the best continuation.' }).click();
+    await openCatalogItem('Puzzle 7: Black to move: find the best continuation.');
     await page.getByRole('button', { name: 'Reveal solution' }).click();
     await page.getByRole('button', { name: 'Next move' }).click();
     await page.getByText('Black: Rh4#').waitFor();
     await page.getByText('Puzzle 7 / 103 · 1 solved').waitFor();
     await page.goto(`${baseURL}/examples`);
-    await page.getByRole('button', { name: 'En passant', exact: true }).click();
+    await openCatalogItem('En passant');
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.getByText(/The e5 pawn lands on d6/).waitFor();
     await page.getByRole('button', { name: 'All examples' }).click();
-    await page.getByRole('button', { name: 'A knight fork', exact: true }).click();
+    await openCatalogItem('A knight fork');
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.getByText('Ne6+ checks the king on g7 and attacks the queen on c7.').waitFor();
     await page.goto(`${baseURL}/opening`);

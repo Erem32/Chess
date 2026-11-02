@@ -36,8 +36,9 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     examples.push(...Array.from({ length: 10 }, (_, index) => ({ ...examples[0], id: `example-${index}`, title: `Example ${index + 2}` })));
     await page.reload();
     await page.getByRole('button', { name: 'Test example' }).waitFor();
+    const firstPageCount = await page.locator('.study-catalog-scroll .study-card').count();
     await page.getByRole('button', { name: 'Next', exact: true }).click();
-    await page.getByRole('button', { name: 'Example 10', exact: true }).waitFor();
+    await page.getByRole('button', { name: `Example ${firstPageCount + 1}`, exact: true }).waitFor();
     await page.getByRole('button', { name: 'Previous', exact: true }).click();
     await page.getByRole('button', { name: 'Test example' }).waitFor();
     console.log('Teaching examples browser test passed.');

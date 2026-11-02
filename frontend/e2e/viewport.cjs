@@ -83,7 +83,11 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     }
     await page.setViewportSize({ width: 320, height: 640 });
     await page.goto(`${baseURL}/lessons`);
-    await page.getByRole('button', { name: 'Lesson 8: Knight jumps' }).click();
+    const lesson = page.getByRole('button', { name: 'Lesson 8: Knight jumps' });
+    const nextPage = page.getByRole('navigation', { name: 'Pages' }).getByRole('button', { name: 'Next' });
+    await nextPage.waitFor();
+    while (!(await lesson.count()) && await nextPage.isEnabled()) await nextPage.click();
+    await lesson.click();
     await hasNavigation('All lessons');
     assert.ok((await page.locator('.board-wrap').boundingBox()).width >= 200);
     await page.getByRole('button', { name: 'All lessons', exact: true }).click();

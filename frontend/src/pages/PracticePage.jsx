@@ -6,7 +6,7 @@ import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import StudyPagination from "../components/StudyPagination.jsx";
 import UiIcon from "../components/UiIcon.jsx";
-import { groupByCategory } from "../features/study/groupByCategory.js";
+import { useCatalogPageSize } from "../features/study/useCatalogPageSize.js";
 import "./LessonsPage.css";
 
 const LESSON_PIECES = {
@@ -88,10 +88,10 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
 
   const selectedIndex = lessons?.findIndex((item) => item.id === selected?.id) ?? -1;
   const nextExercise = selectedIndex >= 0 ? lessons[selectedIndex + 1] : null;
-  const pageSize = 9;
+  const [catalogRef, pageSize] = useCatalogPageSize();
   const pageCount = Math.max(1, Math.ceil((lessons?.length ?? 0) / pageSize));
   const currentPage = Math.min(page, pageCount - 1);
-  const groups = groupByCategory(lessons?.slice(currentPage * pageSize, (currentPage + 1) * pageSize) ?? [], singular === "Lesson" ? "Lessons" : "Exercises");
+  const visible = lessons?.slice(currentPage * pageSize, (currentPage + 1) * pageSize) ?? [];
 
   return (
     <section className={`study-page${selected ? " study-page--detail" : " study-catalog-page"}`}>
@@ -101,9 +101,7 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
       {lessons === null && !error && <LoadingPlaceholder variant="cards" count={singular === "Lesson" ? 6 : 3} label={`Loading ${title.toLowerCase()}`} />}
       {lessons?.length === 0 && <p className="muted">No {title.toLowerCase()} are available yet.</p>}
-      {lessons?.length > 0 && !selected && <><div className="study-catalog-scroll" key={currentPage}>{groups.map(({ category, entries }) => <section className="study-group" key={category}>
-        <h2 className="study-group-title">{category}</h2>
-        <div className="study-cards">{entries.map(({ item: lesson, index: pageIndex }) => {
+      {lessons?.length > 0 && !selected && <><div className="study-catalog-scroll" ref={catalogRef}><div className="study-cards">{visible.map((lesson, pageIndex) => {
           const index = currentPage * pageSize + pageIndex;
           const label = singular === "Lesson" && lesson.instruction.includes(":") ? lesson.instruction.split(":", 1)[0] : lesson.instruction;
           const cardTitle = singular === "Lesson" ? (lesson.title ?? label) : (PUZZLE_TITLES[lesson.id] ?? `Puzzle ${index + 1}`);
@@ -113,8 +111,7 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
               <span className="study-card-meta">{singular === "Lesson" ? `${lesson.category ?? "Practice"} · One move` : `${lesson.fen.split(" ")[1] === "b" ? "Black" : "White"} to move · One move`}</span></span>
             <UiIcon name="arrow" className="study-card-arrow" />
           </button>;
-        })}</div>
-      </section>)}</div><StudyPagination page={currentPage} pageCount={pageCount} onChange={setPage} /></>}
+        })}</div></div><StudyPagination page={currentPage} pageCount={pageCount} onChange={setPage} /></>}
       {selected && <>
         <div className="lesson-exercise">
           <div className="lesson-board"><ChessBoard fen={fen} playerColor={selected.fen.split(" ")[1] === "b" ? "black" : "white"}

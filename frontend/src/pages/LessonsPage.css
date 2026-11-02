@@ -122,26 +122,26 @@ button.study-card:hover { border-color: var(--color-link); transform: translateY
   .study-page--detail .study-header { margin-bottom: 0.6rem; }
   .study-page--detail .study-header h1 { font-size: 1.25rem; }
   .study-page--detail .lesson-exercise { grid-template-columns: minmax(0, 1fr); }
-  .study-page--detail .lesson-board { margin: 0 auto; max-width: min(100%, max(200px, calc(100dvh - 560px))); }
+  .study-page--detail .lesson-board { margin: 0 auto; max-width: min(100%, max(200px, calc(100dvh - 570px))); }
   .study-page--detail .lesson-copy h2 { font-size: 1.3rem; margin-top: 0.35rem; }
   .study-page--detail .study-instruction { line-height: 1.45; margin: 0.6rem 0; }
   .study-page--detail .guide-move { margin-top: 0.65rem; padding: 0.35rem 0.65rem; }
   .study-page--detail .study-actions { margin-top: 0.25rem; }
 }
 
-/* Catalogs keep navigation in view while long lists scroll within the page. */
+/* Catalog pages use the available space to determine how many cards fit. */
 .study-catalog-page { display: flex; flex-direction: column; height: calc(100dvh - 68px - 2.25rem); min-height: 0; padding-bottom: 0.5rem; width: 100%; }
 .study-catalog-page > .study-header { flex: 0 0 auto; }
-.study-catalog-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.study-catalog-page .study-cards { gap: 0.65rem; }
-.study-catalog-page .study-card { min-height: 84px; padding: 0.7rem 0.9rem; }
-.study-catalog-page .study-card-art { flex-basis: 48px; height: 48px; font-size: 1.8rem; }
-.study-catalog-page:not(.puzzles-page) .study-cards { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: 12px; display: grid; gap: 0; grid-template-columns: 1fr; overflow: hidden; }
-.study-catalog-page:not(.puzzles-page) .study-card { border: 0; border-radius: 0; border-bottom: 1px solid var(--color-border); padding: 1rem 1.3rem; }
-.study-catalog-page:not(.puzzles-page) .study-card:last-child { border-bottom: 0; }
-.study-catalog-page:not(.puzzles-page) .study-card:hover { background: color-mix(in srgb, var(--color-bg-surface) 90%, var(--color-link) 10%); transform: none; }
-@media (max-width: 480px) { .study-catalog-page:not(.puzzles-page) .study-card { padding: 0.9rem; } }
-.study-catalog-scroll .study-group:first-child { margin-top: 0; }
+.study-catalog-scroll { flex: 1 1 0; min-height: 0; overflow: hidden; }
+.study-catalog-scroll .study-cards { gap: 0.65rem; }
+@media (min-width: 1500px) {
+  .study-catalog-page, .opening-page:not(.study-page--detail) { max-width: 1380px; }
+  .study-catalog-scroll .study-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.study-catalog-scroll .study-card { height: 6rem; min-height: 0; overflow: hidden; padding: 0.7rem 0.9rem; }
+.study-catalog-scroll .study-card-art { flex-basis: 48px; height: 48px; font-size: 1.8rem; }
+.study-catalog-scroll .study-card-content { overflow: hidden; }
+.study-catalog-scroll .study-card-content strong, .study-catalog-scroll .study-card-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .study-pagination { align-items: center; display: flex; flex: 0 0 auto; gap: 1rem; justify-content: center; padding: 0.75rem 0 0; }
 .study-pagination button { align-items: center; display: inline-flex; gap: 0.3rem; }
 .study-pagination svg { height: 16px; width: 16px; }
@@ -151,4 +151,13 @@ button.study-card:hover { border-color: var(--color-link); transform: translateY
   .app-shell:has(.study-catalog-page) > .navbar { flex: 0 0 auto; }
   .app-shell:has(.study-catalog-page) > .page { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; width: 100%; }
   .study-catalog-page { flex: 1 1 auto; height: auto; min-height: 0; }
+}
+@media (max-height: 650px) {
+  .study-catalog-page .study-eyebrow, .study-catalog-page .study-description { display: none; }
+  .study-catalog-page .study-header { margin-bottom: 0.5rem; }
+  @media (min-width: 1500px) {
+  .study-catalog-page, .opening-page:not(.study-page--detail) { max-width: 1380px; }
+  .study-catalog-scroll .study-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.study-catalog-scroll .study-card { height: 4.5rem; padding-top: 0.35rem; padding-bottom: 0.35rem; }
 }
