@@ -100,3 +100,5 @@ The main navigation marks the current page and collapses on narrow screens. Lear
 Initial page requests use quiet, space-reserving placeholders. The Play dashboard keeps active-game controls in its matchmaking panel, and the game screen waits for the server position before displaying a board.
 
 Board-focused screens size their boards to the available viewport height and retain scrolling for longer content or very small screens.
+
+The history page uses the paginated history API, displays each opponent and result, and links to the existing game screen; it does not provide move replay.

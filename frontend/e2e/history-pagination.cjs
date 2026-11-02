@@ -52,6 +52,7 @@ async function request(path, { token, body } = {}) {
     await page.getByRole('button', { name: 'View history' }).click();
     await page.locator('.history-row').first().waitFor();
     assert.deepEqual(await displayed('.history-row'), ids.slice(0, 20));
+    await page.getByText(`vs ${names[1]}`).first().waitFor();
     let failed = false;
     await page.route('**/api/v1/games/my-history?*', async (route) => {
       if (!failed && new URL(route.request().url()).searchParams.has('before_id')) {
@@ -70,6 +71,9 @@ async function request(path, { token, body } = {}) {
     assert.equal(await page.getByRole('button', { name: 'Load more' }).count(), 0);
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.getByRole('link', { name: `Open game ${ids[0]}` }).click();
+    await page.waitForURL(`**/games/${ids[0]}`);
+    await page.getByText('Game aborted.', { exact: true }).waitFor();
     console.log('History pagination passed: dashboard limit, older page, failed request and retry without losing or duplicating games.');
   } finally {
     await browser.close();

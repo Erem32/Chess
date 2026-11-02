@@ -21,7 +21,8 @@
     "test:e2e:learning": "node e2e/learning-content.cjs",
     "test:e2e:mobile": "node e2e/mobile.cjs",
     "test:e2e:loading": "node e2e/loading.cjs",
-    "test:e2e:viewport": "node e2e/viewport.cjs"
+    "test:e2e:viewport": "node e2e/viewport.cjs",
+    "test:e2e:history-ui": "node e2e/history-ui.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "6.0.2",
