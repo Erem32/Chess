@@ -24,7 +24,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.getByRole('button', { name: 'Login', exact: true }).click();
     await page.getByRole('heading', { name: `Welcome, ${name}` }).waitFor();
     await page.goto(`${baseURL}/lessons`);
-    await page.getByRole('button', { name: /Lesson 1: Pawn:/ }).click();
+    await page.getByRole('button', { name: /Lesson 1: Pawn/ }).click();
     await page.locator('[data-square="e2"]').click();
     await page.locator('[data-square="e4"]').click();
     await page.getByText('A pawn can move two squares from its starting position.').waitFor();

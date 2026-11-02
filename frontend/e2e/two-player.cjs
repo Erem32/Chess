@@ -15,7 +15,7 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
   const suffix = randomBytes(5).toString('hex');
   try {
     async function register(name) {
-      const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, hasTouch: true });
       contexts.push(context);
       await context.addInitScript(() => {
         const NativeWebSocket = window.WebSocket;
@@ -106,10 +106,13 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
     for (const page of [white, black]) await page.getByText('e4', { exact: true }).first().waitFor();
     assert.equal(await white.locator('#game-board-square-g1 [role=button]').getAttribute('aria-disabled'), 'true');
+    await black.setViewportSize({ width: 390, height: 844 });
     await black.waitForFunction(() => document.querySelector('#game-board-square-e7 [role=button]')?.getAttribute('aria-disabled') === 'false');
-    await black.locator('[data-square="e7"]').click();
-    await black.locator('[data-square="e5"]').click();
-    for (const page of [white, black]) await page.getByText('e5', { exact: true }).first().waitFor();
+    await black.locator('[data-square="e7"]').tap();
+    await black.locator('[data-square="e5"]').tap();
+    await white.getByText('e5', { exact: true }).first().waitFor();
+    await black.setViewportSize({ width: 1440, height: 900 });
+    await black.getByText('e5', { exact: true }).first().waitFor();
     // A newer REST game state can arrive before its socket event. A mismatch
     // must trigger snapshot recovery rather than leave a stale board playable.
     const recoveryCount = await white.evaluate(() => window.__socketCount);

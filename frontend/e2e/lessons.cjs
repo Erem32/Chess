@@ -11,6 +11,7 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
     await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
     let exercises = [];
+    let failExercises = false;
     const moves = [];
     const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     await page.route('**/api/v1/**', async (route) => {
@@ -18,6 +19,7 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
       if (url.pathname === '/api/v1/users/me') return route.fulfill({ json: { id: 1, username: 'learner' } });
       if (url.pathname === '/api/v1/practice/exercises') {
         assert.equal(url.search, '?kind=lesson');
+        if (failExercises) return route.fulfill({ status: 503, json: { detail: 'Unavailable' } });
         return route.fulfill({ json: exercises });
       }
       if (url.pathname.endsWith('/attempt')) {
@@ -32,7 +34,11 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     await page.goto(`${baseURL}/lessons`);
     await page.getByText('No lessons are available yet.').waitFor();
     exercises = [{ id: 'test', fen: start, instruction: 'Test move' }];
+    failExercises = true;
     await page.reload();
+    await page.getByText('Could not load lessons: Unavailable').waitFor();
+    failExercises = false;
+    await page.getByRole('button', { name: 'Retry loading' }).click();
     await page.getByRole('button', { name: 'Lesson 1: Test move' }).click();
     const move = async (from, to) => { await page.locator(`[data-square="${from}"]`).click(); await page.locator(`[data-square="${to}"]`).click(); };
     await move('e2', 'e5');

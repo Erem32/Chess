@@ -1,9 +1,14 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Navbar({ theme, onToggleTheme }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
   const { token, user, logout } = useAuth();
 
   function handleReload() {
@@ -17,12 +22,17 @@ export default function Navbar({ theme, onToggleTheme }) {
 
   return (
     <header className="navbar">
-      <Link to="/dashboard" className="brand" aria-label="szachy2.pl home">
+      <Link to="/dashboard" className="brand" aria-label="szachy2.pl home" onClick={() => setMenuOpen(false)}>
         <span className="brand-mark">szachy</span>
         <span className="brand-accent">2</span>
         <span className="brand-domain">.pl</span>
       </Link>
-      <nav>
+      <button type="button" className="secondary-button nav-menu-toggle" aria-expanded={menuOpen}
+        aria-controls="main-navigation" onClick={() => setMenuOpen((open) => !open)}>
+        {menuOpen ? "Close" : "Menu"}
+      </button>
+      <nav id="main-navigation" className={menuOpen ? "is-open" : ""} aria-label="Main navigation"
+        onClick={(event) => { if (event.target.closest("a")) setMenuOpen(false); }}>
         <button
           type="button"
           className="theme-toggle"

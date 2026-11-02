@@ -1,5 +1,13 @@
 .lessons-page { padding: 1.5rem; }
-.lessons-list { display: grid; gap: 0.75rem; justify-items: start; }
+.lessons-list { display: grid; gap: 0.75rem; justify-items: stretch; max-width: 42rem; }
+.lessons-list button { text-align: left; }
 .lesson-exercise { display: grid; grid-template-columns: minmax(0, 480px) minmax(180px, 1fr); gap: 1.5rem; }
-.lesson-board { width: 100%; }
-@media (max-width: 700px) { .lesson-exercise { grid-template-columns: 1fr; } }
+.lesson-board { width: 100%; min-width: 0; }
+.lesson-copy { min-width: 0; }
+@media (max-width: 700px) {
+  .lessons-page { padding: 1rem; }
+  .lesson-exercise { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .lesson-copy { order: -1; }
+  .lesson-copy h2 { margin-top: 0; }
+  .lesson-copy .actions { flex-wrap: wrap; }
+}
