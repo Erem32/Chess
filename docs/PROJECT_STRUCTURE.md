@@ -62,7 +62,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
 | [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, reconnect scheduling, background state refresh, board consistency checks, chat history navigation, draw-claim request handling, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
-| [context/AuthContext.jsx](../frontend/src/context/AuthContext.jsx) | Authentication state and login/logout actions. |
+| [context/](../frontend/src/context/) | Authentication and browser-local display settings. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
 | [frontend/e2e/](../frontend/e2e/) | Headless two-player smoke test for a disposable environment. |
 
