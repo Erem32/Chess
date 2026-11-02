@@ -1,7 +1,16 @@
+.board-wrap { position: relative; }
+
 .promotion-picker {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90%, 25rem);
+  background: var(--color-bg-surface);
+  box-shadow: 0 8px 32px #0008;
   display: grid;
   gap: 0.65rem;
-  margin-top: 0.75rem;
   padding: 0.85rem;
   border: 1px solid var(--border, #64748b);
   border-radius: 0.6rem;

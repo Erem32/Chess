@@ -23,7 +23,9 @@
     "test:e2e:loading": "node e2e/loading.cjs",
     "test:e2e:viewport": "node e2e/viewport.cjs",
     "test:e2e:history-ui": "node e2e/history-ui.cjs",
-    "test:e2e:headers": "node e2e/headers.cjs"
+    "test:e2e:headers": "node e2e/headers.cjs",
+    "test:e2e:catalog": "node e2e/catalog-layout.cjs",
+    "test:e2e:dashboard": "node e2e/dashboard-layout.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "6.0.2",

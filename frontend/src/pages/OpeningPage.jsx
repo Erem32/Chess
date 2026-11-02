@@ -4,8 +4,10 @@ import { apiRequest } from "../api/client.js";
 import ChessBoard from "../components/ChessBoard.jsx";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
+import StudyPagination from "../components/StudyPagination.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useCatalogPageSize } from "../features/study/useCatalogPageSize.js";
 import { loadOpeningProgress, saveOpeningProgress } from "../features/opening/openingProgress.js";
 import "./LessonsPage.css";
 import "./OpeningPage.css";
@@ -32,6 +34,7 @@ export default function OpeningPage() {
   const [selectedId, setSelectedId] = useState(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(0);
   const [progress, setProgress] = useState(() => loadOpeningProgress(browserStorage(), user?.id));
   const userId = user?.id == null ? null : String(user.id);
   const completed = useMemo(
@@ -83,6 +86,10 @@ export default function OpeningPage() {
     return matchesText && matchesFilter;
   }) ?? [];
 
+  const [catalogRef, pageSize] = useCatalogPageSize();
+  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
+  const currentPage = Math.min(page, pageCount - 1);
+
   return <section className={`study-page opening-page${selected ? " study-page--detail" : ""}`}>
     <PageHeader eyebrow="LEARN & PRACTISE" title={selected?.title ?? "Opening study"}
       description={selected?.introduction ?? "Choose an opening and explore an example line, one move at a time."}
@@ -102,33 +109,34 @@ export default function OpeningPage() {
               </div>}
             </div>
             <div className="opening-toolbar">
-              <input className="opening-search" type="search" aria-label="Find an opening" placeholder="Search openings..." value={query} onChange={(event) => setQuery(event.target.value)} />
+              <input className="opening-search" type="search" aria-label="Find an opening" placeholder="Search openings..." value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} />
               <div className="opening-filter" role="group" aria-label="Filter openings">
                 {[["all", "All"], ["new", "Not completed"], ["completed", "Completed"]].map(([value, label]) => (
                   <button key={value} type="button" className={filter === value ? "is-active" : ""}
-                    aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>
+                    aria-pressed={filter === value} onClick={() => { setFilter(value); setPage(0); }}>{label}</button>
                 ))}
               </div>
             </div>
           </section>
-          {catalog.length === 0 ? <p className="muted">No opening guides are available yet.</p> :
-            visible.length === 0 ? <p className="muted">No openings match your search or filter.</p> :
-              <ul className="opening-list" aria-label="Openings">
-                {visible.map((opening) => {
-                  const isCompleted = completed.has(opening.id);
-                  const preview = opening.steps.slice(1, 5).map((step, index) => index % 2 === 0 ? moveLabel(index + 1, step.move) : step.move).join(" ");
-                  return <li key={opening.id}>
-                    <button type="button" className="opening-row" onClick={() => selectOpening(opening.id)}
-                      aria-label={`${opening.title}, ${isCompleted ? "completed, study again" : "not completed, start guide"}`}>
-                      <span className="opening-row-title"><strong>{opening.title}</strong><span>{opening.line}</span></span>
-                      <span className="opening-row-preview">{preview}</span>
-                      <span className="opening-row-meta"><span className={`opening-status ${isCompleted ? "is-completed" : ""}`}>{isCompleted ? "Completed" : "Not completed"}</span>
-                        <span>{(opening.steps.length - 1) / 2} moves</span></span>
-                      <UiIcon name="arrow" className="opening-row-arrow" />
-                    </button>
-                  </li>;
-                })}
-              </ul>}
+          <div className="study-catalog-scroll" ref={catalogRef}>
+            {catalog.length === 0 ? <p className="muted">No opening guides are available yet.</p> :
+              visible.length === 0 ? <p className="muted">No openings match your search or filter.</p> :
+                <ul className="opening-list study-cards" aria-label="Openings">
+                  {visible.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((opening) => {
+                    const isCompleted = completed.has(opening.id);
+                    return <li key={opening.id}>
+                      <button type="button" className="opening-row study-card" onClick={() => selectOpening(opening.id)}
+                        aria-label={`${opening.title}, ${isCompleted ? "completed, study again" : "not completed, start guide"}`}>
+                        <span className="study-card-art" aria-hidden="true"><UiIcon name="book" /></span>
+                        <span className="study-card-content"><span className="study-card-index">{isCompleted ? "Completed" : "Not completed"}</span>
+                          <strong>{opening.title}</strong><span className="study-card-meta">{opening.line} · {(opening.steps.length - 1) / 2} moves</span></span>
+                        <UiIcon name="arrow" className="study-card-arrow" />
+                      </button>
+                    </li>;
+                  })}
+                </ul>}
+          </div>
+          {visible.length > 0 && <StudyPagination page={currentPage} pageCount={pageCount} onChange={setPage} />}
         </>}
     </div>
   </section>;

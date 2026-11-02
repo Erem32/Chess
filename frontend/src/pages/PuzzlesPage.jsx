@@ -4,13 +4,14 @@ import { getPuzzleHint, getPuzzleSolution, getPuzzles, submitPuzzleMove } from "
 import ChessBoard from "../components/ChessBoard.jsx";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
+import StudyPagination from "../components/StudyPagination.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useCatalogPageSize } from "../features/study/useCatalogPageSize.js";
 import { loadPuzzleProgress, savePuzzleProgress } from "../features/puzzles/puzzleProgress.js";
 import "./LessonsPage.css";
 import "./PuzzlesPage.css";
 
-const PAGE_SIZE = 12;
 const OPPONENT_REPLY_DELAY_MS = 850;
 const TITLES = { "puzzle-win-queen": "Win the queen", "puzzle-mate-one": "Find checkmate", "puzzle-promotion": "Pawn promotion" };
 
@@ -160,7 +161,8 @@ export default function PuzzlesPage() {
 
   const completedCount = catalog?.filter((puzzle) => completed.has(puzzle.id)).length ?? 0;
   const visible = catalog?.filter((puzzle) => filter === "all" || (filter === "solved" ? completed.has(puzzle.id) : !completed.has(puzzle.id))) ?? [];
-  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const [catalogRef, pageSize] = useCatalogPageSize();
+  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
   const currentPage = Math.min(page, pageCount - 1);
   const selectedIndex = catalog?.findIndex((puzzle) => puzzle.id === selected?.id) ?? -1;
   const nextPuzzle = selectedIndex >= 0 ? catalog[selectedIndex + 1] : null;
@@ -169,7 +171,7 @@ export default function PuzzlesPage() {
   const reviewMove = reviewStep > 0 ? review?.steps[reviewStep].move : null;
   const reviewColor = previousReviewFen?.split(" ")[1] === "b" ? "Black" : "White";
 
-  return <section className={`study-page puzzles-page${selected ? " study-page--detail" : ""}`}>
+  return <section className={`study-page puzzles-page${selected ? " study-page--detail" : " study-catalog-page"}`}>
     <PageHeader eyebrow="LEARN & PRACTISE" title="Puzzles" description="Find the best continuation in each position."
       backToList={selected ? { label: "All puzzles", onClick: () => selectPuzzle(null) } : null} />
     {storageWarning && <p className="puzzle-warning" role="status">Progress could not be saved in this browser. You can still solve puzzles.</p>}
@@ -178,18 +180,19 @@ export default function PuzzlesPage() {
     {catalog === null && !error && <LoadingPlaceholder variant="cards" count={3} label="Loading puzzles" />}
     {catalog?.length === 0 && <p className="muted">No puzzles are available yet.</p>}
     {catalog?.length > 0 && !selected && <>
-      <div className="puzzle-summary">
-        <div><strong>{completedCount} / {catalog.length} solved</strong><p className="muted">Hints are allowed. Revealing a solution does not count as solved. Progress is saved in this browser for your account.</p></div>
-        <button type="button" onClick={() => selectPuzzle(catalog.find((puzzle) => !completed.has(puzzle.id)) ?? catalog[0])}>Start next unsolved <UiIcon name="arrow" /></button>
+      <div className="puzzle-toolbar">
+        <strong>{completedCount} / {catalog.length} solved</strong>
+        <div className="puzzle-filters" role="group" aria-label="Filter puzzles">
+          {[["all", "All"], ["new", "Unsolved"], ["solved", "Solved"]].map(([value, label]) => <button key={value} type="button"
+            className={filter === value ? "is-active" : ""} aria-pressed={filter === value}
+            onClick={() => { setFilter(value); setPage(0); }}>{label}</button>)}
+        </div>
+        <button type="button" className="puzzle-start" onClick={() => selectPuzzle(catalog.find((puzzle) => !completed.has(puzzle.id)) ?? catalog[0])}>Start next unsolved <UiIcon name="arrow" /></button>
       </div>
-      <div className="puzzle-filters" role="group" aria-label="Filter puzzles">
-        {[["all", "All"], ["new", "Unsolved"], ["solved", "Solved"]].map(([value, label]) => <button key={value} type="button"
-          className={filter === value ? "is-active" : ""} aria-pressed={filter === value}
-          onClick={() => { setFilter(value); setPage(0); }}>{label}</button>)}
-      </div>
+      <div className="study-catalog-scroll" ref={catalogRef}>
       {visible.length === 0 ? <p className="muted">No puzzles match this filter.</p> : <>
         <div className="study-cards">
-          {visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((puzzle) => {
+          {visible.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((puzzle) => {
             const index = catalog.indexOf(puzzle);
             return <button key={puzzle.id} type="button" className="study-card" aria-label={`Puzzle ${index + 1}: ${puzzle.instruction}`}
               onClick={() => selectPuzzle(puzzle)}>
@@ -201,10 +204,9 @@ export default function PuzzlesPage() {
             </button>;
           })}
         </div>
-        <div className="puzzle-pagination"><button type="button" className="secondary-button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
-          <span>Page {currentPage + 1} / {pageCount}</span>
-          <button type="button" className="secondary-button" disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)}>Next</button></div>
       </>}
+      </div>
+      {visible.length > 0 && <StudyPagination page={currentPage} pageCount={pageCount} onChange={setPage} />}
     </>}
     {selected && <>
       <div className="lesson-exercise">

@@ -92,7 +92,7 @@ The lessons and puzzles screens load exercises from the practice API and send mo
 
 The opening guide service validates the authored catalog and sends positions to a read-only board; it does not create or change online games. Completion is saved only in the browser and is not synchronized with the backend.
 
-Lessons and teaching examples are grouped by topic. Teaching examples use a shared read-only guide component; the opening page uses the same read-only board and learning layout. The server validates their example positions and moves before returning them. The dashboard links to lessons, puzzles, openings and examples.
+Lessons, puzzles, opening guides, and teaching examples share responsive catalog pagination; lesson and example cards retain their topic labels. Teaching examples use a shared read-only guide component; the opening page uses the same read-only board and learning layout. The server validates their example positions and moves before returning them. The dashboard links to lessons, puzzles, openings and examples.
 
 On narrow screens the main navigation collapses into a menu, and practice and illustrated-guide instructions appear before the board.
 

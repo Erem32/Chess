@@ -16,7 +16,8 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
       if (path === '/api/v1/games/my-active') return route.fulfill({ status: 204 });
       if (path === '/api/v1/matchmaking/status') return route.fulfill({ json: { status: 'idle' } });
       if (path === '/api/v1/games/my-history') return route.fulfill({ json: { games: [], next_before_id: null } });
-      if (path === '/api/v1/practice/exercises' || path === '/api/v1/teaching-examples') return route.fulfill({ json: [] });
+      if (path === '/api/v1/practice/exercises') return route.fulfill({ json: [{ id: 'example', instruction: 'Example', fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' }] });
+      if (path === '/api/v1/teaching-examples') return route.fulfill({ json: [] });
       if (path === '/api/v1/opening/catalog') return route.fulfill({ json: [] });
       return route.fulfill({ status: 404 });
     });
@@ -38,6 +39,16 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
         assert.ok(Math.abs(item.heading - positions[0].heading) < 1 && Math.abs(item.back - positions[0].back) < 1, JSON.stringify(positions));
       }
     }
-    console.log('Page headers are consistent at desktop and mobile widths.');
+    for (const viewport of [{ width: 1280, height: 720 }, { width: 1920, height: 1080 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
+      await page.setViewportSize(viewport);
+      await page.goto(`${baseURL}/lessons`);
+      const frame = page.locator('.study-catalog-scroll');
+      await frame.waitFor();
+      const reference = await frame.boundingBox();
+      await page.goto(`${baseURL}/history`);
+      const archive = await page.locator('.history-archive').boundingBox();
+      for (const key of ['x', 'y', 'width']) assert.ok(Math.abs(archive[key] - reference[key]) < 1, `${JSON.stringify(viewport)} ${key}: history ${archive[key]}, lessons ${reference[key]}`);
+    }
+    console.log('Page headers and history frame are aligned at desktop and mobile widths.');
   } finally { await browser.close(); }
 })().catch((error) => { console.error(error); process.exit(1); });

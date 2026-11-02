@@ -4,8 +4,9 @@ import { submitAttempt } from "../api/practice.js";
 import ChessBoard from "../components/ChessBoard.jsx";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
+import StudyPagination from "../components/StudyPagination.jsx";
 import UiIcon from "../components/UiIcon.jsx";
-import { groupByCategory } from "../features/study/groupByCategory.js";
+import { useCatalogPageSize } from "../features/study/useCatalogPageSize.js";
 import "./LessonsPage.css";
 
 const LESSON_PIECES = {
@@ -21,6 +22,7 @@ const PUZZLE_TITLES = { "puzzle-win-queen": "Win the queen", "puzzle-mate-one": 
 export default function PracticePage({ title, singular, loadExercises, revealSolution }) {
   const [lessons, setLessons] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [page, setPage] = useState(0);
   const [fen, setFen] = useState("");
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
@@ -86,19 +88,21 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
 
   const selectedIndex = lessons?.findIndex((item) => item.id === selected?.id) ?? -1;
   const nextExercise = selectedIndex >= 0 ? lessons[selectedIndex + 1] : null;
-  const groups = groupByCategory(lessons ?? [], singular === "Lesson" ? "Lessons" : "Exercises");
+  const [catalogRef, pageSize] = useCatalogPageSize();
+  const pageCount = Math.max(1, Math.ceil((lessons?.length ?? 0) / pageSize));
+  const currentPage = Math.min(page, pageCount - 1);
+  const visible = lessons?.slice(currentPage * pageSize, (currentPage + 1) * pageSize) ?? [];
 
   return (
-    <section className={`study-page${selected ? " study-page--detail" : ""}`}>
+    <section className={`study-page${selected ? " study-page--detail" : " study-catalog-page"}`}>
       <PageHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Practise the rules, king safety and basic tactics, one move at a time." : "Find the right move in each position."}
         backToList={selected ? { label: `All ${title.toLowerCase()}`, onClick: () => selectLesson(null) } : null} />
       {error && <p className="error" role="alert">{error}</p>}
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
       {lessons === null && !error && <LoadingPlaceholder variant="cards" count={singular === "Lesson" ? 6 : 3} label={`Loading ${title.toLowerCase()}`} />}
       {lessons?.length === 0 && <p className="muted">No {title.toLowerCase()} are available yet.</p>}
-      {lessons?.length > 0 && !selected && groups.map(({ category, entries }) => <section className="study-group" key={category}>
-        <h2 className="study-group-title">{category}</h2>
-        <div className="study-cards">{entries.map(({ item: lesson, index }) => {
+      {lessons?.length > 0 && !selected && <><div className="study-catalog-scroll" ref={catalogRef}><div className="study-cards">{visible.map((lesson, pageIndex) => {
+          const index = currentPage * pageSize + pageIndex;
           const label = singular === "Lesson" && lesson.instruction.includes(":") ? lesson.instruction.split(":", 1)[0] : lesson.instruction;
           const cardTitle = singular === "Lesson" ? (lesson.title ?? label) : (PUZZLE_TITLES[lesson.id] ?? `Puzzle ${index + 1}`);
           return <button key={lesson.id} type="button" className="study-card" aria-label={`${singular} ${index + 1}: ${cardTitle}`} onClick={() => selectLesson(lesson)}>
@@ -107,8 +111,7 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
               <span className="study-card-meta">{singular === "Lesson" ? `${lesson.category ?? "Practice"} · One move` : `${lesson.fen.split(" ")[1] === "b" ? "Black" : "White"} to move · One move`}</span></span>
             <UiIcon name="arrow" className="study-card-arrow" />
           </button>;
-        })}</div>
-      </section>)}
+        })}</div></div><StudyPagination page={currentPage} pageCount={pageCount} onChange={setPage} /></>}
       {selected && <>
         <div className="lesson-exercise">
           <div className="lesson-board"><ChessBoard fen={fen} playerColor={selected.fen.split(" ")[1] === "b" ? "black" : "white"}

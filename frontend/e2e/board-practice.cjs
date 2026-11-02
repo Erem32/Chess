@@ -52,7 +52,12 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     await clickMove('e4', 'd5');
     assert.deepEqual(await events(), [{ type: 'move', move: 'e4d5' }]);
     await mode('promotion');
+    const beforePromotion = await page.locator('.board-wrap').boundingBox();
+    const documentHeight = await page.evaluate(() => document.documentElement.scrollHeight);
     await clickMove('a7', 'a8');
+    await page.getByRole('button', { name: 'Knight', exact: true }).waitFor();
+    assert.equal((await page.locator('.board-wrap').boundingBox()).height, beforePromotion.height);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollHeight), documentHeight);
     await page.getByRole('button', { name: 'Knight', exact: true }).click();
     assert.deepEqual(await events(), [{ type: 'move', move: 'a7a8n' }]);
     await mode('black');
