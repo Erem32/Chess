@@ -1,14 +1,15 @@
 # Implementation checkpoint
 
-Objective: add [piece lessons](features/interactive-lessons.md), [puzzles](features/puzzles.md), and an [opening guide](features/opening-study.md), following [project instructions](../AGENTS.md).
+Objective: maintain the chess MVP and complete the remaining evaluation in [Project Helix scope](features/README.md), following [project instructions](../AGENTS.md).
+
+## Next task
+
+Review the learning content for suitability and plan a small user evaluation of the learning activities, settings and online queue. Record actual results; do not invent participants or outcomes. Arrange participants only when the project owner requests it.
 
 ## Working state
 
-- `feature/learning-content` starts from `main` and adds six single-move piece lessons, three puzzles, and a short Italian Game guide.
-- Preserve the unreviewed local stash and `handoff/stash-recovery` branch. Inspect Git status and worktrees before resuming.
+Git is authoritative for branches, worktrees and recent checks. Inspect it before resuming. Preserve the unreviewed local stash and `handoff/stash-recovery` branch until their contents are reviewed.
 
-## Checks
+## Reproducing checks
 
-- Backend: `cd backend && pytest -q` against disposable SQLite (111 passed, 7 PostgreSQL concurrency tests skipped); Ruff passed.
-- Frontend: `cd frontend && npm test && npm run lint && npm run build` (30 tests passed).
-- Browser: `npm run test:e2e:learning` passed with real backend content and a disposable SQLite database initialized with SQLAlchemy metadata. Set `CHESS_E2E_ALLOW_REGISTRATION=1`, `CHESS_E2E_FRONTEND_URL`, and `CHROME_PATH`; see [Contributing](../CONTRIBUTING.md) for disposable services.
+Use [Contributing](../CONTRIBUTING.md) and the [README](../README.md#tests-and-checks). Browser tests that register users or create games require a disposable database. PostgreSQL concurrency tests require the disposable database described in Contributing.

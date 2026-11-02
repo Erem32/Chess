@@ -1,6 +1,6 @@
 # Online Chess Platform
 
-A university MVP for playing chess online. Two registered users can join a matchmaking queue, play a game in real time, chat, and view their games. The application consists of a React frontend, a FastAPI backend, and a PostgreSQL database.
+A university chess MVP with online games and short learning activities. Two registered users can join a matchmaking queue, play in real time, chat, and view their games. The application consists of a React frontend, a FastAPI backend, and a PostgreSQL database.
 
 The backend is responsible for game state and move legality. The project is a development MVP, not a production deployment.
 
@@ -10,6 +10,7 @@ The backend is responsible for game state and move legality. The project is a de
 - Database-backed matchmaking and game creation for two players.
 - Server-side move validation with `python-chess`, persisted games and moves, and live updates over WebSockets.
 - Board interaction by clicking or dragging pieces, including promotion choices.
+- Piece lessons, puzzles, an opening guide, and illustrated teaching examples.
 - Browser-local settings for text size and legal-move markers.
 - In-game chat, resignation, draw offers, game history, and basic user statistics.
 
@@ -22,9 +23,9 @@ The backend is responsible for game state and move legality. The project is a de
 | Data | PostgreSQL, SQLAlchemy, Alembic |
 | Development | Docker Compose, pytest |
 
-For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For the proposed technical and product roadmap, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
+For a guide to the folders and the path a request takes through the application, see [Project structure](docs/PROJECT_STRUCTURE.md). For remaining evaluation, see the [Improvement plan](docs/IMPROVEMENT_PLAN.md).
 
-The [Project Helix feature plan](docs/features/README.md) breaks the proposed learning and play features into independently reviewable briefs and prerequisites.
+The [Project Helix scope](docs/features/README.md) links to feature references and remaining evaluation.
 
 For the development workflow, see [Contributing](CONTRIBUTING.md). For interrupted work, see the [implementation checkpoint](docs/IMPLEMENTATION_PROGRESS.md) and [human handoff guide](docs/HUMAN_HANDOFF.md). Reusable agent workflows live in `.agents/skills/`.
 
@@ -134,6 +135,8 @@ The history pagination browser test also requires `CHESS_E2E_API_URL` pointing t
 The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.1:8000`; with the other variables above, run `npm run test:e2e:chat` against disposable services. It creates users, a game and more than 200 messages to check older pages, live arrivals and retry.
 
 To test the board component without a backend, start the frontend development server and run `CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHROME_PATH=/path/to/chrome npm run test:e2e:board` from `frontend/`.
+
+The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, and `test:e2e:settings` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning` uses the actual backend content and registers an account, so it also requires `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 

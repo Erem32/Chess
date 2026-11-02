@@ -23,7 +23,7 @@ The Python application lives in [backend/app/](../backend/app/).
 | Location | Responsibility |
 | --- | --- |
 | [main.py](../backend/app/main.py) | Creates the FastAPI app, health endpoint, and route registrations. |
-| [api/v1/](../backend/app/api/v1/) | HTTP routes for auth, users, matchmaking, and games; [router.py](../backend/app/api/v1/router.py) groups them. |
+| [api/v1/](../backend/app/api/v1/) | HTTP routes for auth, users, games, matchmaking, and learning; [router.py](../backend/app/api/v1/router.py) groups them. |
 | [api/deps.py](../backend/app/api/deps.py) | Dependencies including current-user authentication. |
 | [api/websocket.py](../backend/app/api/websocket.py) | Authenticates game sockets, validates messages, and delegates game actions to services. |
 | [core/](../backend/app/core/) | Configuration, password hashing, and JWT helpers. |
@@ -58,13 +58,13 @@ The React application lives in [frontend/src/](../frontend/src/).
 | --- | --- |
 | [main.jsx](../frontend/src/main.jsx) | Mounts the app and providers. |
 | [App.jsx](../frontend/src/App.jsx) | Defines page routes and the overall layout. |
-| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, puzzles, and opening study screens. |
+| [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, puzzles, opening, examples, and settings screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
 | [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, reconnect scheduling, background state refresh, board consistency checks, chat history navigation, draw-claim request handling, and chat acknowledgement tracking. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
 | [context/](../frontend/src/context/) | Authentication and browser-local display settings. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
-| [frontend/e2e/](../frontend/e2e/) | Headless two-player smoke test for a disposable environment. |
+| [frontend/e2e/](../frontend/e2e/) | Browser checks for the game and learning screens; some require disposable services. |
 
 ## Follow the main flows
 

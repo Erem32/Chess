@@ -10,7 +10,7 @@ description: Keep documentation for the Erem32/Chess online chess project accura
 3. Update only what the change affects:
    - `README.md` for user-visible features, startup, configuration, endpoints, WebSocket messages, testing, and known limitations.
    - `docs/PROJECT_STRUCTURE.md` for folders, module responsibilities, and the authentication, matchmaking, and game flows.
-   - `AGENTS.md`, `rules.md`, and `plan.md` only when their instructions or factual claims become inaccurate.
+   - `AGENTS.md` and affected feature or content guides when their instructions or claims become inaccurate.
 4. Preserve the existing language and useful project details. Distinguish implemented code from plans and unverified behavior. Do not invent commands, endpoints, examples, or test results. Do not copy real secrets or private credentials into documentation.
 5. Check changed Markdown links and compare documented commands and API/WebSocket contracts with the source. Run relevant checks when practical; report checks that could not be run. Explain which documentation changed, or state that no documentation update was necessary.
 
