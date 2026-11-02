@@ -1,15 +1,19 @@
 # Practice exercise catalog
 
-`practice_exercises.json` is a JSON array of server-owned, single-move exercises. It contains six piece lessons and three puzzles. Each entry has:
+`practice_exercises.json` is a JSON array of 24 interactive lessons and 103 puzzles. Entries contain:
 
-- `id`: unique lowercase letters and digits separated by hyphens, up to 80 characters.
+- `id`: unique letters and digits separated by hyphens, up to 80 characters. Lichess IDs are case-sensitive.
 - `kind`: `lesson` or `puzzle`; defaults to `lesson` when omitted.
 - `fen`: a valid chess position in FEN, including the side to move.
 - `instruction`: nonempty text shown with the position.
+- `title` and `category`: optional display title and grouping for lessons.
 - `accepted_moves`: one or more distinct, legal UCI moves from that position, including a promotion piece when required.
-- `correct_feedback` and `incorrect_feedback`: optional text or `null`.
-- `explanation`: optional text shown when a puzzle solution is revealed.
+- `solution_moves`: optional UCI sequence for a puzzle, alternating player and opponent moves and ending with the player. The first item must be the sole `accepted_moves` entry. Without a sequence, a puzzle is single-move and accepts any listed move.
+- `correct_feedback`, `incorrect_feedback` and `explanation`: optional text.
+- `rating` and `source_url`: optional puzzle difficulty and source metadata.
 
-The backend validates positions and accepted moves when reading the catalog. The authenticated list endpoint returns IDs, positions and instructions, not accepted moves. An attempt supplies only a UCI move; the server loads its own position and answers. Illegal and legal-but-incorrect attempts leave the position unchanged, while a correct attempt returns the resulting FEN and optional feedback. The authenticated puzzle solution endpoint reveals the first accepted move, its resulting position and the optional explanation. Practice does not create or change online games.
+The catalog includes 100 Lichess puzzles from the [archived sample](https://github.com/mcognetta/lichess-combined-puzzle-game-db/blob/main/combined_puzzle_db_first_100.ndjson); the underlying [Lichess database](https://database.lichess.org/#puzzles) is CC0. The source FEN is from before the opponent's last move, so the first source move was applied when importing. The remaining moves form `solution_moves`. The original puzzle IDs and sample ratings are retained; no live Lichess request is needed.
 
-Future lessons and puzzles should add reviewed exercises and tests together. Opening guides and other read-only content can use their own format rather than being forced into this single-move catalog.
+The backend validates positions, accepted moves, and each complete puzzle line when reading the catalog. `GET /api/v1/practice/exercises` optionally filters by `kind` and does not expose answers. The existing `/exercises/{id}/attempt` and `/exercises/{id}/solution` endpoints validate or reveal a single initial move and remain available to existing clients.
+
+The puzzle screen uses `POST /api/v1/practice/puzzles/{id}/attempt`, `/hint`, and `/solution`. Each receives `{"moves": [...]}`, containing only the player's previously accepted UCI moves; an attempt also supplies `move_uci`. The server verifies that history against its own line and reconstructs the position. A correct attempt returns `player_fen` immediately after the player's move and `fen` after the stored opponent reply, if any, allowing the client to display the moves separately. A hint reveals the source square and piece of the next move. The solution endpoint returns `steps`, starting with the current FEN and followed by each position with the move in SAN and UCI; its existing `moves` and final `fen` fields remain available. The server rejects invalid or completed histories. Practice does not create or change online games.

@@ -79,6 +79,11 @@ def test_opening_catalog_has_legal_complete_guides():
     italian = next(guide for guide in guides if guide["id"] == "italian-game")
     assert italian["title"] == "Italian Game"
     assert [step["move"] for step in italian["steps"][1:7]] == ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5"]
+    assert italian["line"] == "Giuoco Pianissimo"
+    castled = chess.Board(italian["steps"][12]["fen"])
+    assert castled.piece_at(chess.C8) == chess.Piece(chess.BISHOP, chess.BLACK)
+    assert castled.piece_at(chess.D8) == chess.Piece(chess.QUEEN, chess.BLACK)
+    assert "not connected" in italian["steps"][12]["explanation"]
     for guide in guides:
         assert 10 <= len(guide["steps"]) - 1 <= 16
         assert (len(guide["steps"]) - 1) % 2 == 0

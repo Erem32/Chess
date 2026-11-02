@@ -6,7 +6,7 @@ export default function IllustratedGuide({ guide }) {
   const [step, setStep] = useState(0);
   const current = guide.steps[step];
   return <div className="lesson-exercise">
-    <div className="lesson-board"><ChessBoard fen={current.fen} playerColor="white" isInteractive={false} /></div>
+    <div className="lesson-board"><ChessBoard fen={current.fen} playerColor={guide.steps[0].fen.split(" ")[1] === "b" ? "black" : "white"} isInteractive={false} /></div>
     <div className="lesson-copy">
       <span className="study-card-index">STEP {step + 1} / {guide.steps.length}</span>
       <h2>{guide.title}</h2>

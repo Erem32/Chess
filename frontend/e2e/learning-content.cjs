@@ -23,17 +23,75 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.getByLabel('Password', { exact: true }).fill('test-password');
     await page.getByRole('button', { name: 'Login', exact: true }).click();
     await page.getByRole('heading', { name: `Welcome, ${name}` }).waitFor();
+    for (const width of [320, 390, 768, 1280]) {
+      await page.setViewportSize({ width, height: 800 });
+      for (const label of ['lessons', 'puzzles', 'opening', 'examples']) {
+        assert.equal(await page.getByRole('button', { name: `Open ${label}`, exact: true }).isVisible(), true);
+      }
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Dashboard overflows at ${width}px`);
+    }
+    for (const [label, path] of [['lessons', '/lessons'], ['puzzles', '/puzzles'], ['opening', '/opening'], ['examples', '/examples']]) {
+      await page.goto(`${baseURL}/dashboard`);
+      await page.getByRole('button', { name: `Open ${label}`, exact: true }).click();
+      await page.waitForURL(`${baseURL}${path}`);
+    }
     await page.goto(`${baseURL}/lessons`);
     assert.equal(await page.getByRole('link', { name: 'Lessons', exact: true }).getAttribute('aria-current'), 'page');
     await page.getByRole('button', { name: /Lesson 1: Pawn/ }).click();
     await page.locator('[data-square="e2"]').click();
     await page.locator('[data-square="e4"]').click();
     await page.getByText('A pawn can move two squares from its starting position.').waitFor();
+    await page.getByRole('button', { name: 'All lessons' }).click();
+    await page.getByRole('button', { name: 'Lesson 11: Kingside castling' }).click();
+    await page.locator('[data-square="e1"]').click();
+    await page.locator('[data-square="g1"]').click();
+    await page.getByText('Correct. The king goes to g1 and the rook moves from h1 to f1.').waitFor();
+    await page.getByRole('button', { name: 'All lessons' }).click();
+    await page.getByRole('button', { name: 'Lesson 13: En passant' }).click();
+    await page.locator('[data-square="e5"]').click();
+    await page.locator('[data-square="d6"]').click();
+    await page.getByText('Correct. The pawn lands on d6 and the black pawn on d5 is removed.').waitFor();
+    await page.getByRole('button', { name: 'All lessons' }).click();
+    await page.getByRole('button', { name: 'Lesson 15: Underpromotion avoids stalemate' }).click();
+    await page.locator('[data-square="c7"]').click();
+    await page.locator('[data-square="c8"]').click();
+    await page.getByRole('button', { name: 'Rook', exact: true }).click();
+    await page.getByText('Correct. c8=R avoids stalemate. Black must play Ka6, then Ra8 is checkmate.').waitFor();
     await page.goto(`${baseURL}/puzzles`);
     assert.equal(await page.getByRole('link', { name: 'Puzzles', exact: true }).getAttribute('aria-current'), 'page');
     await page.getByRole('button', { name: /Puzzle 1: White to move/ }).click();
     await page.getByRole('button', { name: 'Reveal solution' }).click();
-    await page.getByText(/Solution: d2d4/).waitFor();
+    await page.getByText('Solution · Step 0 / 1').waitFor();
+    await page.getByRole('button', { name: 'Next move' }).click();
+    await page.getByText('White: Rxd4').waitFor();
+    await page.getByText('Puzzle 1 / 103 · 0 solved').waitFor();
+    await page.getByRole('button', { name: 'All puzzles' }).click();
+    await page.getByRole('button', { name: 'Puzzle 4: White to move: find the best continuation.' }).click();
+    await page.getByRole('button', { name: 'Hint', exact: true }).click();
+    await page.getByText('Hint: consider the queen on d2.').waitFor();
+    await page.locator('[data-square="d2"]').click();
+    await page.locator('[data-square="d8"]').click();
+    await page.getByText('Correct! Opponent played Qxd8. Find the next move.').waitFor();
+    await page.getByRole('button', { name: 'Hint', exact: true }).click();
+    await page.getByText('Hint: consider the rook on d1.').waitFor();
+    await page.locator('[data-square="d1"]').click();
+    await page.locator('[data-square="d8"]').click();
+    await page.getByText('Puzzle solved!').waitFor();
+    await page.reload();
+    await page.getByText('1 / 103 solved').waitFor();
+    await page.getByRole('button', { name: 'Puzzle 7: Black to move: find the best continuation.' }).click();
+    await page.getByRole('button', { name: 'Reveal solution' }).click();
+    await page.getByRole('button', { name: 'Next move' }).click();
+    await page.getByText('Black: Rh4#').waitFor();
+    await page.getByText('Puzzle 7 / 103 · 1 solved').waitFor();
+    await page.goto(`${baseURL}/examples`);
+    await page.getByRole('button', { name: 'En passant', exact: true }).click();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await page.getByText(/The e5 pawn lands on d6/).waitFor();
+    await page.getByRole('button', { name: 'All examples' }).click();
+    await page.getByRole('button', { name: 'A knight fork', exact: true }).click();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await page.getByText('Ne6+ checks the king on g7 and attacks the queen on c7.').waitFor();
     await page.goto(`${baseURL}/opening`);
     assert.equal(await page.getByRole('link', { name: 'Opening', exact: true }).getAttribute('aria-current'), 'page');
     await page.getByRole('button', { name: /Italian Game, not completed/ }).click();

@@ -88,11 +88,11 @@ Backend tests are grouped by auth, matchmaking/game behavior, chess service, and
 
 The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.
 
-The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.
+The lessons and puzzles screens load exercises from the practice API and send moves for server validation. Multi-move puzzles replay the server-owned solution line, including the opponent's replies. Solved puzzle IDs are kept in browser local storage per user, independently of online game state.
 
 The opening guide service validates the authored catalog and sends positions to a read-only board; it does not create or change online games. Completion is saved only in the browser and is not synchronized with the backend.
 
-Teaching examples use a shared read-only guide component. The opening page uses the same read-only board and learning layout. The server validates their example positions and moves before returning them.
+Lessons and teaching examples are grouped by topic. Teaching examples use a shared read-only guide component; the opening page uses the same read-only board and learning layout. The server validates their example positions and moves before returning them. The dashboard links to lessons, puzzles, openings and examples.
 
 On narrow screens the main navigation collapses into a menu, and practice and illustrated-guide instructions appear before the board.
 
@@ -100,6 +100,6 @@ The main navigation marks the current page and collapses on narrow screens. Lear
 
 Initial page requests use quiet, space-reserving placeholders. The Play dashboard keeps active-game controls in its matchmaking panel, and the game screen waits for the server position before displaying a board.
 
-Board-focused screens size their boards to the available viewport height and retain scrolling for longer content or very small screens.
+Learning detail screens group the dashboard and section-list return controls in the header. Their boards can grow to 720 CSS pixels on larger displays, while respecting the available viewport height; longer content and very small screens can still scroll.
 
 The history page uses the paginated history API, displays each opponent and result, and links to the existing game screen; its list scrolls independently, and it does not provide move replay. The shared `PageHeader` keeps top-level page headings consistent.

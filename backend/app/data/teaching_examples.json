@@ -9,6 +9,46 @@
         "move_uci": "e4d5",
         "explanation": "The pawn moves diagonally to d5 and removes the black pawn."
       }
+    ],
+    "category": "Piece movement"
+  },
+  {
+    "id": "knight-move",
+    "title": "The knight's move",
+    "fen": "7k/p7/8/8/8/8/PN6/K7 w - - 0 1",
+    "introduction": "A knight moves in an L shape: two squares in one direction and one square sideways. It can jump over other pieces.",
+    "moves": [
+      {
+        "move_uci": "b2c4",
+        "explanation": "The knight moves from b2 to c4: two ranks forward and one file sideways."
+      }
+    ],
+    "category": "Piece movement"
+  },
+  {
+    "id": "rook-capture",
+    "title": "How a rook captures",
+    "category": "Piece movement",
+    "fen": "7k/8/8/3r4/8/8/3R4/7K w - - 0 1",
+    "introduction": "The rook on d2 can move along the clear d-file and capture the rook on d5.",
+    "moves": [
+      {
+        "move_uci": "d2d5",
+        "explanation": "The white rook stops on d5 and removes the black rook. A rook cannot jump over a piece."
+      }
+    ]
+  },
+  {
+    "id": "bishop-capture",
+    "title": "How a bishop captures",
+    "category": "Piece movement",
+    "fen": "7k/8/8/8/5n2/8/P7/2B4K w - - 0 1",
+    "introduction": "The bishop on c1 can reach the knight on f4 along a clear diagonal.",
+    "moves": [
+      {
+        "move_uci": "c1f4",
+        "explanation": "Bxf4 captures the knight. The bishop stayed on the same colour of square throughout its move."
+      }
     ]
   },
   {
@@ -21,17 +61,386 @@
         "move_uci": "a7a8q",
         "explanation": "The pawn reaches a8 and becomes a queen. The new queen gives check along the eighth rank."
       }
+    ],
+    "category": "Special moves"
+  },
+  {
+    "id": "castle-kingside",
+    "title": "Castling kingside",
+    "category": "Special moves",
+    "fen": "4k2r/7p/8/8/8/8/7P/4K2R w Kk - 0 1",
+    "introduction": "Castling moves the king toward a rook and brings that rook into play. The king and rook must retain castling rights.",
+    "moves": [
+      {
+        "move_uci": "e1g1",
+        "explanation": "White castles: the king moves to g1 and the rook moves to f1. The king may not castle out of, through, or into check."
+      }
     ]
   },
   {
-    "id": "knight-move",
-    "title": "The knight's move",
-    "fen": "7k/8/8/8/8/8/1N6/K7 w - - 0 1",
-    "introduction": "A knight moves in an L shape: two squares in one direction and one square sideways. It can jump over other pieces.",
+    "id": "castle-queenside",
+    "title": "Castling queenside",
+    "category": "Special moves",
+    "fen": "r3k3/p7/8/8/8/8/P7/R3K3 b Qq - 0 1",
+    "introduction": "Black can castle toward the a-file rook if the squares between them are empty and the king's route is safe.",
     "moves": [
       {
-        "move_uci": "b2c4",
-        "explanation": "The knight moves from b2 to c4: two ranks forward and one file sideways."
+        "move_uci": "e8c8",
+        "explanation": "Black castles queenside: the king moves to c8 and the rook to d8."
+      }
+    ]
+  },
+  {
+    "id": "en-passant",
+    "title": "En passant",
+    "category": "Special moves",
+    "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+    "introduction": "Black has just moved the pawn from d7 to d5. White may capture it as if it had advanced one square.",
+    "moves": [
+      {
+        "move_uci": "e5d6",
+        "explanation": "The e5 pawn lands on d6 while the black pawn on d5 is removed. En passant must be played immediately or the chance is lost."
+      }
+    ]
+  },
+  {
+    "id": "underpromotion",
+    "title": "A rook promotion avoids stalemate",
+    "category": "Special moves",
+    "fen": "8/k1P5/2K5/8/8/8/8/8 w - - 0 1",
+    "introduction": "White is winning, but c8=Q would immediately stalemate Black. A rook is enough to keep the win.",
+    "moves": [
+      {
+        "move_uci": "c7c8r",
+        "explanation": "c8=R avoids stalemate. With a queen on c8, Black would have no legal move and the king would not be in check."
+      },
+      {
+        "move_uci": "a7a6",
+        "explanation": "Ka6 is Black’s only legal move."
+      },
+      {
+        "move_uci": "c8a8",
+        "explanation": "Ra8# is checkmate: the rook checks on the a-file and the white king controls b5, b6 and b7."
+      }
+    ]
+  },
+  {
+    "id": "promotion-capture",
+    "title": "Capture and promote",
+    "category": "Special moves",
+    "fen": "1r5k/P7/8/8/8/8/8/7K w - - 0 1",
+    "introduction": "A pawn can capture diagonally onto the final rank and promote on that same move.",
+    "moves": [
+      {
+        "move_uci": "a7b8q",
+        "explanation": "axb8=Q captures the rook and promotes to a queen. The new queen checks the king along the eighth rank."
+      }
+    ]
+  },
+  {
+    "id": "escape-a-check",
+    "title": "Escaping check",
+    "category": "King safety",
+    "fen": "k3r3/8/8/8/8/8/8/3RK3 w - - 0 1",
+    "introduction": "The rook checks along the e-file. White can escape by moving the king to an unattacked square.",
+    "moves": [
+      {
+        "move_uci": "e1f2",
+        "explanation": "Kf2 leaves the rook’s line. A king cannot move to a square controlled by an enemy piece."
+      },
+      {
+        "move_uci": "e8e5",
+        "explanation": "Black places the rook on e5. White has escaped the check and still has an active rook."
+      },
+      {
+        "move_uci": "d1d8",
+        "explanation": "Rd8+ illustrates how White can give a check of their own."
+      }
+    ]
+  },
+  {
+    "id": "block-a-check",
+    "title": "Blocking a check",
+    "category": "King safety",
+    "fen": "k3r3/8/8/8/2N5/8/3B4/4K2R w - - 0 1",
+    "introduction": "A sliding piece’s check can be stopped by a protected piece placed between the attacker and the king.",
+    "moves": [
+      {
+        "move_uci": "d2e3",
+        "explanation": "Be3 blocks the e-file. The knight on c4 protects the bishop on e3."
+      },
+      {
+        "move_uci": "e8e3",
+        "explanation": "If Black plays Rxe3+, the rook captures the bishop but lands on a square defended by the knight."
+      },
+      {
+        "move_uci": "c4e3",
+        "explanation": "Nxe3 captures the rook. Blocking with a defended piece prevents Black from winning the bishop for free."
+      }
+    ]
+  },
+  {
+    "id": "capture-the-checker",
+    "title": "Capturing the checker",
+    "category": "King safety",
+    "fen": "k7/8/8/8/8/8/4r3/4K3 w - - 0 1",
+    "introduction": "The rook on e2 checks the white king. Here no black piece protects the rook.",
+    "moves": [
+      {
+        "move_uci": "e1e2",
+        "explanation": "Kxe2 removes the attacker. A king may make this capture only when the destination square is not attacked."
+      }
+    ]
+  },
+  {
+    "id": "checkmate-net",
+    "title": "A simple checkmate",
+    "category": "King safety",
+    "fen": "7k/5Q2/6K1/8/8/8/8/8 w - - 0 1",
+    "introduction": "White's queen and king work together to restrict the black king's escape squares.",
+    "moves": [
+      {
+        "move_uci": "f7g7",
+        "explanation": "Qg7# is checkmate: the king is in check, cannot capture the protected queen, and has no safe square."
+      }
+    ]
+  },
+  {
+    "id": "back-rank-mate",
+    "title": "Back-rank checkmate",
+    "category": "King safety",
+    "fen": "6k1/5ppp/8/8/8/8/6PP/3R2K1 w - - 0 1",
+    "introduction": "Black's own pawns restrict the king. White's rook can exploit the weak back rank.",
+    "moves": [
+      {
+        "move_uci": "d1d8",
+        "explanation": "Rd8# checks along the eighth rank. Black's pawns occupy the king's flight squares and cannot stop the check."
+      }
+    ]
+  },
+  {
+    "id": "stalemate",
+    "title": "Stalemate is a draw",
+    "category": "King safety",
+    "fen": "7k/8/5KQ1/8/8/8/8/8 w - - 0 1",
+    "introduction": "White is winning, but the next queen move accidentally draws. No legal move is checkmate only when the king is also in check.",
+    "moves": [
+      {
+        "move_uci": "g6f7",
+        "explanation": "Black has no legal move, but the king is not in check: this is stalemate, and the game is a draw."
+      }
+    ]
+  },
+  {
+    "id": "knight-fork",
+    "title": "A knight fork",
+    "category": "Tactical patterns",
+    "fen": "8/2q3k1/8/2N5/8/8/8/K2R4 w - - 0 1",
+    "introduction": "A fork attacks two pieces at once. The knight can attack the black king and queen together.",
+    "moves": [
+      {
+        "move_uci": "c5e6",
+        "explanation": "Ne6+ checks the king on g7 and attacks the queen on c7."
+      },
+      {
+        "move_uci": "g7h6",
+        "explanation": "Black must answer the check; in this example the king moves to h6."
+      },
+      {
+        "move_uci": "e6c7",
+        "explanation": "Nxc7 captures the queen that the knight attacked."
+      }
+    ]
+  },
+  {
+    "id": "absolute-pin",
+    "title": "An absolute pin",
+    "category": "Tactical patterns",
+    "fen": "4k3/8/2n5/8/8/8/8/R3KB2 w - - 0 1",
+    "introduction": "A pinned piece cannot move if that would expose its own king to check.",
+    "moves": [
+      {
+        "move_uci": "f1b5",
+        "explanation": "Bb5 aligns the bishop, knight and king on one diagonal. The knight on c6 is absolutely pinned."
+      },
+      {
+        "move_uci": "e8f7",
+        "explanation": "Kf7 moves the king off the diagonal, ending the absolute pin."
+      },
+      {
+        "move_uci": "b5c6",
+        "explanation": "Bxc6 captures the knight. The example illustrates the alignment; it does not claim this defence is forced."
+      }
+    ]
+  },
+  {
+    "id": "rook-skewer",
+    "title": "A rook skewer",
+    "category": "Tactical patterns",
+    "fen": "q7/k7/2B5/1P6/8/8/7K/1R6 w - - 0 1",
+    "introduction": "In a skewer, an attack on a valuable front piece exposes another target behind it. The bishop on c6 guards a8.",
+    "moves": [
+      {
+        "move_uci": "b1a1",
+        "explanation": "Ra1+ checks the king on a7 with the queen behind it on a8."
+      },
+      {
+        "move_uci": "a7b6",
+        "explanation": "The king leaves the a-file. Kb8 is also legal, but the bishop protects a8 against the king."
+      },
+      {
+        "move_uci": "a1a8",
+        "explanation": "Rxa8 captures the exposed queen; the bishop protects the rook, and the pawn on b5 protects the bishop."
+      }
+    ]
+  },
+  {
+    "id": "double-check",
+    "title": "Discovered double check",
+    "category": "Tactical patterns",
+    "fen": "4k3/8/8/8/8/8/4B3/K3R3 w - - 0 1",
+    "introduction": "The bishop blocks its own rook's line to the black king. Moving it can reveal the rook's attack.",
+    "moves": [
+      {
+        "move_uci": "e2b5",
+        "explanation": "Bb5+ also opens the e-file. Both bishop and rook check the king at the same time."
+      },
+      {
+        "move_uci": "e8f7",
+        "explanation": "In a double check the king must move; blocking or capturing just one checker is not enough."
+      }
+    ]
+  },
+  {
+    "id": "opening-development",
+    "title": "Develop pieces and control the centre",
+    "category": "Planning and endgames",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "introduction": "In the opening, develop pieces, contest central squares and prepare to castle. This is one possible sequence.",
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "e4 claims central space and opens lines for the bishop and queen."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black contests the centre with e5."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "Nf3 develops a knight and attacks the e5 pawn."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Nc6 develops and defends the pawn."
+      },
+      {
+        "move_uci": "f1c4",
+        "explanation": "Bc4 develops the bishop toward the centre and helps White prepare kingside castling."
+      }
+    ]
+  },
+  {
+    "id": "development-and-castling",
+    "title": "Finish development safely",
+    "category": "Planning and endgames",
+    "fen": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
+    "introduction": "Both sides have developed a knight and bishop. White can now castle kingside.",
+    "moves": [
+      {
+        "move_uci": "e1g1",
+        "explanation": "O-O moves the king to safety and brings the rook to f1."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops the knight and attacks the e4 pawn."
+      },
+      {
+        "move_uci": "f1e1",
+        "explanation": "Re1 places the rook on the central e-file. This is one illustrative continuation."
+      }
+    ]
+  },
+  {
+    "id": "scholars-mate",
+    "title": "The f7 weakness",
+    "category": "Planning and endgames",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "introduction": "The f7 pawn is defended only by Black's king at the start. This familiar sequence shows why both sides must watch it.",
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "e4 opens the bishop's diagonal."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black also takes space in the centre."
+      },
+      {
+        "move_uci": "d1h5",
+        "explanation": "Qh5 points at e5 and f7, but early queen moves can be chased by developing pieces."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Nc6 develops a knight and protects e5."
+      },
+      {
+        "move_uci": "f1c4",
+        "explanation": "Bc4 adds pressure against f7."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Nf6 attacks the queen but misses the immediate threat."
+      },
+      {
+        "move_uci": "h5f7",
+        "explanation": "Qxf7# is mate: the bishop protects the queen. Black can avoid this by defending f7 earlier."
+      }
+    ]
+  },
+  {
+    "id": "king-opposition",
+    "title": "King opposition",
+    "category": "Planning and endgames",
+    "fen": "8/8/3k4/8/3K4/8/3P4/8 b - - 0 1",
+    "introduction": "The kings face each other with one square between them. Black must move first and give way; this is called opposition.",
+    "moves": [
+      {
+        "move_uci": "d6c6",
+        "explanation": "Black's king steps aside, allowing White to advance."
+      },
+      {
+        "move_uci": "d4c4",
+        "explanation": "White follows while keeping distance between the kings. Opposition is often useful in king-and-pawn endings."
+      }
+    ]
+  },
+  {
+    "id": "passed-pawn",
+    "title": "Advancing a passed pawn",
+    "category": "Planning and endgames",
+    "fen": "7k/8/5K2/4P3/8/8/8/8 w - - 0 1",
+    "introduction": "A passed pawn has no opposing pawns ahead of it on its file or either adjacent file.",
+    "moves": [
+      {
+        "move_uci": "e5e6",
+        "explanation": "White advances the passed pawn."
+      },
+      {
+        "move_uci": "h8g8",
+        "explanation": "The black king moves toward the pawn's path."
+      },
+      {
+        "move_uci": "e6e7",
+        "explanation": "The pawn reaches the seventh rank; the white king helps control nearby squares."
+      },
+      {
+        "move_uci": "g8h7",
+        "explanation": "The king steps away from the promotion square."
+      },
+      {
+        "move_uci": "e7e8q",
+        "explanation": "The pawn reaches the eighth rank and promotes to a queen."
       }
     ]
   }

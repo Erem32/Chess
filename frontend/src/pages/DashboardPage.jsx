@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import PageHeader from "../components/PageHeader.jsx";
+import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
 import { getMyStats } from "../api/auth.js";
 import {
@@ -24,6 +25,12 @@ const EMPTY_STATS = {
 };
 
 const MATCHMAKING_PENDING_KEY = "matchmaking_pending";
+const LEARNING_LINKS = [
+  { title: "Lessons", description: "Practise rules and tactics", path: "/lessons" },
+  { title: "Puzzles", description: "Solve tactical positions", path: "/puzzles" },
+  { title: "Opening", description: "Explore opening guides", path: "/opening" },
+  { title: "Examples", description: "See ideas move by move", path: "/examples" }
+];
 
 function resolveGameId(data) {
   return data?.game_id ?? data?.game?.id ?? data?.id ?? null;
@@ -308,12 +315,16 @@ export default function DashboardPage() {
           <section className="panel dashboard-card">
             <div className="dashboard-section-heading">
               <div>
-                <h2>Learn an opening</h2>
-                <p className="muted">Explore popular openings one move at a time.</p>
+                <h2>Learn &amp; practise</h2>
+                <p className="muted">Choose how you want to improve.</p>
               </div>
-              <button type="button" className="secondary-button" onClick={() => navigate("/opening")}>
-                Open guide
-              </button>
+            </div>
+            <div className="dashboard-learning-grid">
+              {LEARNING_LINKS.map((item) => <button key={item.path} type="button" className="dashboard-learning-link"
+                aria-label={`Open ${item.title.toLowerCase()}`} onClick={() => navigate(item.path)}>
+                <span><strong>{item.title}</strong><span>{item.description}</span></span>
+                <UiIcon name="arrow" />
+              </button>)}
             </div>
           </section>
 

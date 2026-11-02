@@ -2,35 +2,41 @@
   {
     "id": "lesson-pawn",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/4P3/7K w - - 0 1",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     "instruction": "Pawn: A pawn moves forward one square, or two from its starting square if both are clear. It captures diagonally. Move the pawn from e2 to e4.",
     "accepted_moves": [
       "e2e4"
     ],
     "correct_feedback": "A pawn can move two squares from its starting position.",
-    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson.",
+    "title": "Pawn",
+    "category": "Piece movement"
   },
   {
     "id": "lesson-knight",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/1N6/K7 w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/PN6/K7 w - - 0 1",
     "instruction": "Knight: A knight moves in an L shape and can jump over pieces. Move the knight from b2 to c4.",
     "accepted_moves": [
       "b2c4"
     ],
     "correct_feedback": "The knight moved two ranks and one file.",
-    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson.",
+    "title": "Knight",
+    "category": "Piece movement"
   },
   {
     "id": "lesson-bishop",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/8/2B4K w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/P7/2B4K w - - 0 1",
     "instruction": "Bishop: A bishop travels diagonally through empty squares and stays on the same color. Move the bishop from c1 to g5.",
     "accepted_moves": [
       "c1g5"
     ],
     "correct_feedback": "The bishop traveled diagonally along clear squares.",
-    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson.",
+    "title": "Bishop",
+    "category": "Piece movement"
   },
   {
     "id": "lesson-rook",
@@ -41,7 +47,9 @@
       "d2d5"
     ],
     "correct_feedback": "The rook moved up the d-file.",
-    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson.",
+    "title": "Rook",
+    "category": "Piece movement"
   },
   {
     "id": "lesson-queen",
@@ -52,18 +60,259 @@
       "d1h5"
     ],
     "correct_feedback": "The queen traveled diagonally to h5.",
-    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson.",
+    "title": "Queen",
+    "category": "Piece movement"
   },
   {
     "id": "lesson-king",
     "kind": "lesson",
-    "fen": "7k/8/8/8/8/8/8/7K w - - 0 1",
+    "fen": "7k/p7/8/8/8/8/P7/7K w - - 0 1",
     "instruction": "King: A king moves one square in any direction, but cannot move into check. Move the king from h1 to g2.",
     "accepted_moves": [
       "h1g2"
     ],
     "correct_feedback": "The king moved one square diagonally.",
-    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson."
+    "incorrect_feedback": "That is a legal move, but try the destination described in the lesson.",
+    "title": "King",
+    "category": "Piece movement"
+  },
+  {
+    "id": "lesson-pawn-capture",
+    "kind": "lesson",
+    "title": "Pawn capture",
+    "category": "Piece movement",
+    "fen": "7k/8/8/3p4/4P3/8/8/7K w - - 0 1",
+    "instruction": "Pawns capture diagonally, not straight ahead. Capture the pawn on d5 with your e4 pawn.",
+    "accepted_moves": [
+      "e4d5"
+    ],
+    "correct_feedback": "Correct. The pawn moves diagonally to d5 and removes the black pawn.",
+    "incorrect_feedback": "Look for the diagonal capture."
+  },
+  {
+    "id": "lesson-knight-jump",
+    "kind": "lesson",
+    "title": "Knight jumps",
+    "category": "Piece movement",
+    "fen": "7k/8/8/8/8/8/PPPP4/1N5K w - - 0 1",
+    "instruction": "A knight is the only piece that can jump over occupied squares. Move the knight from b1 to c3.",
+    "accepted_moves": [
+      "b1c3"
+    ],
+    "correct_feedback": "Correct. The pawns do not block the knight's L-shaped move.",
+    "incorrect_feedback": "The knight can jump over the pawns to c3."
+  },
+  {
+    "id": "lesson-rook-capture",
+    "kind": "lesson",
+    "title": "Rook capture",
+    "category": "Piece movement",
+    "fen": "7k/8/8/3r4/8/8/3R4/7K w - - 0 1",
+    "instruction": "Rooks capture along open ranks and files. Capture the rook on d5 with the rook on d2.",
+    "accepted_moves": [
+      "d2d5"
+    ],
+    "correct_feedback": "Correct. A rook captures the opposing piece on its destination square.",
+    "incorrect_feedback": "The d-file is open between the rooks."
+  },
+  {
+    "id": "lesson-bishop-capture",
+    "kind": "lesson",
+    "title": "Bishop capture",
+    "category": "Piece movement",
+    "fen": "7k/8/8/8/5n2/8/P7/2B4K w - - 0 1",
+    "instruction": "Bishops capture along an unobstructed diagonal. Capture the knight on f4 with the bishop on c1.",
+    "accepted_moves": [
+      "c1f4"
+    ],
+    "correct_feedback": "Correct. The bishop travels through d2 and e3 to capture on f4.",
+    "incorrect_feedback": "Follow the diagonal from c1 to f4."
+  },
+  {
+    "id": "lesson-castle-kingside",
+    "kind": "lesson",
+    "title": "Kingside castling",
+    "category": "Special moves",
+    "fen": "4k2r/7p/8/8/8/8/7P/4K2R w Kk - 0 1",
+    "instruction": "Castling moves both king and rook. Castle kingside by moving the white king from e1 to g1.",
+    "accepted_moves": [
+      "e1g1"
+    ],
+    "correct_feedback": "Correct. The king goes to g1 and the rook moves from h1 to f1.",
+    "incorrect_feedback": "Move the king two squares toward the rook."
+  },
+  {
+    "id": "lesson-castle-queenside",
+    "kind": "lesson",
+    "title": "Queenside castling",
+    "category": "Special moves",
+    "fen": "r3k3/p7/8/8/8/8/P7/R3K3 b Qq - 0 1",
+    "instruction": "Black can castle queenside when the route is clear and the king does not cross an attacked square. Move the king from e8 to c8.",
+    "accepted_moves": [
+      "e8c8"
+    ],
+    "correct_feedback": "Correct. The black king lands on c8 and the rook moves to d8.",
+    "incorrect_feedback": "Move the black king two squares toward the queenside rook."
+  },
+  {
+    "id": "lesson-en-passant",
+    "kind": "lesson",
+    "title": "En passant",
+    "category": "Special moves",
+    "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+    "instruction": "Black has just moved the d-pawn from d7 to d5. Capture it en passant with the e5 pawn; this chance lasts only one move.",
+    "accepted_moves": [
+      "e5d6"
+    ],
+    "correct_feedback": "Correct. The pawn lands on d6 and the black pawn on d5 is removed.",
+    "incorrect_feedback": "Capture diagonally onto d6, the square the pawn passed."
+  },
+  {
+    "id": "lesson-promote-queen",
+    "kind": "lesson",
+    "title": "Promote a pawn",
+    "category": "Special moves",
+    "fen": "7k/P7/8/8/8/8/8/7K w - - 0 1",
+    "instruction": "A pawn reaching the far rank must promote. Move a7 to a8 and choose a queen.",
+    "accepted_moves": [
+      "a7a8q"
+    ],
+    "correct_feedback": "Correct. The pawn becomes a queen and checks the black king.",
+    "incorrect_feedback": "Move to a8 and choose the queen in the promotion picker."
+  },
+  {
+    "id": "lesson-underpromotion",
+    "kind": "lesson",
+    "title": "Underpromotion avoids stalemate",
+    "category": "Special moves",
+    "fen": "8/k1P5/2K5/8/8/8/8/8 w - - 0 1",
+    "instruction": "Promoting to a queen on c8 would leave Black with no legal move and no check: a draw by stalemate. Promote the c7 pawn to a rook instead.",
+    "accepted_moves": [
+      "c7c8r"
+    ],
+    "correct_feedback": "Correct. c8=R avoids stalemate. Black must play Ka6, then Ra8 is checkmate.",
+    "incorrect_feedback": "A queen would stalemate Black. Choose a rook on c8 to keep a winning position."
+  },
+  {
+    "id": "lesson-escape-check",
+    "kind": "lesson",
+    "title": "Escape a check",
+    "category": "King safety",
+    "fen": "k3r3/8/8/8/8/8/8/3RK3 w - - 0 1",
+    "instruction": "The rook on e8 checks your king. Move the king from e1 to the safe square f2.",
+    "accepted_moves": [
+      "e1f2"
+    ],
+    "correct_feedback": "Correct. The king escapes the e-file; White still has the rook on d1.",
+    "incorrect_feedback": "Move the king off the attacked e-file to f2."
+  },
+  {
+    "id": "lesson-block-check",
+    "kind": "lesson",
+    "title": "Block a check",
+    "category": "King safety",
+    "fen": "k3r3/8/8/8/2N5/8/3B4/4K2R w - - 0 1",
+    "instruction": "The rook checks along the e-file. Block with the bishop from d2 to e3; notice that the knight on c4 protects e3.",
+    "accepted_moves": [
+      "d2e3"
+    ],
+    "correct_feedback": "Correct. Be3 blocks the check. If ...Rxe3+, Nxe3 captures the rook.",
+    "incorrect_feedback": "Put the bishop on e3, where the knight protects it."
+  },
+  {
+    "id": "lesson-capture-checker",
+    "kind": "lesson",
+    "title": "Capture the attacker",
+    "category": "King safety",
+    "fen": "k7/8/8/8/8/8/4r3/4K3 w - - 0 1",
+    "instruction": "The rook on e2 checks your king and is not defended. Capture it with the king.",
+    "accepted_moves": [
+      "e1e2"
+    ],
+    "correct_feedback": "Correct. A king may capture a checking piece if its destination is not attacked.",
+    "incorrect_feedback": "Capture the undefended rook on e2."
+  },
+  {
+    "id": "lesson-give-check",
+    "kind": "lesson",
+    "title": "Give check",
+    "category": "King safety",
+    "fen": "7k/8/8/8/8/8/8/KR6 w - - 0 1",
+    "instruction": "A check attacks the opposing king. Move the rook from b1 to b8 to check along the eighth rank.",
+    "accepted_moves": [
+      "b1b8"
+    ],
+    "correct_feedback": "Correct. The rook attacks the king along the eighth rank.",
+    "incorrect_feedback": "Put the rook on b8 to attack along the rank."
+  },
+  {
+    "id": "lesson-checkmate",
+    "kind": "lesson",
+    "title": "Checkmate in one",
+    "category": "King safety",
+    "fen": "7k/5Q2/6K1/8/8/8/8/8 w - - 0 1",
+    "instruction": "Checkmate means check with no legal escape. Find a queen move that checkmates Black.",
+    "accepted_moves": [
+      "f7f8",
+      "f7e8",
+      "f7h7",
+      "f7g7"
+    ],
+    "correct_feedback": "Checkmate. The black king is attacked and has no legal escape.",
+    "incorrect_feedback": "Look for a queen move that checks and covers the king's escape squares."
+  },
+  {
+    "id": "lesson-knight-fork",
+    "kind": "lesson",
+    "title": "Knight fork",
+    "category": "Basic tactics",
+    "fen": "8/2q3k1/8/2N5/8/8/8/K2R4 w - - 0 1",
+    "instruction": "A fork attacks two targets at once. Move the knight to check the king and attack the queen on c7.",
+    "accepted_moves": [
+      "c5e6"
+    ],
+    "correct_feedback": "Correct. From e6 the knight checks the king on g7 and attacks the queen on c7.",
+    "incorrect_feedback": "Find an L-shaped jump that attacks both g7 and c7."
+  },
+  {
+    "id": "lesson-absolute-pin",
+    "kind": "lesson",
+    "title": "Pin a knight",
+    "category": "Basic tactics",
+    "fen": "4k3/8/2n5/8/8/8/8/R3KB2 w - - 0 1",
+    "instruction": "A piece is pinned to its king when moving it would expose the king to check. Move the bishop from f1 to b5.",
+    "accepted_moves": [
+      "f1b5"
+    ],
+    "correct_feedback": "Correct. The bishop lines up with the knight on c6 and king on e8; the knight cannot legally move.",
+    "incorrect_feedback": "Place the bishop on b5, on the same diagonal as the knight and king."
+  },
+  {
+    "id": "lesson-skewer",
+    "kind": "lesson",
+    "title": "Rook skewer",
+    "category": "Basic tactics",
+    "fen": "q7/k7/2B5/1P6/8/8/7K/1R6 w - - 0 1",
+    "instruction": "A skewer attacks a valuable piece with another target behind it. Check the king on a7; the bishop protects a8.",
+    "accepted_moves": [
+      "b1a1"
+    ],
+    "correct_feedback": "Correct. The king must leave the a-file and Rxa8 can capture the queen, protected by the bishop.",
+    "incorrect_feedback": "Move the rook to the a-file to check the king."
+  },
+  {
+    "id": "lesson-capture-attacker",
+    "kind": "lesson",
+    "title": "Win an unprotected rook",
+    "category": "Basic tactics",
+    "fen": "3r3k/8/8/8/8/8/3Q4/7K w - - 0 1",
+    "instruction": "The black rook attacks your queen, but it is unprotected. Capture it with the queen on d2.",
+    "accepted_moves": [
+      "d2d8"
+    ],
+    "correct_feedback": "Correct. The queen captures the undefended rook on d8.",
+    "incorrect_feedback": "Look along the open d-file for the attacking rook."
   },
   {
     "id": "puzzle-win-queen",
@@ -103,5 +352,1695 @@
     "correct_feedback": "Correct! The new queen checks the king.",
     "incorrect_feedback": "Choose the promotion that creates a queen.",
     "explanation": "Move the pawn from a7 to a8 and choose a queen. The queen checks the king along the eighth rank."
+  },
+  {
+    "id": "lichess-0042j",
+    "kind": "puzzle",
+    "fen": "3r2k1/4nppp/pq3b2/1p2p3/2r2P2/2P1NR2/PP1Q2BP/3R2K1 w - - 0 25",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d2d8"
+    ],
+    "solution_moves": [
+      "d2d8",
+      "b6d8",
+      "d1d8"
+    ],
+    "rating": 622,
+    "source_url": "https://lichess.org/training/0042j"
+  },
+  {
+    "id": "lichess-00FHX",
+    "kind": "puzzle",
+    "fen": "2r3k1/5p1p/4pP2/3p3P/8/5P2/p5P1/1bR3K1 w - - 1 31",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "c1c8"
+    ],
+    "solution_moves": [
+      "c1c8"
+    ],
+    "rating": 664,
+    "source_url": "https://lichess.org/training/00FHX"
+  },
+  {
+    "id": "lichess-00K0G",
+    "kind": "puzzle",
+    "fen": "8/8/8/2Pk4/pK4p1/3N4/4bP2/8 w - - 8 60",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d3f4"
+    ],
+    "solution_moves": [
+      "d3f4",
+      "d5c6",
+      "f4e2"
+    ],
+    "rating": 746,
+    "source_url": "https://lichess.org/training/00K0G"
+  },
+  {
+    "id": "lichess-00C7m",
+    "kind": "puzzle",
+    "fen": "8/5k2/1P4RK/6P1/1r6/8/8/8 b - - 2 58",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b4h4"
+    ],
+    "solution_moves": [
+      "b4h4"
+    ],
+    "rating": 756,
+    "source_url": "https://lichess.org/training/00C7m"
+  },
+  {
+    "id": "lichess-006yP",
+    "kind": "puzzle",
+    "fen": "6R1/8/Kpk1p3/1p1pP3/6P1/PPr5/8/8 w - - 0 41",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g8c8"
+    ],
+    "solution_moves": [
+      "g8c8",
+      "c6d7",
+      "c8c3"
+    ],
+    "rating": 806,
+    "source_url": "https://lichess.org/training/006yP"
+  },
+  {
+    "id": "lichess-00Htd",
+    "kind": "puzzle",
+    "fen": "rnbqk2r/1p3ppp/p4b2/2PQ4/8/2N2N2/PP2PPPP/R3KB1R b KQkq - 0 9",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f6c3"
+    ],
+    "solution_moves": [
+      "f6c3",
+      "b2c3",
+      "d8d5"
+    ],
+    "rating": 878,
+    "source_url": "https://lichess.org/training/00Htd"
+  },
+  {
+    "id": "lichess-00EoE",
+    "kind": "puzzle",
+    "fen": "r1b5/ppr2k1p/5p2/5p2/8/2P3P1/P4PP1/4RK1R w - - 2 24",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "h1h7"
+    ],
+    "solution_moves": [
+      "h1h7",
+      "f7g6",
+      "h7c7"
+    ],
+    "rating": 957,
+    "source_url": "https://lichess.org/training/00EoE"
+  },
+  {
+    "id": "lichess-00HPz",
+    "kind": "puzzle",
+    "fen": "6r1/7p/2pk1p2/P2p4/P2KbP2/2N1P3/5R1P/8 b - - 2 35",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c6c5"
+    ],
+    "solution_moves": [
+      "c6c5"
+    ],
+    "rating": 975,
+    "source_url": "https://lichess.org/training/00HPz"
+  },
+  {
+    "id": "lichess-00KOz",
+    "kind": "puzzle",
+    "fen": "8/r4k2/7R/3n1PK1/8/8/8/8 w - - 4 57",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "h6h7"
+    ],
+    "solution_moves": [
+      "h6h7",
+      "f7f8",
+      "h7a7"
+    ],
+    "rating": 981,
+    "source_url": "https://lichess.org/training/00KOz"
+  },
+  {
+    "id": "lichess-00J7i",
+    "kind": "puzzle",
+    "fen": "3r2k1/pQ4pp/4p1n1/2q5/2P5/2B3P1/P4PBP/6K1 w - - 0 25",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "b7g7"
+    ],
+    "solution_moves": [
+      "b7g7"
+    ],
+    "rating": 1000,
+    "source_url": "https://lichess.org/training/00J7i"
+  },
+  {
+    "id": "lichess-00HzH",
+    "kind": "puzzle",
+    "fen": "5rk1/p2q2p1/1p2p1Np/3p3P/3Pb1P1/2P5/PP3R2/6K1 w - - 0 34",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "f2f8"
+    ],
+    "solution_moves": [
+      "f2f8",
+      "g8h7",
+      "f8h8"
+    ],
+    "rating": 1003,
+    "source_url": "https://lichess.org/training/00HzH"
+  },
+  {
+    "id": "lichess-003Jb",
+    "kind": "puzzle",
+    "fen": "6k1/Q2bqr1p/2rpp1pR/p7/Pp2P3/1B3P2/1PP3P1/2KR4 b - - 7 22",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e7g5"
+    ],
+    "solution_moves": [
+      "e7g5",
+      "c1b1",
+      "g5h6"
+    ],
+    "rating": 1010,
+    "source_url": "https://lichess.org/training/003Jb"
+  },
+  {
+    "id": "lichess-001gi",
+    "kind": "puzzle",
+    "fen": "N6r/1p1k1ppp/2np4/b3p3/4P1b1/N1Q5/P4PPP/R3KB1R b KQ - 0 18",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "a5c3"
+    ],
+    "solution_moves": [
+      "a5c3"
+    ],
+    "rating": 1013,
+    "source_url": "https://lichess.org/training/001gi"
+  },
+  {
+    "id": "lichess-00KVb",
+    "kind": "puzzle",
+    "fen": "2k2r2/pp5p/3p4/3Nb1p1/8/1P1P3P/P1PR4/1K3R2 b - - 0 28",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f8f1"
+    ],
+    "solution_moves": [
+      "f8f1",
+      "d2d1",
+      "f1d1"
+    ],
+    "rating": 1013,
+    "source_url": "https://lichess.org/training/00KVb"
+  },
+  {
+    "id": "lichess-00HEh",
+    "kind": "puzzle",
+    "fen": "3r2k1/pp3ppp/2p3b1/2n3P1/2B2q1P/5N2/PPP1QP2/4R1K1 w - - 0 24",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e2e8"
+    ],
+    "solution_moves": [
+      "e2e8",
+      "d8e8",
+      "e1e8"
+    ],
+    "rating": 1044,
+    "source_url": "https://lichess.org/training/00HEh"
+  },
+  {
+    "id": "lichess-00F2o",
+    "kind": "puzzle",
+    "fen": "6k1/4qpp1/3p3p/8/2BP4/1PQ5/3n1PPP/6K1 b - - 0 29",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e7e1"
+    ],
+    "solution_moves": [
+      "e7e1",
+      "c4f1",
+      "e1f1"
+    ],
+    "rating": 1047,
+    "source_url": "https://lichess.org/training/00F2o"
+  },
+  {
+    "id": "lichess-00Evs",
+    "kind": "puzzle",
+    "fen": "5qk1/pQ3p2/7p/b2N1bp1/P3r3/5K2/7P/R4B2 w - - 0 25",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d5f6"
+    ],
+    "solution_moves": [
+      "d5f6",
+      "g8h8",
+      "f6e4"
+    ],
+    "rating": 1055,
+    "source_url": "https://lichess.org/training/00Evs"
+  },
+  {
+    "id": "lichess-008o6",
+    "kind": "puzzle",
+    "fen": "Q4rk1/p1p3p1/6P1/8/3P4/7P/q3r3/B4RK1 w - - 2 35",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "a8f8"
+    ],
+    "solution_moves": [
+      "a8f8"
+    ],
+    "rating": 1076,
+    "source_url": "https://lichess.org/training/008o6"
+  },
+  {
+    "id": "lichess-00LdT",
+    "kind": "puzzle",
+    "fen": "r5k1/pbp2ppp/6q1/3p4/3p3r/2P1R1P1/PP2QP1P/R5K1 w - - 0 21",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e3e8"
+    ],
+    "solution_moves": [
+      "e3e8",
+      "a8e8",
+      "e2e8"
+    ],
+    "rating": 1078,
+    "source_url": "https://lichess.org/training/00LdT"
+  },
+  {
+    "id": "lichess-0088O",
+    "kind": "puzzle",
+    "fen": "7Q/2p5/1p2prp1/p4k1p/q4p1P/8/6RK/8 w - - 0 38",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g2g5"
+    ],
+    "solution_moves": [
+      "g2g5",
+      "f5e4",
+      "h8f6"
+    ],
+    "rating": 1121,
+    "source_url": "https://lichess.org/training/0088O"
+  },
+  {
+    "id": "lichess-00Dt6",
+    "kind": "puzzle",
+    "fen": "5rk1/p4p1p/4p1p1/5nq1/8/5QPP/5PK1/1R1R4 b - - 7 35",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f5h4"
+    ],
+    "solution_moves": [
+      "f5h4",
+      "g2f1",
+      "h4f3"
+    ],
+    "rating": 1174,
+    "source_url": "https://lichess.org/training/00Dt6"
+  },
+  {
+    "id": "lichess-004X6",
+    "kind": "puzzle",
+    "fen": "1r4k1/p4ppp/2Q5/3pq3/8/P6P/2PR1PP1/1R4K1 b - - 0 26",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b8b1"
+    ],
+    "solution_moves": [
+      "b8b1",
+      "d2d1",
+      "b1d1"
+    ],
+    "rating": 1176,
+    "source_url": "https://lichess.org/training/004X6"
+  },
+  {
+    "id": "lichess-009lk",
+    "kind": "puzzle",
+    "fen": "1R6/6pk/2p4p/3bP2r/5B1P/2P1RqP1/P4P1Q/6K1 b - - 3 40",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f3d1"
+    ],
+    "solution_moves": [
+      "f3d1",
+      "e3e1",
+      "d1e1"
+    ],
+    "rating": 1189,
+    "source_url": "https://lichess.org/training/009lk"
+  },
+  {
+    "id": "lichess-0039T",
+    "kind": "puzzle",
+    "fen": "1r5r/p3kp2/4p2p/4P3/R4Pp1/6P1/P1P4P/4K2R b K - 2 25",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b8b1"
+    ],
+    "solution_moves": [
+      "b8b1",
+      "e1f2",
+      "b1h1",
+      "a4a7",
+      "e7f8"
+    ],
+    "rating": 1200,
+    "source_url": "https://lichess.org/training/0039T"
+  },
+  {
+    "id": "lichess-00Ahb",
+    "kind": "puzzle",
+    "fen": "1k5r/pp1r1ppp/4p2n/1Nb2q2/2Pp4/6P1/PP3P1P/R1BQR1K1 w - - 3 15",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "c1f4"
+    ],
+    "solution_moves": [
+      "c1f4",
+      "f5f4",
+      "g3f4"
+    ],
+    "rating": 1206,
+    "source_url": "https://lichess.org/training/00Ahb"
+  },
+  {
+    "id": "lichess-00HHN",
+    "kind": "puzzle",
+    "fen": "4r2k/p4R1p/1p6/2p5/2P5/1P4R1/r5PP/2K5 b - - 1 32",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e8e1"
+    ],
+    "solution_moves": [
+      "e8e1"
+    ],
+    "rating": 1225,
+    "source_url": "https://lichess.org/training/00HHN"
+  },
+  {
+    "id": "lichess-002O7",
+    "kind": "puzzle",
+    "fen": "r3qrk1/2p2pp1/p2bpn1p/2ppN3/3P1Pb1/1PP1P1B1/P2N2PP/R2Q1RK1 w - - 1 15",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e5g4"
+    ],
+    "solution_moves": [
+      "e5g4",
+      "f6g4",
+      "d1g4"
+    ],
+    "rating": 1267,
+    "source_url": "https://lichess.org/training/002O7"
+  },
+  {
+    "id": "lichess-00MGA",
+    "kind": "puzzle",
+    "fen": "r3r1k1/6b1/p2Nn2p/1P1Qp3/6nq/2P3P1/1PB2P2/R1B1R1K1 b - - 0 30",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "h4h2"
+    ],
+    "solution_moves": [
+      "h4h2",
+      "g1f1",
+      "h2f2"
+    ],
+    "rating": 1267,
+    "source_url": "https://lichess.org/training/00MGA"
+  },
+  {
+    "id": "lichess-00Er4",
+    "kind": "puzzle",
+    "fen": "r3k2r/p1bN2pp/2p1Rp2/3p3b/3P1q2/2N4P/PPPQ1PP1/R5K1 b kq - 0 16",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e8d7"
+    ],
+    "solution_moves": [
+      "e8d7",
+      "d2f4",
+      "c7f4"
+    ],
+    "rating": 1290,
+    "source_url": "https://lichess.org/training/00Er4"
+  },
+  {
+    "id": "lichess-00Aas",
+    "kind": "puzzle",
+    "fen": "3r1rk1/1p2q1pp/5p2/8/1P1n4/6Q1/PPBB1PPP/R4RK1 b - - 0 20",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d4e2"
+    ],
+    "solution_moves": [
+      "d4e2",
+      "g1h1",
+      "e2g3",
+      "f2g3",
+      "d8d2"
+    ],
+    "rating": 1303,
+    "source_url": "https://lichess.org/training/00Aas"
+  },
+  {
+    "id": "lichess-008D5",
+    "kind": "puzzle",
+    "fen": "r1bqk2r/pp3ppp/4p3/3pPn2/1b1P1P2/2N5/PP4PP/R1BQKB1R w KQkq - 3 10",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d1a4"
+    ],
+    "solution_moves": [
+      "d1a4",
+      "c8d7",
+      "a4b4"
+    ],
+    "rating": 1313,
+    "source_url": "https://lichess.org/training/008D5"
+  },
+  {
+    "id": "lichess-004kB",
+    "kind": "puzzle",
+    "fen": "4rr1k/p1Qn2pp/3p1q2/8/8/2P5/PP3PPP/RN3RK1 b - - 0 16",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f6f2"
+    ],
+    "solution_moves": [
+      "f6f2",
+      "f1f2",
+      "e8e1",
+      "f2f1",
+      "e1f1"
+    ],
+    "rating": 1324,
+    "source_url": "https://lichess.org/training/004kB"
+  },
+  {
+    "id": "lichess-00Ea3",
+    "kind": "puzzle",
+    "fen": "3r4/p5k1/1p1qpr1p/1Q1pn1p1/3P1pP1/1PP5/P5PP/4RRK1 w - - 0 30",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d4e5"
+    ],
+    "solution_moves": [
+      "d4e5",
+      "d6c5",
+      "b5c5",
+      "b6c5",
+      "e5f6"
+    ],
+    "rating": 1329,
+    "source_url": "https://lichess.org/training/00Ea3"
+  },
+  {
+    "id": "lichess-00GAf",
+    "kind": "puzzle",
+    "fen": "r5k1/5pp1/1p1rb1qp/3pR3/p1pP4/P1P3Q1/5PPN/4R1K1 w - - 2 31",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g3g6"
+    ],
+    "solution_moves": [
+      "g3g6",
+      "f7g6",
+      "e5e6",
+      "d6e6",
+      "e1e6"
+    ],
+    "rating": 1334,
+    "source_url": "https://lichess.org/training/00GAf"
+  },
+  {
+    "id": "lichess-002VP",
+    "kind": "puzzle",
+    "fen": "8/6p1/2B2n2/3b2k1/3B4/6K1/4P3/8 w - - 5 45",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d4f6"
+    ],
+    "solution_moves": [
+      "d4f6",
+      "g5f5",
+      "c6d5"
+    ],
+    "rating": 1368,
+    "source_url": "https://lichess.org/training/002VP"
+  },
+  {
+    "id": "lichess-00HoG",
+    "kind": "puzzle",
+    "fen": "5r1k/8/2b2rQp/1p1p2p1/1q4P1/8/8/1B3R1K w - - 0 37",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g6h7"
+    ],
+    "solution_moves": [
+      "g6h7"
+    ],
+    "rating": 1383,
+    "source_url": "https://lichess.org/training/00HoG"
+  },
+  {
+    "id": "lichess-00K8j",
+    "kind": "puzzle",
+    "fen": "r2q2kr/p1B2pp1/4b2p/n1Qn4/8/4P3/PP3PPP/2KR1BNR b - - 2 14",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d8c7"
+    ],
+    "solution_moves": [
+      "d8c7",
+      "c5c7",
+      "d5c7"
+    ],
+    "rating": 1428,
+    "source_url": "https://lichess.org/training/00K8j"
+  },
+  {
+    "id": "lichess-00LI0",
+    "kind": "puzzle",
+    "fen": "r2qk2r/pp1n1ppp/4pn2/3N2B1/1b1P4/4QN1P/PPb1BPP1/R4RK1 b kq - 0 12",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f6d5"
+    ],
+    "solution_moves": [
+      "f6d5",
+      "g5d8",
+      "d5e3"
+    ],
+    "rating": 1434,
+    "source_url": "https://lichess.org/training/00LI0"
+  },
+  {
+    "id": "lichess-001w5",
+    "kind": "puzzle",
+    "fen": "1rb3k1/q4rP1/4p2p/3p3p/3P1P2/2P5/2QK3P/3R2R1 w - - 1 30",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "c2h7"
+    ],
+    "solution_moves": [
+      "c2h7",
+      "g8h7",
+      "g7g8q"
+    ],
+    "rating": 1444,
+    "source_url": "https://lichess.org/training/001w5"
+  },
+  {
+    "id": "lichess-006wz",
+    "kind": "puzzle",
+    "fen": "2r5/4ppkp/6p1/1p6/1P6/P3B3/1br2PPP/1R1R2K1 w - - 3 23",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "b1b2"
+    ],
+    "solution_moves": [
+      "b1b2",
+      "c2b2",
+      "e3d4",
+      "f7f6",
+      "d4b2"
+    ],
+    "rating": 1444,
+    "source_url": "https://lichess.org/training/006wz"
+  },
+  {
+    "id": "lichess-009Os",
+    "kind": "puzzle",
+    "fen": "r2b2k1/1p3q1p/p2p4/3P2p1/2P1PR1r/6Q1/P2B3P/2R4K b - - 2 29",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "h4f4"
+    ],
+    "solution_moves": [
+      "h4f4",
+      "d2f4",
+      "f7f4",
+      "g3f4",
+      "g5f4"
+    ],
+    "rating": 1447,
+    "source_url": "https://lichess.org/training/009Os"
+  },
+  {
+    "id": "lichess-001wb",
+    "kind": "puzzle",
+    "fen": "r3k2r/pb1p1ppp/1b4q1/1Q2P3/8/2NP1PP1/PP4P1/R1B2R1K b kq - 0 17",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "g6h5"
+    ],
+    "solution_moves": [
+      "g6h5"
+    ],
+    "rating": 1480,
+    "source_url": "https://lichess.org/training/001wb"
+  },
+  {
+    "id": "lichess-00HEx",
+    "kind": "puzzle",
+    "fen": "R7/5pk1/4pn1p/8/3NP3/5P2/6PP/2rB2K1 b - - 0 31",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c1d1"
+    ],
+    "solution_moves": [
+      "c1d1",
+      "g1f2",
+      "d1d4"
+    ],
+    "rating": 1490,
+    "source_url": "https://lichess.org/training/00HEx"
+  },
+  {
+    "id": "lichess-002KJ",
+    "kind": "puzzle",
+    "fen": "r3k2r/ppq1bppp/4pn2/2Ppn3/1P4bP/2P2N2/P3BPP1/RNBQ1RK1 w kq - 3 11",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "f3e5"
+    ],
+    "solution_moves": [
+      "f3e5",
+      "c7e5",
+      "e2g4"
+    ],
+    "rating": 1499,
+    "source_url": "https://lichess.org/training/002KJ"
+  },
+  {
+    "id": "lichess-000mr",
+    "kind": "puzzle",
+    "fen": "5r1k/5rp1/p7/1b2B2p/1P1P1Pq1/2R3Q1/P3p1P1/2R3K1 b - - 1 41",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f7f4"
+    ],
+    "solution_moves": [
+      "f7f4",
+      "e5f4",
+      "f8f4"
+    ],
+    "rating": 1500,
+    "source_url": "https://lichess.org/training/000mr"
+  },
+  {
+    "id": "lichess-0068D",
+    "kind": "puzzle",
+    "fen": "7r/pppk4/2pN1r2/8/3P2p1/2P5/PP2RPP1/4R1K1 b - - 0 26",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f6h6"
+    ],
+    "solution_moves": [
+      "f6h6",
+      "f2f4",
+      "g4g3",
+      "e2e7",
+      "d7d6",
+      "g1f1",
+      "h6h1"
+    ],
+    "rating": 1500,
+    "source_url": "https://lichess.org/training/0068D"
+  },
+  {
+    "id": "lichess-00AdI",
+    "kind": "puzzle",
+    "fen": "3r4/4kp1p/1PQ1p1p1/p3b3/1p2P2P/1P5K/6P1/8 b - - 2 36",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d8d3"
+    ],
+    "solution_moves": [
+      "d8d3",
+      "g2g3",
+      "d3g3",
+      "h3h2",
+      "g3c3"
+    ],
+    "rating": 1500,
+    "source_url": "https://lichess.org/training/00AdI"
+  },
+  {
+    "id": "lichess-00N3B",
+    "kind": "puzzle",
+    "fen": "r4rk1/1bb2ppp/p1n1p3/4P3/Np1q4/1B2NP2/1P4PP/2RQ1RK1 w - - 0 21",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d1d4"
+    ],
+    "solution_moves": [
+      "d1d4",
+      "c6d4",
+      "c1c7",
+      "d4b3",
+      "c7b7"
+    ],
+    "rating": 1500,
+    "source_url": "https://lichess.org/training/00N3B"
+  },
+  {
+    "id": "lichess-00HzX",
+    "kind": "puzzle",
+    "fen": "4r1k1/5pp1/7R/1p6/8/1PP3QP/2q2PP1/6K1 b - - 0 29",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c2c1"
+    ],
+    "solution_moves": [
+      "c2c1",
+      "g1h2",
+      "c1h6"
+    ],
+    "rating": 1545,
+    "source_url": "https://lichess.org/training/00HzX"
+  },
+  {
+    "id": "lichess-004d8",
+    "kind": "puzzle",
+    "fen": "8/4kr2/R2p4/1p1Pp3/5pp1/3K1P2/PPP5/8 w - - 0 40",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "a6a7"
+    ],
+    "solution_moves": [
+      "a6a7",
+      "e7f6",
+      "a7f7",
+      "f6f7",
+      "f3g4"
+    ],
+    "rating": 1560,
+    "source_url": "https://lichess.org/training/004d8"
+  },
+  {
+    "id": "lichess-000Zo",
+    "kind": "puzzle",
+    "fen": "4r3/1k6/pp3P2/1b5p/3R1p2/P1R2P2/1P4PP/6K1 b - - 0 35",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e8e1"
+    ],
+    "solution_moves": [
+      "e8e1",
+      "g1f2",
+      "e1f1"
+    ],
+    "rating": 1564,
+    "source_url": "https://lichess.org/training/000Zo"
+  },
+  {
+    "id": "lichess-007AS",
+    "kind": "puzzle",
+    "fen": "1r2kb1r/3nnpp1/4p1bp/1NppP3/3P4/6N1/P2BBPPP/R3K2R w KQk - 1 18",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "b5d6"
+    ],
+    "solution_moves": [
+      "b5d6",
+      "e8d8",
+      "d2a5"
+    ],
+    "rating": 1569,
+    "source_url": "https://lichess.org/training/007AS"
+  },
+  {
+    "id": "lichess-00NUc",
+    "kind": "puzzle",
+    "fen": "6k1/2P3pp/1P6/4b3/3p4/Br5P/4prP1/R5RK b - - 0 30",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b3h3"
+    ],
+    "solution_moves": [
+      "b3h3",
+      "g2h3",
+      "f2h2"
+    ],
+    "rating": 1578,
+    "source_url": "https://lichess.org/training/00NUc"
+  },
+  {
+    "id": "lichess-00Nf5",
+    "kind": "puzzle",
+    "fen": "r1bq1rk1/pp2bppp/2pp1n2/8/5P2/2N2N2/PBPPB1PP/R2Q1RK1 b - - 6 11",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d8b6"
+    ],
+    "solution_moves": [
+      "d8b6",
+      "g1h1",
+      "b6b2",
+      "a1b1",
+      "b2a3"
+    ],
+    "rating": 1606,
+    "source_url": "https://lichess.org/training/00Nf5"
+  },
+  {
+    "id": "lichess-003IX",
+    "kind": "puzzle",
+    "fen": "8/3pk3/R7/1R2PK1p/2PPn1r1/8/8/8 b - - 0 43",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e4g3"
+    ],
+    "solution_moves": [
+      "e4g3"
+    ],
+    "rating": 1636,
+    "source_url": "https://lichess.org/training/003IX"
+  },
+  {
+    "id": "lichess-008LT",
+    "kind": "puzzle",
+    "fen": "r4r1k/6p1/b3p1nN/p1pp4/1p3P1q/3P1Q1B/PPP2PK1/R6R w - - 1 27",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "h6f7"
+    ],
+    "solution_moves": [
+      "h6f7",
+      "f8f7",
+      "h3e6"
+    ],
+    "rating": 1645,
+    "source_url": "https://lichess.org/training/008LT"
+  },
+  {
+    "id": "lichess-00IF7",
+    "kind": "puzzle",
+    "fen": "b3k2r/4bpp1/2q1p2p/1p1nP3/1Pp1N3/2P1B3/2B2PPP/3QR1K1 b k - 1 19",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d5c3"
+    ],
+    "solution_moves": [
+      "d5c3",
+      "d1g4",
+      "c3e4"
+    ],
+    "rating": 1666,
+    "source_url": "https://lichess.org/training/00IF7"
+  },
+  {
+    "id": "lichess-00IpT",
+    "kind": "puzzle",
+    "fen": "r1b4r/pppkn2p/3pNQ2/8/2BpP2p/8/PPPq2PP/R5K1 w - - 3 22",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "f6h8"
+    ],
+    "solution_moves": [
+      "f6h8",
+      "d7c6",
+      "h8e8"
+    ],
+    "rating": 1686,
+    "source_url": "https://lichess.org/training/00IpT"
+  },
+  {
+    "id": "lichess-004BW",
+    "kind": "puzzle",
+    "fen": "r1bk2r1/ppq2NQp/3bpn2/1Bpn4/5P2/1P6/PBPP2PP/RN2K2R b KQ - 0 13",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d8e7"
+    ],
+    "solution_moves": [
+      "d8e7",
+      "g7g8",
+      "f6g8"
+    ],
+    "rating": 1696,
+    "source_url": "https://lichess.org/training/004BW"
+  },
+  {
+    "id": "lichess-00JFF",
+    "kind": "puzzle",
+    "fen": "4r1k1/ppqb4/6p1/3pb2Q/8/2P5/PP1B2PP/5RK1 w - - 0 21",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "h5g6"
+    ],
+    "solution_moves": [
+      "h5g6",
+      "e5g7",
+      "f1f7",
+      "c7c5",
+      "g1h1",
+      "c5f8",
+      "f7f8"
+    ],
+    "rating": 1700,
+    "source_url": "https://lichess.org/training/00JFF"
+  },
+  {
+    "id": "lichess-00JYV",
+    "kind": "puzzle",
+    "fen": "r2q1rk1/p1p1bppp/2pp2b1/4p3/4n1PN/2NP3P/PPP2PK1/R1BQ1R2 w - - 0 12",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "h4g6"
+    ],
+    "solution_moves": [
+      "h4g6",
+      "e4c3",
+      "g6e7",
+      "d8e7",
+      "b2c3"
+    ],
+    "rating": 1704,
+    "source_url": "https://lichess.org/training/00JYV"
+  },
+  {
+    "id": "lichess-00Lyc",
+    "kind": "puzzle",
+    "fen": "4R3/1p4k1/1q3bpp/3B4/4Np1P/p4P2/3RK1P1/8 b - - 5 42",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b6b5"
+    ],
+    "solution_moves": [
+      "b6b5",
+      "d2d3",
+      "b5e8"
+    ],
+    "rating": 1711,
+    "source_url": "https://lichess.org/training/00Lyc"
+  },
+  {
+    "id": "lichess-00B7G",
+    "kind": "puzzle",
+    "fen": "1rb2r1k/4q2p/p2p4/3B1p2/1pPb4/1P2NQ2/P5PP/2R2R1K b - - 2 24",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e7e3"
+    ],
+    "solution_moves": [
+      "e7e3",
+      "f3e3",
+      "d4e3"
+    ],
+    "rating": 1714,
+    "source_url": "https://lichess.org/training/00B7G"
+  },
+  {
+    "id": "lichess-00LH7",
+    "kind": "puzzle",
+    "fen": "6k1/6Bp/3q2pP/5p2/p2PnQ2/2r5/P5PK/4R3 w - - 2 40",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e1e4"
+    ],
+    "solution_moves": [
+      "e1e4",
+      "d6f4",
+      "e4f4"
+    ],
+    "rating": 1757,
+    "source_url": "https://lichess.org/training/00LH7"
+  },
+  {
+    "id": "lichess-00DkJ",
+    "kind": "puzzle",
+    "fen": "3r1bnr/2p2ppp/2bk4/R7/5P2/2N5/4N1PP/1R4K1 w - - 4 22",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "b1d1"
+    ],
+    "solution_moves": [
+      "b1d1",
+      "d6e7",
+      "a5e5",
+      "e7f6",
+      "d1d8"
+    ],
+    "rating": 1758,
+    "source_url": "https://lichess.org/training/00DkJ"
+  },
+  {
+    "id": "lichess-002Ua",
+    "kind": "puzzle",
+    "fen": "r4rk1/pp3ppp/3p1q2/P1P1p3/2B5/2B2n2/2P2P1P/R2Q1R1K b - - 1 16",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f6f4"
+    ],
+    "solution_moves": [
+      "f6f4",
+      "d1f3",
+      "f4f3"
+    ],
+    "rating": 1782,
+    "source_url": "https://lichess.org/training/002Ua"
+  },
+  {
+    "id": "lichess-001XA",
+    "kind": "puzzle",
+    "fen": "2r2rk1/pbq1bppp/8/8/2p1N3/P1Bn2P1/2Q2PBP/1R3RK1 w - - 4 24",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "b1b7"
+    ],
+    "solution_moves": [
+      "b1b7",
+      "c7b7",
+      "e4f6",
+      "e7f6",
+      "g2b7"
+    ],
+    "rating": 1787,
+    "source_url": "https://lichess.org/training/001XA"
+  },
+  {
+    "id": "lichess-004RF",
+    "kind": "puzzle",
+    "fen": "5rk1/5ppp/1p6/1q3P1Q/2pp3P/6R1/6PK/8 w - - 0 31",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g3g7"
+    ],
+    "solution_moves": [
+      "g3g7",
+      "g8g7",
+      "f5f6",
+      "g7f6",
+      "h5b5"
+    ],
+    "rating": 1788,
+    "source_url": "https://lichess.org/training/004RF"
+  },
+  {
+    "id": "lichess-005wy",
+    "kind": "puzzle",
+    "fen": "1r6/pp2kppQ/2n1p1n1/3p2P1/5P2/2PqP3/PP1N4/2KR3R b - - 4 27",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c6b4"
+    ],
+    "solution_moves": [
+      "c6b4",
+      "c3b4",
+      "b8c8",
+      "d2c4",
+      "c8c4"
+    ],
+    "rating": 1815,
+    "source_url": "https://lichess.org/training/005wy"
+  },
+  {
+    "id": "lichess-00Knu",
+    "kind": "puzzle",
+    "fen": "r2q1rk1/p3bpp1/2pp2b1/4p1Q1/4n3/1B3N1P/PPP3P1/R1B2RK1 w - - 1 19",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g5g6"
+    ],
+    "solution_moves": [
+      "g5g6",
+      "d8b6",
+      "g1h2"
+    ],
+    "rating": 1824,
+    "source_url": "https://lichess.org/training/00Knu"
+  },
+  {
+    "id": "lichess-002rd",
+    "kind": "puzzle",
+    "fen": "r6k/q1p2p1p/1b2bPr1/p1ppP2Q/3P2p1/4B3/PP2NRPP/3R2K1 w - - 2 26",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e2f4"
+    ],
+    "solution_moves": [
+      "e2f4",
+      "c5d4",
+      "f4g6",
+      "f7g6",
+      "h5h6"
+    ],
+    "rating": 1829,
+    "source_url": "https://lichess.org/training/002rd"
+  },
+  {
+    "id": "lichess-00LoE",
+    "kind": "puzzle",
+    "fen": "2k5/1p4p1/p4b2/3N4/3P4/2PQ4/PP3q2/1K6 b - - 0 37",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f2g1"
+    ],
+    "solution_moves": [
+      "f2g1",
+      "b1c2",
+      "g1g2"
+    ],
+    "rating": 1868,
+    "source_url": "https://lichess.org/training/00LoE"
+  },
+  {
+    "id": "lichess-006om",
+    "kind": "puzzle",
+    "fen": "1r3k2/5p1p/2p1pp2/P2n4/r3N3/P4PK1/2R2P1P/2R5 w - - 10 30",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e4c5"
+    ],
+    "solution_moves": [
+      "e4c5",
+      "a4a5",
+      "c5d7",
+      "f8g7",
+      "d7b8"
+    ],
+    "rating": 1881,
+    "source_url": "https://lichess.org/training/006om"
+  },
+  {
+    "id": "lichess-00C3O",
+    "kind": "puzzle",
+    "fen": "r2qkbnr/pp4pp/2p2p2/4n2b/2B1P3/2N2N2/PPP1Q1PP/R1B2RK1 b kq - 1 10",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "h5f3"
+    ],
+    "solution_moves": [
+      "h5f3",
+      "g2f3",
+      "d8d4"
+    ],
+    "rating": 1924,
+    "source_url": "https://lichess.org/training/00C3O"
+  },
+  {
+    "id": "lichess-005xu",
+    "kind": "puzzle",
+    "fen": "6r1/3k4/1K1P4/2P5/R7/5b2/8/8 w - - 1 69",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "a4a7"
+    ],
+    "solution_moves": [
+      "a4a7",
+      "d7e6",
+      "a7e7",
+      "e6d5",
+      "d6d7"
+    ],
+    "rating": 1930,
+    "source_url": "https://lichess.org/training/005xu"
+  },
+  {
+    "id": "lichess-00FF5",
+    "kind": "puzzle",
+    "fen": "r3k3/ppp2p2/1b1p3p/4p2r/2B1P1bq/P1PP1P2/1P4PQ/RN3R1K w q - 3 19",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "c4f7"
+    ],
+    "solution_moves": [
+      "c4f7",
+      "e8e7",
+      "f7h5"
+    ],
+    "rating": 1993,
+    "source_url": "https://lichess.org/training/00FF5"
+  },
+  {
+    "id": "lichess-001xO",
+    "kind": "puzzle",
+    "fen": "k1r1b3/p1r1nppp/Bp1qpn2/2Np4/1P1P4/PQR1PN2/5PPP/2R3K1 b - - 1 19",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b6c5"
+    ],
+    "solution_moves": [
+      "b6c5",
+      "a6c8",
+      "c5c4"
+    ],
+    "rating": 2011,
+    "source_url": "https://lichess.org/training/001xO"
+  },
+  {
+    "id": "lichess-0092V",
+    "kind": "puzzle",
+    "fen": "r2qk1nr/ppp3pp/2n5/1B1p4/1b1Pp3/5Q1P/PP1B1PP1/RN2K2R w KQkq - 0 12",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "b5c6"
+    ],
+    "solution_moves": [
+      "b5c6",
+      "b7c6",
+      "f3h5",
+      "g7g6",
+      "h5e5"
+    ],
+    "rating": 2074,
+    "source_url": "https://lichess.org/training/0092V"
+  },
+  {
+    "id": "lichess-0055Y",
+    "kind": "puzzle",
+    "fen": "r1b2rk1/p3pp2/2B5/2Qpq3/3N2pp/4b3/2P2PPP/1R2K2R w K - 0 24",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "f2e3"
+    ],
+    "solution_moves": [
+      "f2e3",
+      "e5e3",
+      "e1d1"
+    ],
+    "rating": 2089,
+    "source_url": "https://lichess.org/training/0055Y"
+  },
+  {
+    "id": "lichess-00NGM",
+    "kind": "puzzle",
+    "fen": "3k1rr1/R2b3Q/2pqp3/8/N2P4/8/5PB1/R4K2 b - - 0 34",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f8f2"
+    ],
+    "solution_moves": [
+      "f8f2",
+      "f1e1",
+      "d6b4",
+      "a4c3",
+      "b4c3",
+      "e1f2",
+      "c3d4",
+      "f2f1",
+      "g8f8"
+    ],
+    "rating": 2107,
+    "source_url": "https://lichess.org/training/00NGM"
+  },
+  {
+    "id": "lichess-00IFk",
+    "kind": "puzzle",
+    "fen": "r1b4r/ppk2ppp/2p5/6B1/2P5/2n3P1/P1P1B2P/2KR3R w - - 1 17",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g5f4"
+    ],
+    "solution_moves": [
+      "g5f4",
+      "c7b6",
+      "c4c5",
+      "b6c5",
+      "f4e3"
+    ],
+    "rating": 2118,
+    "source_url": "https://lichess.org/training/00IFk"
+  },
+  {
+    "id": "lichess-004Op",
+    "kind": "puzzle",
+    "fen": "2kr2r1/1bp4n/1pq1p2p/p1P5/1P3B2/P6P/5RP1/RB3QK1 b - - 4 26",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d8d1"
+    ],
+    "solution_moves": [
+      "d8d1",
+      "f1d1",
+      "g8g2",
+      "g1f1",
+      "g2g1",
+      "f1e2",
+      "g1d1"
+    ],
+    "rating": 2136,
+    "source_url": "https://lichess.org/training/004Op"
+  },
+  {
+    "id": "lichess-00Kd8",
+    "kind": "puzzle",
+    "fen": "3R4/3P4/8/5p2/5kPp/8/3r2P1/6K1 b - - 2 64",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f4g3"
+    ],
+    "solution_moves": [
+      "f4g3",
+      "g1f1",
+      "f5g4"
+    ],
+    "rating": 2150,
+    "source_url": "https://lichess.org/training/00Kd8"
+  },
+  {
+    "id": "lichess-00LBF",
+    "kind": "puzzle",
+    "fen": "3r2k1/1b1q1pb1/pp4p1/3rp3/3R2P1/2P2NBP/PP2Q2K/3R4 w - - 1 34",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d4d5"
+    ],
+    "solution_moves": [
+      "d4d5",
+      "b7d5",
+      "c3c4"
+    ],
+    "rating": 2175,
+    "source_url": "https://lichess.org/training/00LBF"
+  },
+  {
+    "id": "lichess-00LZf",
+    "kind": "puzzle",
+    "fen": "r1b1kb1r/pppp1ppp/2n1p3/4N3/3P2q1/4n3/PPP1BPPP/RN1Q1RK1 w kq - 0 9",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "f2e3"
+    ],
+    "solution_moves": [
+      "f2e3",
+      "g4g5",
+      "e5f7",
+      "g5e3",
+      "g1h1"
+    ],
+    "rating": 2205,
+    "source_url": "https://lichess.org/training/00LZf"
+  },
+  {
+    "id": "lichess-004Ys",
+    "kind": "puzzle",
+    "fen": "r4rk1/5pbp/p1n1p1p1/2p3NP/1p1q1B2/3P3Q/PPP3P1/R3R1K1 w - - 3 20",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "f4e3"
+    ],
+    "solution_moves": [
+      "f4e3",
+      "d4f6",
+      "e1f1",
+      "f6e5",
+      "h5g6",
+      "e5e3",
+      "h3e3"
+    ],
+    "rating": 2233,
+    "source_url": "https://lichess.org/training/004Ys"
+  },
+  {
+    "id": "lichess-00FHO",
+    "kind": "puzzle",
+    "fen": "8/1pp5/p2p3p/3P1Pk1/P5P1/1P3K1R/8/2r5 b - - 2 39",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c1c3"
+    ],
+    "solution_moves": [
+      "c1c3",
+      "f3g2",
+      "c3h3",
+      "g2h3",
+      "h6h5",
+      "g4h5",
+      "g5h5"
+    ],
+    "rating": 2233,
+    "source_url": "https://lichess.org/training/00FHO"
+  },
+  {
+    "id": "lichess-00GWg",
+    "kind": "puzzle",
+    "fen": "1r1r2k1/pN4pp/2n1b3/2R2p2/2P1p3/8/P4PPP/3BR1K1 b - - 0 26",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "b8b7"
+    ],
+    "solution_moves": [
+      "b8b7",
+      "c5c6",
+      "b7b1",
+      "g1f1",
+      "d8d1",
+      "e1d1",
+      "b1d1",
+      "f1e2",
+      "e6d7"
+    ],
+    "rating": 2243,
+    "source_url": "https://lichess.org/training/00GWg"
+  },
+  {
+    "id": "lichess-00KYC",
+    "kind": "puzzle",
+    "fen": "5rk1/pR5p/2r1pBp1/4P3/2b5/3p4/P4PPP/4R1K1 b - - 1 27",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "f8f6"
+    ],
+    "solution_moves": [
+      "f8f6",
+      "e5f6",
+      "d3d2",
+      "e1d1",
+      "c4e2"
+    ],
+    "rating": 2243,
+    "source_url": "https://lichess.org/training/00KYC"
+  },
+  {
+    "id": "lichess-00MHi",
+    "kind": "puzzle",
+    "fen": "8/8/5pp1/5k1p/5P1P/6P1/2r1R3/5K2 b - - 1 43",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c2e2"
+    ],
+    "solution_moves": [
+      "c2e2",
+      "f1e2",
+      "f5g4",
+      "e2f2",
+      "g4h3"
+    ],
+    "rating": 2248,
+    "source_url": "https://lichess.org/training/00MHi"
+  },
+  {
+    "id": "lichess-00M7w",
+    "kind": "puzzle",
+    "fen": "r1b1k2r/ppp3pp/2n2p2/2bBp3/2Pq4/3P1QP1/P2B1P1P/1R2K1NR w Kkq - 0 13",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "g1e2"
+    ],
+    "solution_moves": [
+      "g1e2",
+      "d4f2",
+      "f3f2",
+      "c5f2",
+      "e1f2"
+    ],
+    "rating": 2274,
+    "source_url": "https://lichess.org/training/00M7w"
+  },
+  {
+    "id": "lichess-006NL",
+    "kind": "puzzle",
+    "fen": "1r6/k2qn1b1/p1N1p1p1/2PpPpN1/2n2P1P/p4B2/1PP2Q2/1K1R3R b - - 0 32",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "e7c6"
+    ],
+    "solution_moves": [
+      "e7c6",
+      "b2b3",
+      "a3a2",
+      "b1a1",
+      "c4e5",
+      "f4e5",
+      "g7e5",
+      "a1a2",
+      "b8b5"
+    ],
+    "rating": 2279,
+    "source_url": "https://lichess.org/training/006NL"
+  },
+  {
+    "id": "lichess-00LRq",
+    "kind": "puzzle",
+    "fen": "1k6/1p1q2r1/P2p3p/1NpPpn1Q/5b2/2P5/1P2B1P1/R6K w - - 4 29",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "a6a7"
+    ],
+    "solution_moves": [
+      "a6a7",
+      "b8a8",
+      "b5c7",
+      "d7c7",
+      "h5e8",
+      "c7b8",
+      "a7b8q"
+    ],
+    "rating": 2291,
+    "source_url": "https://lichess.org/training/00LRq"
+  },
+  {
+    "id": "lichess-00EJb",
+    "kind": "puzzle",
+    "fen": "6k1/5pp1/2R1p2p/8/P1B5/1P4P1/1q3QKP/3r4 b - - 2 35",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d1d2"
+    ],
+    "solution_moves": [
+      "d1d2",
+      "c6c8",
+      "g8h7",
+      "c4d3",
+      "f7f5",
+      "c8c2",
+      "d2f2"
+    ],
+    "rating": 2341,
+    "source_url": "https://lichess.org/training/00EJb"
+  },
+  {
+    "id": "lichess-00H2L",
+    "kind": "puzzle",
+    "fen": "8/8/2p2p2/p4P1p/Pk5P/3K2P1/8/8 b - - 2 39",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "c6c5"
+    ],
+    "solution_moves": [
+      "c6c5",
+      "d3e2",
+      "c5c4",
+      "g3g4",
+      "h5g4"
+    ],
+    "rating": 2351,
+    "source_url": "https://lichess.org/training/00H2L"
+  },
+  {
+    "id": "lichess-00BKa",
+    "kind": "puzzle",
+    "fen": "2r3k1/p1Rb1ppp/2n1pn2/8/8/2P3P1/q4PBP/1rNQK2R w K - 3 17",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "c7c8"
+    ],
+    "solution_moves": [
+      "c7c8",
+      "d7c8",
+      "c1a2",
+      "b1d1",
+      "e1d1"
+    ],
+    "rating": 2403,
+    "source_url": "https://lichess.org/training/00BKa"
+  },
+  {
+    "id": "lichess-00D12",
+    "kind": "puzzle",
+    "fen": "8/6pp/8/3kP3/1p1P2P1/1rpK3P/4R3/8 w - - 0 40",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "e5e6"
+    ],
+    "solution_moves": [
+      "e5e6",
+      "c3c2",
+      "d3c2",
+      "b3c3",
+      "c2d2"
+    ],
+    "rating": 2415,
+    "source_url": "https://lichess.org/training/00D12"
+  },
+  {
+    "id": "lichess-00Ns0",
+    "kind": "puzzle",
+    "fen": "r2qr1k1/pn1p2pp/bp3R2/2p1N3/2P5/1PB3Q1/P1P3PP/R5K1 b - - 0 18",
+    "instruction": "Black to move: find the best continuation.",
+    "accepted_moves": [
+      "d8f6"
+    ],
+    "solution_moves": [
+      "d8f6",
+      "a1f1",
+      "f6h6",
+      "e5g4",
+      "h6g6",
+      "c3g7",
+      "e8e4",
+      "g4f6",
+      "g8g7"
+    ],
+    "rating": 2539,
+    "source_url": "https://lichess.org/training/00Ns0"
+  },
+  {
+    "id": "lichess-00Mei",
+    "kind": "puzzle",
+    "fen": "8/6rk/6p1/1R5p/2pQ1P2/2Pb2P1/qP4PK/8 w - - 1 37",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "d4d8"
+    ],
+    "solution_moves": [
+      "d4d8",
+      "a2a7",
+      "b5b8",
+      "a7b8",
+      "d8b8"
+    ],
+    "rating": 2567,
+    "source_url": "https://lichess.org/training/00Mei"
+  },
+  {
+    "id": "lichess-00KNB",
+    "kind": "puzzle",
+    "fen": "3r2k1/2r2p2/4p2p/4N1pQ/1p3P2/4P3/np3P1P/2q2BRK w - - 2 33",
+    "instruction": "White to move: find the best continuation.",
+    "accepted_moves": [
+      "h5h6"
+    ],
+    "solution_moves": [
+      "h5h6",
+      "b2b1q",
+      "h6g5"
+    ],
+    "rating": 2627,
+    "source_url": "https://lichess.org/training/00KNB"
   }
 ]
