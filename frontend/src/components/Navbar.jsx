@@ -42,6 +42,8 @@ export default function Navbar({ theme, onToggleTheme }) {
               Reload
             </button>
             {user?.username && <span className="nav-user">{user.username}</span>}
+            <Link to="/lessons">Lessons</Link>
+            <Link to="/puzzles">Puzzles</Link>
             <Link to="/history">History</Link>
             <button type="button" onClick={handleLogout}>Logout</button>
           </>

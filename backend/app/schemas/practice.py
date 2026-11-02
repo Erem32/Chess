@@ -19,3 +19,9 @@ class PracticeAttemptResponse(BaseModel):
     result: Literal["illegal", "incorrect", "correct"]
     fen: str
     feedback: str | None = None
+
+
+class PuzzleSolutionResponse(BaseModel):
+    move_uci: str
+    fen: str
+    explanation: str | None = None

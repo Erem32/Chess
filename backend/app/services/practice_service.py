@@ -2,11 +2,12 @@
 
 import json
 from pathlib import Path
+from typing import Literal
 
 import chess
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
-from app.schemas.practice import PracticeAttemptResponse, PracticeExerciseRead
+from app.schemas.practice import PracticeAttemptResponse, PracticeExerciseRead, PuzzleSolutionResponse
 from app.services.chess_service import IllegalMoveError, apply_uci_move
 
 
@@ -19,11 +20,13 @@ class PracticeExercise(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    kind: Literal["lesson", "puzzle"] = "lesson"
     fen: str
     instruction: str = Field(min_length=1)
     accepted_moves: list[str] = Field(min_length=1)
     correct_feedback: str | None = None
     incorrect_feedback: str | None = None
+    explanation: str | None = None
 
     @model_validator(mode="after")
     def validate_position_and_answers(self) -> "PracticeExercise":
@@ -54,8 +57,11 @@ def load_exercises() -> list[PracticeExercise]:
     return definitions
 
 
-def list_exercises() -> list[PracticeExerciseRead]:
-    return [PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction) for item in load_exercises()]
+def list_exercises(kind: str | None = None) -> list[PracticeExerciseRead]:
+    return [
+        PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction)
+        for item in load_exercises() if kind is None or item.kind == kind
+    ]
 
 
 def find_exercise(exercise_id: str) -> PracticeExercise | None:
@@ -70,3 +76,9 @@ def check_attempt(exercise: PracticeExercise, move_uci: str) -> PracticeAttemptR
     if move_uci not in exercise.accepted_moves:
         return PracticeAttemptResponse(result="incorrect", fen=exercise.fen, feedback=exercise.incorrect_feedback)
     return PracticeAttemptResponse(result="correct", fen=str(move["fen"]), feedback=exercise.correct_feedback)
+
+
+def puzzle_solution(exercise: PracticeExercise) -> PuzzleSolutionResponse:
+    move_uci = exercise.accepted_moves[0]
+    move = apply_uci_move(exercise.fen, move_uci)
+    return PuzzleSolutionResponse(move_uci=move_uci, fen=str(move["fen"]), explanation=exercise.explanation)
