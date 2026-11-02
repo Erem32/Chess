@@ -101,4 +101,4 @@ Initial page requests use quiet, space-reserving placeholders. The Play dashboar
 
 Board-focused screens size their boards to the available viewport height and retain scrolling for longer content or very small screens.
 
-The history page uses the paginated history API, displays each opponent and result, and links to the existing game screen; it does not provide move replay.
+The history page uses the paginated history API, displays each opponent and result, and links to the existing game screen; its list scrolls independently, and it does not provide move replay. The shared `PageHeader` keeps top-level page headings consistent.

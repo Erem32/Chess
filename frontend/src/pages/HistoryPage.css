@@ -1,11 +1,18 @@
-.history-page .study-header { margin-bottom: 1.5rem; }
-.history-archive { background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: 12px; overflow: hidden; }
-.history-archive-header { align-items: center; border-bottom: 1px solid var(--color-border); display: flex; gap: 1rem; justify-content: space-between; padding: 1.15rem 1.3rem; }
+.history-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 68px - 2.25rem);
+  min-height: 0;
+  padding: 0 0 0.5rem;
+}
+.history-page .study-header { flex: 0 0 auto; margin-bottom: 0.85rem; }
+.history-archive { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 10rem; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: 12px; overflow: hidden; }
+.history-archive-header { flex: 0 0 auto; align-items: center; border-bottom: 1px solid var(--color-border); display: flex; gap: 1rem; justify-content: space-between; padding: 1.15rem 1.3rem; }
 .history-archive-header h2 { color: var(--color-text-strong); font-size: 1rem; margin: 0; }
 .history-archive-header span { font-size: 0.85rem; }
 .history-archive > .error, .history-archive > .loading-rows { margin: 1rem 1.3rem; }
 .history-archive > button { margin: 0 1.3rem 1rem; }
-.history-archive .history-list { display: block; max-height: none; }
+.history-archive .history-list { display: block; flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; }
 .history-archive .history-row { align-items: center; border-bottom: 1px solid var(--color-border); display: grid; gap: 0.9rem; grid-template-columns: 48px minmax(120px, 1fr) minmax(140px, 1fr) minmax(190px, 1.2fr) auto; padding: 1rem 1.3rem; }
 .history-archive .history-row:last-child { border-bottom: 0; padding-bottom: 1rem; }
 .history-game-icon, .history-empty-icon { align-items: center; background: color-mix(in srgb, var(--color-link) 13%, var(--color-bg-surface-muted)); border-radius: 9px; color: var(--color-text-strong); display: inline-flex; height: 48px; justify-content: center; font-size: 1.9rem; width: 48px; }
@@ -16,8 +23,8 @@
 .history-archive .history-status { font-size: 0.87rem; overflow-wrap: anywhere; }
 .history-open, .history-empty-link { align-items: center; color: var(--color-link); display: inline-flex; font-size: 0.9rem; font-weight: 600; gap: 0.25rem; }
 .history-open svg, .history-empty-link svg { height: 16px; width: 16px; }
-.history-more { border-top: 1px solid var(--color-border); padding: 1rem 1.3rem; text-align: center; }
-.history-empty { align-items: center; display: flex; flex-direction: column; gap: 0.65rem; padding: 3rem 1.3rem; text-align: center; }
+.history-more { flex: 0 0 auto; border-top: 1px solid var(--color-border); padding: 1rem 1.3rem; text-align: center; }
+.history-empty { flex: 1 1 auto; justify-content: center; align-items: center; display: flex; flex-direction: column; gap: 0.65rem; padding: 3rem 1.3rem; text-align: center; }
 .history-empty h3, .history-empty p { margin: 0; }
 @media (max-width: 900px) {
   .history-archive .history-row { grid-template-columns: 48px minmax(0, 1fr) auto; }
@@ -29,4 +36,21 @@
   .history-archive-header, .history-archive .history-row { padding: 0.9rem; }
   .history-archive .history-row { column-gap: 0.65rem; }
   .history-game-details { font-size: 0.8rem; }
+}
+
+@media (max-width: 820px) {
+  .history-page { height: calc(100dvh - 68px - 1.5rem); }
+}
+/* Let the actual navigation height determine the space available to history. */
+@supports selector(:has(*)) {
+  .app-shell:has(.history-page) { display: flex; flex-direction: column; height: 100dvh; min-height: 0; }
+  .app-shell:has(.history-page) > .navbar { flex: 0 0 auto; }
+  .app-shell:has(.history-page) > .page { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; width: 100%; }
+  .history-page { flex: 1 1 auto; height: auto; min-height: 0; }
+}
+
+@media (max-height: 600px) {
+  .history-archive-header { padding: 0.6rem 0.9rem; }
+  .history-more { padding: 0.5rem 0.9rem; }
+  .history-more button { padding: 0.5rem 0.8rem; }
 }

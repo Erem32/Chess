@@ -11,11 +11,12 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
     let games = [];
+    let nextBeforeId = null;
     let failHistory = true;
     await page.route('**/api/v1/**', async (route) => {
       const path = new URL(route.request().url()).pathname;
       if (path === '/api/v1/users/me') return route.fulfill({ json: { id: 1, username: 'learner' } });
-      if (path === '/api/v1/games/my-history') return failHistory ? route.fulfill({ status: 503, json: { detail: 'Unavailable' } }) : route.fulfill({ json: { games, next_before_id: null } });
+      if (path === '/api/v1/games/my-history') return failHistory ? route.fulfill({ status: 503, json: { detail: 'Unavailable' } }) : route.fulfill({ json: { games, next_before_id: nextBeforeId } });
       return route.fulfill({ status: 404 });
     });
     await page.goto(`${baseURL}/history`);
@@ -39,6 +40,22 @@ if (!baseURL || !chromePath) throw new Error('Set CHESS_E2E_FRONTEND_URL and CHR
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.equal(await page.getByRole('link', { name: 'Open game 10' }).isVisible(), true);
+    games = [...games, ...Array.from({ length: 10 }, (_, index) => ({ ...games[1], id: 20 + index }))];
+    nextBeforeId = 1;
+    await page.evaluate(() => localStorage.setItem('text_size', 'larger'));
+    await page.reload();
+    await page.getByText('vs rival').waitFor();
+    for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 1280, height: 720 }]) {
+      await page.setViewportSize(viewport);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+      const list = page.locator('.history-list');
+      assert.ok(await list.evaluate((element) => element.scrollHeight > element.clientHeight));
+      await list.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+      assert.ok(await list.evaluate((element) => element.scrollTop > 0));
+      const more = await page.getByRole('button', { name: 'Load more' }).boundingBox();
+      const archive = await page.locator('.history-archive').boundingBox();
+      assert.ok(more && more.y >= archive.y && more.y + more.height <= archive.y + archive.height, 'Load more must remain fully visible');
+    }
     await page.getByRole('link', { name: 'Open game 10' }).click();
     await page.waitForURL('**/games/10');
     console.log('History interface states and navigation passed.');

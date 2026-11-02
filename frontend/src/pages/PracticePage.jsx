@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { submitAttempt } from "../api/practice.js";
 import ChessBoard from "../components/ChessBoard.jsx";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
-import StudyHeader from "../components/StudyHeader.jsx";
+import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
 
@@ -81,7 +81,7 @@ export default function PracticePage({ title, singular, loadExercises, revealSol
 
   return (
     <section className={`study-page${selected ? " study-page--detail" : ""}`}>
-      <StudyHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Get to know the pieces, one move at a time." : "Find the right move in each position."} />
+      <PageHeader eyebrow="LEARN & PRACTISE" title={title} description={singular === "Lesson" ? "Get to know the pieces, one move at a time." : "Find the right move in each position."} />
       {error && <p className="error" role="alert">{error}</p>}
       {error && lessons === null && <button type="button" onClick={() => setLoadAttempt((value) => value + 1)}>Retry loading</button>}
       {lessons === null && !error && <LoadingPlaceholder variant="cards" count={singular === "Lesson" ? 6 : 3} label={`Loading ${title.toLowerCase()}`} />}

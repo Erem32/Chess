@@ -1,4 +1,6 @@
 import { useState } from "react";
+import PageHeader from "../components/PageHeader.jsx";
+import "./LessonsPage.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { loginUser } from "../api/auth.js";
@@ -39,11 +41,7 @@ export default function LoginPage() {
 
   return (
     <section className="auth-page">
-      <header className="auth-header">
-        <p className="auth-eyebrow">Online chess</p>
-        <h1>Login</h1>
-        <p>Welcome back. Your next game awaits.</p>
-      </header>
+      <PageHeader eyebrow="Online chess" title="Login" description="Welcome back. Your next game awaits." showBack={false} />
       {location.state?.registrationComplete && (
         <p className="auth-notice" role="status">Account created. You can now log in.</p>
       )}

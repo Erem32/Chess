@@ -52,6 +52,14 @@ async function request(path, { token, body } = {}) {
     await page.getByRole('button', { name: 'View history' }).click();
     await page.locator('.history-row').first().waitFor();
     assert.deepEqual(await displayed('.history-row'), ids.slice(0, 20));
+    const list = page.locator('.history-list');
+    assert.ok(await list.evaluate((element) => element.scrollHeight > element.clientHeight));
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+    const headerTop = (await page.getByRole('heading', { name: 'Game history' }).boundingBox()).y;
+    await list.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+    assert.ok(await list.evaluate((element) => element.scrollTop > 0));
+    assert.equal((await page.getByRole('heading', { name: 'Game history' }).boundingBox()).y, headerTop);
+    assert.equal(await page.getByRole('button', { name: 'Load more' }).isVisible(), true);
     await page.getByText(`vs ${names[1]}`).first().waitFor();
     let failed = false;
     await page.route('**/api/v1/games/my-history?*', async (route) => {
@@ -71,6 +79,8 @@ async function request(path, { token, body } = {}) {
     assert.equal(await page.getByRole('button', { name: 'Load more' }).count(), 0);
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+    assert.ok(await list.evaluate((element) => element.scrollHeight > element.clientHeight));
     await page.getByRole('link', { name: `Open game ${ids[0]}` }).click();
     await page.waitForURL(`**/games/${ids[0]}`);
     await page.getByText('Game aborted.', { exact: true }).waitFor();

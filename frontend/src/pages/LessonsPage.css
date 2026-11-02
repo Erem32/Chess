@@ -1,9 +1,9 @@
 .study-page {
   margin: 0 auto;
   max-width: 1120px;
-  padding: clamp(0.5rem, 2vw, 1.75rem) 0 3rem;
+  padding: 0.25rem 0 1.5rem;
 }
-.study-header { margin-bottom: 2rem; }
+.study-header { margin-bottom: 1rem; }
 .study-back, .study-inline-back {
   align-items: center;
   background: transparent;
@@ -22,9 +22,9 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.study-eyebrow { margin: 2.5rem 0 0.55rem; }
-.study-header h1 { color: var(--color-text-strong); font-size: clamp(2rem, 4vw, 2.8rem); letter-spacing: -0.035em; line-height: 1.1; margin: 0; }
-.study-description { color: var(--color-text-muted); line-height: 1.6; margin: 0.75rem 0 0; }
+.study-eyebrow { margin: 0.9rem 0 0.35rem; }
+.study-header h1 { color: var(--color-text-strong); font-size: clamp(1.7rem, 3vw, 2.2rem); letter-spacing: -0.035em; line-height: 1.1; margin: 0; }
+.study-description { color: var(--color-text-muted); line-height: 1.45; margin: 0.4rem 0 0; }
 .study-cards { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .study-card {
   align-items: center;
@@ -83,8 +83,8 @@ button.study-card:hover { border-color: var(--color-link); transform: translateY
 @media (max-width: 900px) { .study-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) {
   .study-page { padding-top: 0.25rem; }
-  .study-header { margin-bottom: 1.5rem; }
-  .study-eyebrow { margin-top: 1.75rem; }
+  .study-header { margin-bottom: 0.85rem; }
+  .study-eyebrow { margin-top: 0.7rem; }
   .study-cards { grid-template-columns: 1fr; gap: 0.7rem; }
   .study-card { min-height: 100px; padding: 0.9rem; }
   .study-card-art { flex-basis: 56px; height: 56px; font-size: 2.1rem; }

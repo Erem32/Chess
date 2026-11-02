@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { getMyHistory } from "../api/games.js";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
-import StudyHeader from "../components/StudyHeader.jsx";
+import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { formatGameDuration, formatPlayerColor, resolveGameStatusClass } from "../features/game/gamePresentation.js";
@@ -47,7 +47,7 @@ export default function HistoryPage() {
   }
 
   return <section className="study-page history-page">
-    <StudyHeader eyebrow="YOUR GAMES" title="Game history" description="Your games, from the most recent onward." />
+    <PageHeader eyebrow="YOUR GAMES" title="Game history" description="Your games, from the most recent onward." />
     <div className="history-archive">
       <div className="history-archive-header"><h2>All games</h2><span className="muted">Most recent first</span></div>
       {error && <p className="error" role="alert">Could not load game history: {error}</p>}
@@ -57,7 +57,7 @@ export default function HistoryPage() {
           <span className="history-empty-icon"><UiIcon name="board" /></span>
           <h3>No games yet</h3><p className="muted">Your games will appear here after you play.</p>
           <Link to="/dashboard" className="history-empty-link">Find a game <UiIcon name="arrow" /></Link>
-        </div> : <div className="history-list">
+        </div> : <div className="history-list" role="region" aria-label="Games" tabIndex={0}>
           {games.map((game) => {
             const color = formatPlayerColor(game, user?.id);
             const opponent = historyOpponent(game, user?.id);

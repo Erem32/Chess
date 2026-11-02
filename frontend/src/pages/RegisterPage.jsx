@@ -1,4 +1,6 @@
 import { useState } from "react";
+import PageHeader from "../components/PageHeader.jsx";
+import "./LessonsPage.css";
 import { Link, useNavigate } from "react-router-dom";
 
 import { registerUser } from "../api/auth.js";
@@ -26,11 +28,7 @@ export default function RegisterPage() {
 
   return (
     <section className="auth-page">
-      <header className="auth-header">
-        <p className="auth-eyebrow">Online chess</p>
-        <h1>Register</h1>
-        <p>Create an account and find your next opponent.</p>
-      </header>
+      <PageHeader eyebrow="Online chess" title="Register" description="Create an account and find your next opponent." showBack={false} />
       <form onSubmit={handleSubmit} className="form-card" aria-busy={isSubmitting}>
         <div className="auth-field">
           <label htmlFor="register-username">Username</label>
