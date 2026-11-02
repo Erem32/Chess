@@ -6,6 +6,7 @@ Provide a few prepared chess positions with short written explanations and illus
 
 ## Implementation
 
+- The Examples page provides three original examples and uses a shared read-only guide. See the [content format](../../backend/app/data/TEACHING.md).
 - Store a few reviewed positions, explanations and legal example moves in repository files. Keep the text understandable without a chess engine.
 - Use a read-only board with previous/next navigation for illustrated moves. This can share the board adaptation used by the [opening guide](opening-study.md), without requiring a shared content platform.
 - Show the explanation alongside the position and let the user revisit it. Do not write anything to a live game or its result.

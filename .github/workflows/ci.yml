@@ -136,3 +136,5 @@ jobs:
           npm run test:e2e:lessons
           npm run test:e2e:puzzles
           npm run test:e2e:opening
+          npm run test:e2e:settings
+          npm run test:e2e:teaching

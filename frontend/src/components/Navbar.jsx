@@ -46,6 +46,7 @@ export default function Navbar({ theme, onToggleTheme }) {
             <Link to="/lessons">Lessons</Link>
             <Link to="/puzzles">Puzzles</Link>
             <Link to="/opening">Opening</Link>
+            <Link to="/examples">Examples</Link>
             <Link to="/history">History</Link>
             <button type="button" onClick={handleLogout}>Logout</button>
           </>

@@ -164,11 +164,14 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Current user | `GET /api/v1/users/me`, `GET /api/v1/users/me/stats` |
 | Matchmaking | `POST /api/v1/matchmaking/join`, `GET /api/v1/matchmaking/status`, `POST /api/v1/matchmaking/leave` |
 | Opening guide | `GET /api/v1/opening` |
+| Teaching examples | `GET /api/v1/teaching-examples` |
 | Practice | `GET /api/v1/practice/exercises`, `POST /api/v1/practice/exercises/{exercise_id}/attempt`, `GET /api/v1/practice/exercises/{exercise_id}/solution` |
 | Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
 | Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline`, `GET` and `POST /api/v1/games/{game_id}/draw-claims` |
 
 Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
+
+The Examples page provides short, illustrated teaching positions. See the [teaching content format](backend/app/data/TEACHING.md) to add examples.
 
 The Opening study page displays a written guide with a read-only board and optional video link. Its [content file](backend/app/data/OPENING.md) starts empty.
 

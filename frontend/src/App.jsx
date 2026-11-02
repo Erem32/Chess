@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import OpeningPage from "./pages/OpeningPage.jsx";
 import PuzzlesPage from "./pages/PuzzlesPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
+import TeachingPage from "./pages/TeachingPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 
 const THEME_STORAGE_KEY = "theme_mode";
@@ -54,6 +55,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/examples" element={<ProtectedRoute><TeachingPage /></ProtectedRoute>} />
           <Route path="/opening" element={<ProtectedRoute><OpeningPage /></ProtectedRoute>} />
           <Route path="/puzzles" element={<ProtectedRoute><PuzzlesPage /></ProtectedRoute>} />
           <Route path="/lessons" element={<ProtectedRoute><LessonsPage /></ProtectedRoute>} />
