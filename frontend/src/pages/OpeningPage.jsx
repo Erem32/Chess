@@ -27,7 +27,7 @@ export default function OpeningPage() {
     return () => { active = false; };
   }, [attempt]);
 
-  return <section className="study-page">
+  return <section className={`study-page${selected && guide ? " study-page--detail" : ""}`}>
     <StudyHeader eyebrow="LEARN & PRACTISE" title="Opening study" description="Explore opening ideas at your own pace, move by move." />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       guide === undefined ? <LoadingPlaceholder variant="cards" count={4} label="Loading opening guide" /> : selected && guide ? <>

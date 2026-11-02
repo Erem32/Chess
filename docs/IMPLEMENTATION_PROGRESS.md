@@ -1,14 +1,14 @@
 # Implementation checkpoint
 
-Objective: make page loading and the Play dashboard more stable, following [project instructions](../AGENTS.md).
+Objective: fit board-focused screens and their primary controls in common viewport sizes, following [project instructions](../AGENTS.md).
 
 ## Working state
 
-- `feature/smooth-loading` starts from `main`. It reserves page layouts while loading and keeps active-game controls in the Play panel.
-- Preserve unreviewed local stashes and `handoff/stash-recovery`. Inspect Git status and worktrees before resuming.
+- `feature/viewport-board` builds on `feature/smooth-loading`. Merge or include that branch first when reviewing.
+- The layout keeps scrolling available for long content, expanded controls or unusually small windows.
+- Preserve unreviewed local stashes and `handoff/stash-recovery`; inspect Git status and worktrees before resuming.
 
 ## Checks
 
 - Frontend: `cd frontend && npm test && npm run lint && npm run build` (28 tests passed).
-- Browser: `test:e2e:loading` passed with delayed and failed test responses, including desktop and mobile active-game layouts. Board, lessons, puzzles, opening, settings, teaching, mobile and real-content learning checks passed.
-- Two-player smoke and an active-game dashboard/abort check passed against disposable SQLite services. PostgreSQL-specific checks were not rerun. See [Contributing](../CONTRIBUTING.md) for disposable PostgreSQL setup.
+- Browser: `test:e2e:viewport`, `test:e2e:mobile`, `test:e2e:loading`, and two-player smoke passed using disposable SQLite services. PostgreSQL-specific checks were not rerun.

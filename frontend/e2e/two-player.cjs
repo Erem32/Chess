@@ -76,7 +76,16 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     assert.equal(new URL(white.url()).pathname, new URL(black.url()).pathname);
     assert.equal(await white.getByRole('link', { name: 'Play', exact: true }).getAttribute('aria-current'), 'page');
     assert.equal(await white.getByLabel('Play a move').count(), 0);
+    await white.setViewportSize({ width: 1280, height: 720 });
+    await white.getByText('Your turn.', { exact: true }).waitFor();
+    assert.ok(await white.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+    await white.setViewportSize({ width: 1440, height: 900 });
     // Mobile panel choices must expose their selected state to assistive technology.
+    await black.setViewportSize({ width: 390, height: 844 });
+    await black.getByText("Waiting for your opponent's move.", { exact: true }).waitFor();
+    assert.ok(await black.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+    await black.setViewportSize({ width: 390, height: 700 });
+    assert.ok(await black.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
     await black.setViewportSize({ width: 390, height: 844 });
     const mobileNav = black.getByRole('region', { name: 'Game panels' });
     const playersTab = mobileNav.getByRole('button', { name: 'Players' });

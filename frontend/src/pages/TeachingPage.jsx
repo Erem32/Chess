@@ -23,7 +23,7 @@ export default function TeachingPage() {
     return () => { active = false; };
   }, [attempt]);
 
-  return <section className="study-page">
+  return <section className={`study-page${selected ? " study-page--detail" : ""}`}>
     <StudyHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board." />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       examples === null ? <LoadingPlaceholder variant="cards" count={3} label="Loading examples" /> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
