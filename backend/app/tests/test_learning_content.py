@@ -13,7 +13,7 @@ def test_authored_practice_content_and_attempts():
     lessons = [item for item in exercises if item.kind == "lesson"]
     puzzles = [item for item in exercises if item.kind == "puzzle"]
     assert [item.id for item in lessons] == ["lesson-pawn", "lesson-knight", "lesson-bishop", "lesson-rook", "lesson-queen", "lesson-king"]
-    assert len(puzzles) == 3
+    assert len(puzzles) == 103
     app.dependency_overrides[get_current_user] = lambda: User(id=1, username="learner", email="learner@example.com", hashed_password="x")
     try:
         with TestClient(app) as client:
@@ -34,7 +34,8 @@ def test_authored_practice_content_and_attempts():
             for puzzle in puzzles:
                 solution = client.get(f"/api/v1/practice/exercises/{puzzle.id}/solution").json()
                 assert solution["move_uci"] in puzzle.accepted_moves
-                assert solution["explanation"]
+                if puzzle.solution_moves is None:
+                    assert solution["explanation"]
     finally:
         app.dependency_overrides.pop(get_current_user, None)
 

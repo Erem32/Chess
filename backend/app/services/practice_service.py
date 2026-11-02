@@ -1,6 +1,7 @@
 """Read server-owned exercises and validate attempts without changing games."""
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -19,7 +20,7 @@ class PracticeExercise(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    id: str = Field(min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$")
     kind: Literal["lesson", "puzzle"] = "lesson"
     fen: str
     instruction: str = Field(min_length=1)
@@ -27,6 +28,9 @@ class PracticeExercise(BaseModel):
     correct_feedback: str | None = None
     incorrect_feedback: str | None = None
     explanation: str | None = None
+    solution_moves: list[str] | None = None
+    rating: int | None = Field(default=None, ge=0)
+    source_url: str | None = None
 
     @model_validator(mode="after")
     def validate_position_and_answers(self) -> "PracticeExercise":
@@ -45,21 +49,42 @@ class PracticeExercise(BaseModel):
                 raise ValueError("Invalid accepted move") from exc
             if move not in board.legal_moves:
                 raise ValueError("Accepted move is not legal in exercise position")
+        if self.solution_moves is not None:
+            if self.kind != "puzzle" or not self.solution_moves or len(self.solution_moves) % 2 != 1:
+                raise ValueError("A puzzle line must end with a player move")
+            if len(self.solution_moves) > 39 or self.accepted_moves != self.solution_moves[:1]:
+                raise ValueError("Puzzle line must start with its accepted move and contain at most 39 plies")
+            for answer in self.solution_moves:
+                try:
+                    move = chess.Move.from_uci(answer)
+                except ValueError as exc:
+                    raise ValueError("Invalid move in puzzle line") from exc
+                if move not in board.legal_moves:
+                    raise ValueError("Illegal move in puzzle line")
+                board.push(move)
         return self
 
 
 def load_exercises() -> list[PracticeExercise]:
+    path = PRACTICE_CONTENT_PATH
+    stat = path.stat()
+    return list(_load_exercises(path, stat.st_mtime_ns, stat.st_size))
+
+
+@lru_cache(maxsize=1)
+def _load_exercises(path: Path, _mtime_ns: int, _size: int) -> tuple[PracticeExercise, ...]:
     definitions = TypeAdapter(list[PracticeExercise]).validate_python(
-        json.loads(PRACTICE_CONTENT_PATH.read_text(encoding="utf-8"))
+        json.loads(path.read_text(encoding="utf-8"))
     )
     if len({item.id for item in definitions}) != len(definitions):
         raise ValueError("Duplicate practice exercise ID")
-    return definitions
+    return tuple(definitions)
 
 
 def list_exercises(kind: str | None = None) -> list[PracticeExerciseRead]:
     return [
-        PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction)
+        PracticeExerciseRead(id=item.id, fen=item.fen, instruction=item.instruction,
+                             rating=item.rating, source_url=item.source_url)
         for item in load_exercises() if kind is None or item.kind == kind
     ]
 

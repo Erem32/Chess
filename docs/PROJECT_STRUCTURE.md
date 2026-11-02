@@ -88,7 +88,7 @@ Backend tests are grouped by auth, matchmaking/game behavior, chess service, and
 
 The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skipped unless `TEST_POSTGRES_URL` points to a disposable PostgreSQL database whose name starts with `chess_test_`. They create and remove a unique schema in that database. They verify row-lock contention and competing game outcomes; SQLite tests do not verify PostgreSQL locking.
 
-The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.
+The lessons and puzzles screens load exercises from the practice API and send moves for server validation. Multi-move puzzles replay the server-owned solution line, including the opponent's replies. Solved puzzle IDs are kept in browser local storage per user, independently of online game state.
 
 The opening guide service validates the authored catalog and sends positions to a read-only board; it does not create or change online games. Completion is saved only in the browser and is not synchronized with the backend.
 
