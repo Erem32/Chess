@@ -208,35 +208,9 @@ input {
 }
 
 .auth-page {
-  margin: clamp(2rem, 8vh, 5rem) auto 0;
+  margin: clamp(0.5rem, 2vh, 1.25rem) auto 0;
   max-width: 448px;
   width: 100%;
-}
-
-.auth-header {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.auth-header p {
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.auth-header .auth-eyebrow {
-  color: var(--color-text-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.auth-page h1 {
-  color: var(--color-text-strong);
-  font-size: 2rem;
-  line-height: 1.15;
-  margin: 0;
 }
 
 .auth-page .form-card {
@@ -313,38 +287,12 @@ input {
   align-content: start;
 }
 
-.dashboard-hero {
-  align-items: center;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: 1rem;
-}
-
-.dashboard-hero h1,
-.dashboard-card h2,
-.dashboard-active-game h2 {
-  color: var(--color-text-strong);
-  margin: 0;
-}
-
-.dashboard-hero p,
+.dashboard-card h2 { color: var(--color-text-strong); margin: 0; }
 .dashboard-section-heading p,
 .dashboard-searching p,
 .dashboard-status,
 .dashboard-empty-state,
-.latest-game-meta {
-  margin: 0.35rem 0 0;
-}
-
-.dashboard-eyebrow {
-  color: var(--color-link);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.35rem;
-  text-transform: uppercase;
-}
+.latest-game-meta { margin: 0.35rem 0 0; }
 
 .dashboard-card {
   display: grid;
@@ -974,15 +922,6 @@ input {
     grid-template-columns: 1fr;
   }
 
-  .dashboard-hero {
-    align-items: stretch;
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-hero button {
-    width: 100%;
-  }
-
   .dashboard-active-game {
     align-items: stretch;
     flex-direction: column;
@@ -1119,3 +1058,11 @@ input {
 @media (max-width: 1180px) {
   .game-board-column .board-wrap, .game-board-column .loading-board { width: min(100%, max(200px, calc(100dvh - 530px))); justify-self: center; }
 }
+
+/* Top-level screens share the same compact heading treatment. */
+.auth-page .study-header { margin-bottom: 0; }
+.auth-page .study-eyebrow, .dashboard-page .study-eyebrow { margin-top: 0; }
+.dashboard-page .study-header { margin-bottom: 0; }
+.settings-shell { max-width: 1120px; }
+.settings-shell .settings-page { max-width: 42rem; }
+.dashboard-page { margin: 0 auto; max-width: 1120px; width: 100%; }

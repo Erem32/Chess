@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api/client.js";
 import ChessBoard from "../components/ChessBoard.jsx";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
-import StudyHeader from "../components/StudyHeader.jsx";
+import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { loadOpeningProgress, saveOpeningProgress } from "../features/opening/openingProgress.js";
@@ -83,7 +83,7 @@ export default function OpeningPage() {
   }) ?? [];
 
   return <section className={`study-page opening-page${selected ? " study-page--detail" : ""}`}>
-    <StudyHeader eyebrow="LEARN & PRACTISE" title={selected?.title ?? "Opening study"}
+    <PageHeader eyebrow="LEARN & PRACTISE" title={selected?.title ?? "Opening study"}
       description={selected?.introduction ?? "Choose an opening and explore an example line, one move at a time."} />
     {warning}
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :

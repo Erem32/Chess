@@ -136,7 +136,7 @@ The chat history browser test additionally needs `CHESS_E2E_WS_URL=ws://127.0.0.
 
 To test the board component without a backend, start the frontend development server and run `CHESS_E2E_FRONTEND_URL=http://127.0.0.1:5173 CHROME_PATH=/path/to/chrome npm run test:e2e:board` from `frontend/`.
 
-The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, `test:e2e:settings`, and `test:e2e:loading` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning`, `test:e2e:mobile`, and `test:e2e:viewport` use the actual backend and register accounts, so they also require `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
+The `test:e2e:lessons`, `test:e2e:puzzles`, `test:e2e:opening`, `test:e2e:teaching`, `test:e2e:settings`, `test:e2e:history-ui`, `test:e2e:headers`, and `test:e2e:loading` checks use test-only API responses. Run them with `CHESS_E2E_FRONTEND_URL` and `CHROME_PATH` set as above. `test:e2e:learning`, `test:e2e:mobile`, and `test:e2e:viewport` use the actual backend and register accounts, so they also require `CHESS_E2E_ALLOW_REGISTRATION=1` and a disposable backend and database.
 
 For a manual smoke test, sign in as each development user in separate browser profiles, join matchmaking from both, make a move from each side, send a chat message, end the game by resignation or an agreed draw, and check the history. Also try refreshing the game page and reconnecting.
 
@@ -172,7 +172,7 @@ The interactive API documentation at `/docs` is the most detailed reference for 
 | Games | `GET /api/v1/games/my-history`, `GET /api/v1/games/my-active`, `POST /api/v1/games/my-active/abort`, `GET /api/v1/games/{game_id}`, `GET /api/v1/games/{game_id}/moves`, `GET /api/v1/games/{game_id}/chat` |
 | Game actions | `POST /api/v1/games/{game_id}/resign`, `POST /api/v1/games/{game_id}/draw-offer`, `POST /api/v1/games/{game_id}/draw-offer/accept`, `POST /api/v1/games/{game_id}/draw-offer/decline`, `GET` and `POST /api/v1/games/{game_id}/draw-claims` |
 
-Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
+The game history page shows opponents, results and game details, with links to open or resume a game. The list scrolls within the page while the header and pagination control remain in place. Game history returns the current player's games in descending ID order. `GET /api/v1/games/my-history` returns `{ "games": [...], "next_before_id": ... }`; `limit` defaults to 20 and accepts 1–100. Pass a non-null `next_before_id` as `before_id` to retrieve the next older page. Existing API clients that need the full history must follow the cursor.
 
 The Examples page provides short, illustrated teaching positions. See the [teaching content format](backend/app/data/TEACHING.md) to add examples.
 

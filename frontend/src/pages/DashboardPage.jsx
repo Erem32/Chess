@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
+import PageHeader from "../components/PageHeader.jsx";
+import "./LessonsPage.css";
 import { getMyStats } from "../api/auth.js";
 import {
   abortMyActiveGames,
@@ -268,12 +270,7 @@ export default function DashboardPage() {
 
   return (
     <section className="dashboard-page">
-      <header className="panel dashboard-hero">
-        <div>
-          <p className="dashboard-eyebrow">Dashboard</p>
-          <h1>{user?.username ? `Welcome, ${user.username}` : "Ready for a game"}</h1>
-        </div>
-      </header>
+      <PageHeader eyebrow="Dashboard" title={user?.username ? `Welcome, ${user.username}` : "Ready for a game"} showBack={false} />
 
       <div className="dashboard-grid">
         <div className="dashboard-main">

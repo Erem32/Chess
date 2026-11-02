@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client.js";
 import LoadingPlaceholder from "../components/LoadingPlaceholder.jsx";
 import IllustratedGuide from "../components/IllustratedGuide.jsx";
-import StudyHeader from "../components/StudyHeader.jsx";
+import PageHeader from "../components/PageHeader.jsx";
 import UiIcon from "../components/UiIcon.jsx";
 import "./LessonsPage.css";
 
@@ -24,7 +24,7 @@ export default function TeachingPage() {
   }, [attempt]);
 
   return <section className={`study-page${selected ? " study-page--detail" : ""}`}>
-    <StudyHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board." />
+    <PageHeader eyebrow="LEARN & PRACTISE" title="Teaching examples" description="Explore a position and see the idea play out on the board." />
     {error ? <><p className="error" role="alert">{error}</p><button type="button" onClick={() => setAttempt((value) => value + 1)}>Retry</button></> :
       examples === null ? <LoadingPlaceholder variant="cards" count={3} label="Loading examples" /> : examples.length === 0 ? <p className="muted">No examples are available yet.</p> :
         selected ? <><button type="button" className="study-inline-back" onClick={() => setSelected(null)}><UiIcon name="back" /> All examples</button><IllustratedGuide key={selected.id} guide={selected} /></> :
