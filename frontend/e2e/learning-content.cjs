@@ -36,11 +36,13 @@ if (process.env.CHESS_E2E_ALLOW_REGISTRATION !== '1' || !baseURL || !chromePath)
     await page.getByText(/Solution: d2d4/).waitFor();
     await page.goto(`${baseURL}/opening`);
     assert.equal(await page.getByRole('link', { name: 'Opening', exact: true }).getAttribute('aria-current'), 'page');
-    await page.getByRole('button', { name: /Italian Game: developing the pieces/ }).click();
-    await page.getByRole('heading', { name: 'Italian Game: developing the pieces' }).waitFor();
-    for (let i = 0; i < 5; i += 1) await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByText(/bishop develops to c4/).waitFor();
-    assert.equal(await page.getByRole('button', { name: 'Next' }).isDisabled(), true);
+    await page.getByRole('button', { name: /Italian Game, not completed/ }).click();
+    await page.getByRole('heading', { name: 'Italian Game', level: 1 }).waitFor();
+    for (let i = 0; i < 14; i += 1) await page.getByRole('button', { name: 'Next move' }).click();
+    await page.getByText("Black places a rook behind the e5 pawn.").waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Next move' }).isDisabled(), true);
+    await page.getByRole('button', { name: 'All openings' }).click();
+    await page.getByRole('button', { name: /Italian Game, completed, study again/ }).waitFor();
     console.log('Learning content browser test passed.');
   } finally { await browser.close(); }
 })().catch((error) => { console.error(error); process.exit(1); });

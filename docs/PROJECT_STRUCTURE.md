@@ -61,6 +61,7 @@ The React application lives in [frontend/src/](../frontend/src/).
 | [pages/](../frontend/src/pages/) | Login, registration, dashboard, game, history, lessons, puzzles, opening, examples, and settings screens. |
 | [components/](../frontend/src/components/) | Reusable interface pieces such as the chessboard, game action panels, chat, navigation, and move history. |
 | [features/game/](../frontend/src/features/game/) | Shared game presentation, socket-event normalization and snapshot buffering, reconnect scheduling, background state refresh, board consistency checks, chat history navigation, draw-claim request handling, and chat acknowledgement tracking. |
+| [features/opening/](../frontend/src/features/opening/) | Browser-local completion storage for opening guides, separated by user ID. |
 | [api/](../frontend/src/api/) | REST calls, WebSocket connection, and token storage helpers. |
 | [context/](../frontend/src/context/) | Authentication and browser-local display settings. |
 | [styles/](../frontend/src/styles/) | Shared CSS. |
@@ -89,13 +90,13 @@ The PostgreSQL concurrency tests in `test_game_concurrency_postgres.py` are skip
 
 The lessons and puzzles screens load exercises from the practice API and send moves for server validation. They do not use online game state.
 
-The opening guide service validates the authored move sequence and sends positions to a read-only board; it does not create or change online games.
+The opening guide service validates the authored catalog and sends positions to a read-only board; it does not create or change online games. Completion is saved only in the browser and is not synchronized with the backend.
 
-Teaching examples and the opening guide use a shared read-only guide component. The server validates the example positions and moves before returning them.
+Teaching examples use a shared read-only guide component. The opening page uses the same read-only board and learning layout. The server validates their example positions and moves before returning them.
 
 On narrow screens the main navigation collapses into a menu, and practice and illustrated-guide instructions appear before the board.
 
-The main navigation marks the current page and collapses on narrow screens. Learning pages use shared cards and board layouts; the opening selector marks entries without guides unavailable.
+The main navigation marks the current page and collapses on narrow screens. Learning pages use shared board layouts; the opening selector presents a searchable list with completion filters.
 
 Initial page requests use quiet, space-reserving placeholders. The Play dashboard keeps active-game controls in its matchmaking panel, and the game screen waits for the server position before displaying a board.
 

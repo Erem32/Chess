@@ -1,0 +1,1118 @@
+[
+  {
+    "id": "italian-game",
+    "title": "Italian Game",
+    "line": "Giuoco Piano",
+    "introduction": "A classical open game in which White develops the bishop towards f7 and both players build up around the centre.",
+    "ideas": [
+      "Develop your pieces before starting an attack.",
+      "White can support a future d4 advance with c3.",
+      "Both sides usually look for a safe moment to castle."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre and opens lines for the bishop and queen."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black claims central space and opens lines for development."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "The knight develops and attacks the pawn on e5."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Black develops a knight and defends the pawn."
+      },
+      {
+        "move_uci": "f1c4",
+        "explanation": "The bishop points towards f7: this is the Italian Game."
+      },
+      {
+        "move_uci": "f8c5",
+        "explanation": "Black develops the bishop actively, reaching the Giuoco Piano."
+      },
+      {
+        "move_uci": "c2c3",
+        "explanation": "White prepares to support a pawn advance to d4."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "The knight develops and attacks White's e4 pawn."
+      },
+      {
+        "move_uci": "d2d3",
+        "explanation": "White supports e4 and chooses a flexible setup."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black reinforces e5 and opens a path for the other bishop."
+      },
+      {
+        "move_uci": "e1g1",
+        "explanation": "White castles to bring the king to safety."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles as well, connecting the rooks."
+      },
+      {
+        "move_uci": "f1e1",
+        "explanation": "The rook supports the e4 pawn and future central play."
+      },
+      {
+        "move_uci": "f8e8",
+        "explanation": "Black places a rook behind the e5 pawn."
+      }
+    ]
+  },
+  {
+    "id": "ruy-lopez",
+    "title": "Ruy Lopez",
+    "line": "Morphy Defense",
+    "introduction": "The Spanish Opening puts early pressure on the knight that defends Black's e5 pawn.",
+    "ideas": [
+      "The bishop on b5 puts indirect pressure on the centre.",
+      "White can retreat the bishop while preserving it.",
+      "Both sides continue development and prepare central pawn breaks."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White claims central space."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black answers in the centre."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and attacks e5."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Black defends e5 with a knight."
+      },
+      {
+        "move_uci": "f1b5",
+        "explanation": "The bishop attacks the defender of the e5 pawn."
+      },
+      {
+        "move_uci": "a7a6",
+        "explanation": "Black asks the bishop to decide where to go."
+      },
+      {
+        "move_uci": "b5a4",
+        "explanation": "White keeps the bishop and the diagonal towards the centre."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and attacks the e4 pawn."
+      },
+      {
+        "move_uci": "e1g1",
+        "explanation": "White castles and brings the rook towards the centre."
+      },
+      {
+        "move_uci": "f8e7",
+        "explanation": "Black prepares to castle."
+      },
+      {
+        "move_uci": "f1e1",
+        "explanation": "The rook supports White's e4 pawn."
+      },
+      {
+        "move_uci": "b7b5",
+        "explanation": "Black gains queenside space and attacks the bishop."
+      },
+      {
+        "move_uci": "a4b3",
+        "explanation": "The bishop retreats while remaining active on the diagonal."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black reinforces the e5 pawn."
+      }
+    ]
+  },
+  {
+    "id": "scotch-game",
+    "title": "Scotch Game",
+    "line": "Open centre",
+    "introduction": "White challenges the centre immediately with d4, often opening lines for the pieces.",
+    "ideas": [
+      "The early d4 push opens the centre.",
+      "Develop quickly when central files open.",
+      "Black can put pressure on the knight and e4 pawn."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black answers with a central pawn."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White attacks e5 and develops a knight."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Black defends e5."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White challenges the centre: the Scotch Game."
+      },
+      {
+        "move_uci": "e5d4",
+        "explanation": "Black captures the central pawn."
+      },
+      {
+        "move_uci": "f3d4",
+        "explanation": "White recaptures with a developed knight."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and attacks e4."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White defends e4 and develops another knight."
+      },
+      {
+        "move_uci": "f8b4",
+        "explanation": "Black pins the c3 knight to the king."
+      }
+    ]
+  },
+  {
+    "id": "four-knights",
+    "title": "Four Knights Game",
+    "line": "Spanish Variation",
+    "introduction": "Both sides develop their knights before committing many pawns, producing a flexible open game.",
+    "ideas": [
+      "Develop knights and bishops before moving the same piece repeatedly.",
+      "Both bishops can attack the opposing knights.",
+      "Castling helps bring the king to safety."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White takes central space."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black responds in kind."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "The knight develops and attacks e5."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Black defends e5."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops a second knight and supports e4."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black also develops the second knight."
+      },
+      {
+        "move_uci": "f1b5",
+        "explanation": "White attacks the c6 knight."
+      },
+      {
+        "move_uci": "f8b4",
+        "explanation": "Black attacks the c3 knight in return."
+      },
+      {
+        "move_uci": "e1g1",
+        "explanation": "White castles."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles as well."
+      }
+    ]
+  },
+  {
+    "id": "kings-gambit",
+    "title": "King's Gambit",
+    "line": "Accepted",
+    "introduction": "White offers the f-pawn to challenge e5 and open lines, accepting extra risks around the king.",
+    "ideas": [
+      "The gambit offers a pawn for activity and central play.",
+      "White must pay attention to king safety.",
+      "Black can accept the pawn and try to hold it."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black challenges the centre."
+      },
+      {
+        "move_uci": "f2f4",
+        "explanation": "White offers a pawn and attacks e5."
+      },
+      {
+        "move_uci": "e5f4",
+        "explanation": "Black accepts the gambit pawn."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and controls central squares."
+      },
+      {
+        "move_uci": "g7g5",
+        "explanation": "Black supports the pawn on f4."
+      },
+      {
+        "move_uci": "h2h4",
+        "explanation": "White challenges Black's kingside pawn chain."
+      },
+      {
+        "move_uci": "g5g4",
+        "explanation": "Black advances and attacks the knight."
+      },
+      {
+        "move_uci": "f3e5",
+        "explanation": "The knight moves to an active central square."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and contests the centre."
+      }
+    ]
+  },
+  {
+    "id": "vienna-game",
+    "title": "Vienna Game",
+    "line": "Vienna Gambit",
+    "introduction": "White develops the queen's knight early and can support an f-pawn advance against Black's centre.",
+    "ideas": [
+      "The c3 knight supports the centre.",
+      "The f-pawn can challenge Black's e5 pawn.",
+      "The position can become tactical quickly."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White claims space in the centre."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black answers with a central pawn."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops the queen's knight first."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black attacks the e4 pawn."
+      },
+      {
+        "move_uci": "f2f4",
+        "explanation": "White challenges e5 with the Vienna Gambit."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black strikes back in the centre."
+      },
+      {
+        "move_uci": "f4e5",
+        "explanation": "White captures the e5 pawn."
+      },
+      {
+        "move_uci": "f6e4",
+        "explanation": "Black's knight captures White's e4 pawn."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and supports the advanced e5 pawn."
+      },
+      {
+        "move_uci": "f8e7",
+        "explanation": "Black develops and prepares to castle."
+      }
+    ]
+  },
+  {
+    "id": "petrovs-defense",
+    "title": "Petrov's Defense",
+    "line": "Classical Attack",
+    "introduction": "Black responds to the attack on e5 by developing a knight and counterattacking White's e4 pawn.",
+    "ideas": [
+      "Both players must account for threats to their central pawns.",
+      "Develop with care when knights enter the centre.",
+      "The central pawn structure can change early."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black responds in the centre."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White attacks the e5 pawn."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black counterattacks e4: Petrov's Defense."
+      },
+      {
+        "move_uci": "f3e5",
+        "explanation": "White captures the e5 pawn."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black attacks the advanced knight."
+      },
+      {
+        "move_uci": "e5f3",
+        "explanation": "White retreats the knight to safety."
+      },
+      {
+        "move_uci": "f6e4",
+        "explanation": "Black recaptures a central pawn."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White establishes a pawn in the centre."
+      },
+      {
+        "move_uci": "d6d5",
+        "explanation": "Black challenges White's central space."
+      }
+    ]
+  },
+  {
+    "id": "sicilian-defense",
+    "title": "Sicilian Defense",
+    "line": "Najdorf Variation",
+    "introduction": "Black meets e4 with the c-pawn, creating an asymmetrical position and a fight for central squares.",
+    "ideas": [
+      "Black trades a flank pawn for White's d-pawn in this line.",
+      "The a6 move controls b5 and prepares queenside play.",
+      "The open centre gives both sides active possibilities."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "c7c5",
+        "explanation": "Black attacks the d4 square from the flank."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and prepares d4."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black supports the centre and controls e5."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White opens the centre."
+      },
+      {
+        "move_uci": "c5d4",
+        "explanation": "Black exchanges the c-pawn for White's d-pawn."
+      },
+      {
+        "move_uci": "f3d4",
+        "explanation": "White recaptures with the knight."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and attacks e4."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White defends e4 and develops."
+      },
+      {
+        "move_uci": "a7a6",
+        "explanation": "The Najdorf move controls b5 and prepares queenside expansion."
+      },
+      {
+        "move_uci": "c1g5",
+        "explanation": "White develops the bishop and attacks the f6 knight."
+      },
+      {
+        "move_uci": "e7e6",
+        "explanation": "Black strengthens the centre and opens a path for the bishop."
+      }
+    ]
+  },
+  {
+    "id": "french-defense",
+    "title": "French Defense",
+    "line": "Classical Variation",
+    "introduction": "Black supports a d5 advance with e6, setting up a solid centre and a long-term fight over space.",
+    "ideas": [
+      "Black challenges e4 with d5.",
+      "White often gains space by advancing e5.",
+      "Black's c8 bishop can need careful development."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White takes central space."
+      },
+      {
+        "move_uci": "e7e6",
+        "explanation": "Black prepares d5 and opens the f8 bishop's diagonal."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White builds a broad pawn centre."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black attacks the e4 pawn."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops and defends e4."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and attacks e4 again."
+      },
+      {
+        "move_uci": "c1g5",
+        "explanation": "White develops the bishop and pins the f6 knight."
+      },
+      {
+        "move_uci": "f8e7",
+        "explanation": "Black breaks the pin and prepares to castle."
+      },
+      {
+        "move_uci": "e4e5",
+        "explanation": "White gains space and attacks the f6 knight."
+      },
+      {
+        "move_uci": "f6d7",
+        "explanation": "The knight retreats, leaving the centre contested."
+      }
+    ]
+  },
+  {
+    "id": "caro-kann",
+    "title": "Caro-Kann Defense",
+    "line": "Classical Variation",
+    "introduction": "Black prepares d5 with c6 and often develops the light-squared bishop before playing e6.",
+    "ideas": [
+      "Black uses c6 to support a central d5 push.",
+      "Developing the c8 bishop early avoids locking it behind e6.",
+      "White's knights gain active central squares."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "c7c6",
+        "explanation": "Black prepares to support d5."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White builds a pawn centre."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black challenges the e4 pawn."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops and defends e4."
+      },
+      {
+        "move_uci": "d5e4",
+        "explanation": "Black exchanges in the centre."
+      },
+      {
+        "move_uci": "c3e4",
+        "explanation": "White recaptures with a knight."
+      },
+      {
+        "move_uci": "c8f5",
+        "explanation": "Black develops the light-squared bishop outside the pawn chain."
+      },
+      {
+        "move_uci": "e4g3",
+        "explanation": "The knight attacks the bishop on f5."
+      },
+      {
+        "move_uci": "f5g6",
+        "explanation": "Black keeps the bishop on an active diagonal."
+      }
+    ]
+  },
+  {
+    "id": "scandinavian-defense",
+    "title": "Scandinavian Defense",
+    "line": "Queen to a5",
+    "introduction": "Black challenges e4 at once with d5 and often brings the queen out early to recapture.",
+    "ideas": [
+      "Black immediately challenges White's central pawn.",
+      "The early queen move can be attacked during development.",
+      "Black often builds a solid c6 and e6 structure."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black challenges e4 immediately."
+      },
+      {
+        "move_uci": "e4d5",
+        "explanation": "White captures the d5 pawn."
+      },
+      {
+        "move_uci": "d8d5",
+        "explanation": "Black recaptures with the queen."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops with tempo by attacking the queen."
+      },
+      {
+        "move_uci": "d5a5",
+        "explanation": "The queen retreats to a5."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White establishes another central pawn."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and controls central squares."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and supports the centre."
+      },
+      {
+        "move_uci": "c7c6",
+        "explanation": "Black prepares a solid structure and a retreat for the queen."
+      }
+    ]
+  },
+  {
+    "id": "pirc-defense",
+    "title": "Pirc Defense",
+    "line": "Classical setup",
+    "introduction": "Black allows White to occupy the centre and prepares to challenge it with pieces and pawn breaks.",
+    "ideas": [
+      "White gains central space early.",
+      "Black places the bishop on g7 along a long diagonal.",
+      "Black can challenge the centre later instead of occupying it immediately."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White takes central space."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black controls e5 and keeps options open."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White builds a broad pawn centre."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and attacks e4."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White defends e4."
+      },
+      {
+        "move_uci": "g7g6",
+        "explanation": "Black prepares to develop the bishop on g7."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops a second knight."
+      },
+      {
+        "move_uci": "f8g7",
+        "explanation": "The bishop occupies the long diagonal."
+      },
+      {
+        "move_uci": "f1e2",
+        "explanation": "White develops and prepares to castle."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles to safety."
+      }
+    ]
+  },
+  {
+    "id": "alekhine-defense",
+    "title": "Alekhine's Defense",
+    "line": "Modern Variation",
+    "introduction": "Black invites White's pawns forward and aims to attack the advanced centre later.",
+    "ideas": [
+      "White can gain space by advancing central pawns.",
+      "Black's knight moves several times but draws pawns forward.",
+      "An advanced centre needs continued support."
+    ],
+    "moves": [
+      {
+        "move_uci": "e2e4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black immediately attacks the e4 pawn."
+      },
+      {
+        "move_uci": "e4e5",
+        "explanation": "White gains space and attacks the knight."
+      },
+      {
+        "move_uci": "f6d5",
+        "explanation": "The knight moves to a central square."
+      },
+      {
+        "move_uci": "d2d4",
+        "explanation": "White supports e5 and takes more central space."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black challenges the advanced e5 pawn."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and supports the centre."
+      },
+      {
+        "move_uci": "g7g6",
+        "explanation": "Black prepares a bishop on the long diagonal."
+      },
+      {
+        "move_uci": "f1c4",
+        "explanation": "White develops the bishop with tempo against the knight."
+      },
+      {
+        "move_uci": "d5b6",
+        "explanation": "Black retreats the knight while attacking the bishop."
+      }
+    ]
+  },
+  {
+    "id": "queens-gambit-declined",
+    "title": "Queen's Gambit Declined",
+    "line": "Classical setup",
+    "introduction": "White offers the c-pawn to challenge Black's d5 pawn; Black supports the centre with e6.",
+    "ideas": [
+      "The c4 pawn challenges Black's central pawn.",
+      "Black's e6 pawn supports d5 but can restrict the c8 bishop.",
+      "Both sides develop and prepare central breaks."
+    ],
+    "moves": [
+      {
+        "move_uci": "d2d4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black matches White's central claim."
+      },
+      {
+        "move_uci": "c2c4",
+        "explanation": "White challenges d5 with the Queen's Gambit."
+      },
+      {
+        "move_uci": "e7e6",
+        "explanation": "Black supports d5 instead of capturing."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops and adds pressure to d5."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and reinforces the centre."
+      },
+      {
+        "move_uci": "c1g5",
+        "explanation": "White pins the f6 knight."
+      },
+      {
+        "move_uci": "f8e7",
+        "explanation": "Black breaks the pin and prepares to castle."
+      },
+      {
+        "move_uci": "e2e3",
+        "explanation": "White supports d4 and opens the f1 bishop's diagonal."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and prepares to castle."
+      },
+      {
+        "move_uci": "h7h6",
+        "explanation": "Black asks the bishop on g5 to move or capture."
+      },
+      {
+        "move_uci": "g5h4",
+        "explanation": "White keeps the bishop on the diagonal."
+      },
+      {
+        "move_uci": "b7b6",
+        "explanation": "Black prepares to develop the c8 bishop."
+      }
+    ]
+  },
+  {
+    "id": "slav-defense",
+    "title": "Slav Defense",
+    "line": "Czech Variation",
+    "introduction": "Black supports d5 with the c-pawn, keeping the e-pawn available and the c8 bishop's diagonal open.",
+    "ideas": [
+      "The c6 pawn supports Black's d5 pawn.",
+      "Black may capture on c4 and develop the c8 bishop.",
+      "White's a4 can limit Black's queenside expansion."
+    ],
+    "moves": [
+      {
+        "move_uci": "d2d4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black responds in the centre."
+      },
+      {
+        "move_uci": "c2c4",
+        "explanation": "White challenges d5."
+      },
+      {
+        "move_uci": "c7c6",
+        "explanation": "Black supports d5 with the c-pawn."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and controls central squares."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops a knight."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White adds pressure to d5."
+      },
+      {
+        "move_uci": "d5c4",
+        "explanation": "Black captures the c4 pawn."
+      },
+      {
+        "move_uci": "a2a4",
+        "explanation": "White makes a future b5 advance harder."
+      },
+      {
+        "move_uci": "c8f5",
+        "explanation": "Black develops the c8 bishop actively."
+      }
+    ]
+  },
+  {
+    "id": "kings-indian",
+    "title": "King's Indian Defense",
+    "line": "Classical setup",
+    "introduction": "Black lets White build a broad centre and places a bishop on g7 to contest it from a distance.",
+    "ideas": [
+      "White usually gains space with d4 and e4.",
+      "Black's g7 bishop influences the long diagonal.",
+      "Black often challenges the centre with a later pawn break."
+    ],
+    "moves": [
+      {
+        "move_uci": "d2d4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and controls e4."
+      },
+      {
+        "move_uci": "c2c4",
+        "explanation": "White takes more central space."
+      },
+      {
+        "move_uci": "g7g6",
+        "explanation": "Black prepares a bishop on g7."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops and supports e4."
+      },
+      {
+        "move_uci": "f8g7",
+        "explanation": "The bishop takes the long diagonal."
+      },
+      {
+        "move_uci": "e2e4",
+        "explanation": "White builds a broad pawn centre."
+      },
+      {
+        "move_uci": "d7d6",
+        "explanation": "Black controls e5 and supports the centre."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops another piece."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles to safety."
+      }
+    ]
+  },
+  {
+    "id": "nimzo-indian",
+    "title": "Nimzo-Indian Defense",
+    "line": "Rubinstein Variation",
+    "introduction": "Black pins White's c3 knight and fights for control of e4 without occupying the centre immediately.",
+    "ideas": [
+      "The b4 bishop pins the knight on c3.",
+      "White's e3 supports the centre and opens the bishop's diagonal.",
+      "Black can later trade the bishop for the knight."
+    ],
+    "moves": [
+      {
+        "move_uci": "d2d4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and controls e4."
+      },
+      {
+        "move_uci": "c2c4",
+        "explanation": "White gains space and challenges the centre."
+      },
+      {
+        "move_uci": "e7e6",
+        "explanation": "Black prepares to develop the bishop."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops and supports e4."
+      },
+      {
+        "move_uci": "f8b4",
+        "explanation": "Black pins the knight: the Nimzo-Indian."
+      },
+      {
+        "move_uci": "e2e3",
+        "explanation": "White supports the centre and opens the f1 bishop's diagonal."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles."
+      },
+      {
+        "move_uci": "f1d3",
+        "explanation": "White develops towards Black's kingside."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black challenges White's centre."
+      }
+    ]
+  },
+  {
+    "id": "london-system",
+    "title": "London System",
+    "line": "Classical setup",
+    "introduction": "White develops the dark-squared bishop early and builds a solid pawn structure around d4 and e3.",
+    "ideas": [
+      "Develop the c1 bishop before closing its diagonal with e3.",
+      "The c3 and e3 pawns support d4.",
+      "Black can challenge the centre with c5."
+    ],
+    "moves": [
+      {
+        "move_uci": "d2d4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black responds in the centre."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops and controls central squares."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops a knight."
+      },
+      {
+        "move_uci": "c1f4",
+        "explanation": "White develops the bishop outside the pawn chain."
+      },
+      {
+        "move_uci": "e7e6",
+        "explanation": "Black supports d5 and opens the bishop's diagonal."
+      },
+      {
+        "move_uci": "e2e3",
+        "explanation": "White supports d4 and opens the f1 bishop's diagonal."
+      },
+      {
+        "move_uci": "c7c5",
+        "explanation": "Black challenges White's centre."
+      },
+      {
+        "move_uci": "c2c3",
+        "explanation": "White reinforces d4."
+      },
+      {
+        "move_uci": "b8c6",
+        "explanation": "Black develops and adds pressure to d4."
+      }
+    ]
+  },
+  {
+    "id": "english-opening",
+    "title": "English Opening",
+    "line": "Reversed Sicilian",
+    "introduction": "White begins with c4, controlling d5 from the flank rather than occupying the centre immediately.",
+    "ideas": [
+      "The c-pawn controls the d5 square.",
+      "White can develop a bishop on the long diagonal.",
+      "The pawn structure can resemble a Sicilian with colours reversed."
+    ],
+    "moves": [
+      {
+        "move_uci": "c2c4",
+        "explanation": "White controls d5 from the flank."
+      },
+      {
+        "move_uci": "e7e5",
+        "explanation": "Black takes central space."
+      },
+      {
+        "move_uci": "b1c3",
+        "explanation": "White develops and controls d5."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and supports central play."
+      },
+      {
+        "move_uci": "g2g3",
+        "explanation": "White prepares a bishop on g2."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black challenges White in the centre."
+      },
+      {
+        "move_uci": "c4d5",
+        "explanation": "White exchanges the c-pawn for Black's d-pawn."
+      },
+      {
+        "move_uci": "f6d5",
+        "explanation": "Black recaptures with the knight."
+      },
+      {
+        "move_uci": "f1g2",
+        "explanation": "White develops the bishop on the long diagonal."
+      },
+      {
+        "move_uci": "d5b6",
+        "explanation": "Black moves the knight away from the bishop's line."
+      }
+    ]
+  },
+  {
+    "id": "catalan-opening",
+    "title": "Catalan Opening",
+    "line": "Closed setup",
+    "introduction": "White combines a d4 and c4 centre with a bishop on the long diagonal from g2.",
+    "ideas": [
+      "The g2 bishop puts long-term pressure on the queenside diagonal.",
+      "White combines central space with flexible development.",
+      "Black can choose whether to hold or capture the c4 pawn."
+    ],
+    "moves": [
+      {
+        "move_uci": "d2d4",
+        "explanation": "White occupies the centre."
+      },
+      {
+        "move_uci": "g8f6",
+        "explanation": "Black develops and controls e4."
+      },
+      {
+        "move_uci": "c2c4",
+        "explanation": "White gains space and challenges the centre."
+      },
+      {
+        "move_uci": "e7e6",
+        "explanation": "Black prepares d5 and opens the bishop's diagonal."
+      },
+      {
+        "move_uci": "g2g3",
+        "explanation": "White prepares the Catalan bishop on g2."
+      },
+      {
+        "move_uci": "d7d5",
+        "explanation": "Black challenges White's centre."
+      },
+      {
+        "move_uci": "f1g2",
+        "explanation": "The bishop takes the long diagonal."
+      },
+      {
+        "move_uci": "f8e7",
+        "explanation": "Black develops and prepares to castle."
+      },
+      {
+        "move_uci": "g1f3",
+        "explanation": "White develops a knight and prepares to castle."
+      },
+      {
+        "move_uci": "e8g8",
+        "explanation": "Black castles to safety."
+      }
+    ]
+  }
+]

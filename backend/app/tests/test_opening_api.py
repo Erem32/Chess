@@ -57,3 +57,51 @@ def test_invalid_sequence_and_video_are_rejected(guide):
     guide.write_text(json.dumps(data))
     with pytest.raises(ValueError):
         opening_service.load_opening_guide()
+
+
+def test_opening_catalog_requires_authentication():
+    with TestClient(app) as client:
+        assert client.get("/api/v1/opening/catalog").status_code == 401
+
+
+def test_opening_catalog_has_legal_complete_guides():
+    app.dependency_overrides[get_current_user] = lambda: User(id=1, username="learner", email="learner@example.com", hashed_password="x")
+    try:
+        with TestClient(app) as client:
+            response = client.get("/api/v1/opening/catalog")
+            assert response.status_code == 200
+            guides = response.json()
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+    assert len(guides) == 20
+    assert len({guide["id"] for guide in guides}) == len(guides)
+    italian = next(guide for guide in guides if guide["id"] == "italian-game")
+    assert italian["title"] == "Italian Game"
+    assert [step["move"] for step in italian["steps"][1:7]] == ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5"]
+    for guide in guides:
+        assert 10 <= len(guide["steps"]) - 1 <= 16
+        assert (len(guide["steps"]) - 1) % 2 == 0
+        assert guide["introduction"] and guide["ideas"]
+        board = chess.Board()
+        assert guide["steps"][0]["fen"] == board.fen()
+        for step in guide["steps"][1:]:
+            board.push_san(step["move"])
+            assert step["fen"] == board.fen()
+            assert step["explanation"]
+
+
+def test_opening_catalog_rejects_duplicates_and_illegal_moves(tmp_path, monkeypatch):
+    path = tmp_path / "catalog.json"
+    monkeypatch.setattr(opening_service, "OPENING_CATALOG_PATH", path)
+    guide = {
+        "id": "test", "title": "Test", "line": "Main", "introduction": "Start",
+        "ideas": ["Develop"], "moves": [{"move_uci": "e2e4", "explanation": "White moves"}],
+    }
+    path.write_text(json.dumps([guide, guide]))
+    with pytest.raises(ValueError, match="Duplicate opening ID"):
+        opening_service.load_opening_catalog()
+    guide["moves"][0]["move_uci"] = "e2e5"
+    path.write_text(json.dumps([guide]))
+    with pytest.raises(ValueError, match="Invalid opening move"):
+        opening_service.load_opening_catalog()

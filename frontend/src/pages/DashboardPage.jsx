@@ -311,6 +311,18 @@ export default function DashboardPage() {
           <section className="panel dashboard-card">
             <div className="dashboard-section-heading">
               <div>
+                <h2>Learn an opening</h2>
+                <p className="muted">Explore popular openings one move at a time.</p>
+              </div>
+              <button type="button" className="secondary-button" onClick={() => navigate("/opening")}>
+                Open guide
+              </button>
+            </div>
+          </section>
+
+          <section className="panel dashboard-card">
+            <div className="dashboard-section-heading">
+              <div>
                 <h2>Latest games</h2>
                 <p className="muted">Your newest games from the existing game history.</p>
               </div>
